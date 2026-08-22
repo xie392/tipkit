@@ -115,7 +115,27 @@ export default function App() {
 <h2>表格</h2>
 <table><tbody><tr><th>能力</th><th>入口</th><th>说明</th></tr><tr><td>斜杠菜单</td><td><code>/</code></td><td>21 种内容节点</td></tr><tr><td>Markdown</td><td>直接粘贴</td><td>即时转换</td></tr><tr><td>Emoji</td><td><code>:smile</code></td><td>方向键浏览</td></tr></tbody></table>
 <h2>高级节点</h2>
-<p>斜杠菜单可插入：数学公式、提示框、分栏、折叠块、页面目录、iframe 嵌入、附件等。</p>
+<p>下面是各高级节点的渲染示例，可配合左侧 ⋮⋮ 手柄拖拽排序、点击块选中后浮动工具条操作。</p>
+<h3>提示框 Callout</h3>
+<div class="tk-callout" data-variant="info" data-emoji="💡"><div class="tk-callout-content"><p>这是一条<strong>信息提示</strong>：斜杠菜单输入 <code>/callout</code> 即可插入，支持切换 info / success / warning / danger 四种样式与自定义 emoji。</p></div></div>
+<div class="tk-callout" data-variant="success" data-emoji="✅"><div class="tk-callout-content"><p>成功提示：操作已完成。</p></div></div>
+<div class="tk-callout" data-variant="warning" data-emoji="⚠️"><div class="tk-callout-content"><p>警告提示：请注意边界情况。</p></div></div>
+<div class="tk-callout" data-variant="danger" data-emoji="🛑"><div class="tk-callout-content"><p>危险提示：此操作不可撤销。</p></div></div>
+<h3>数学公式 KaTeX</h3>
+<div class="tk-katex" data-text="E = mc^2"></div>
+<p>质能方程描述了质量与能量的关系；下面是求根公式：</p>
+<div class="tk-katex" data-text="\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}"></div>
+<h3>分栏 Columns</h3>
+<div data-type="columns" class="tk-columns layout-two-column"><div data-type="column" class="tk-column" data-position="left"><p><strong>左栏</strong></p><p>这里是第一列的内容，可以放任意块级元素：列表、代码块、图片等。</p><ul><li>分栏一</li><li>分栏二</li></ul></div><div data-type="column" class="tk-column" data-position="right"><p><strong>右栏</strong></p><p>这里是第二列。斜杠菜单可切换两栏 / 左窄右宽 / 左宽右窄布局。</p><blockquote><p>栏内引用块示例。</p></blockquote></div></div>
+<h3>折叠块 Details</h3>
+<details data-type="details" class="tk-details" open="open"><summary data-type="summary" class="tk-details-summary">点击展开 / 收起：常见问题</summary><div data-type="details-content" class="tk-details-content"><p>折叠块默认展开，点击标题栏可收起。内部可以放任意块级内容。</p><ol><li>第一步内容</li><li>第二步内容</li><li>第三步内容</li></ol></div></details>
+<details data-type="details" class="tk-details"><summary data-type="summary" class="tk-details-summary">这是一个默认收起的折叠块</summary><div data-type="details-content" class="tk-details-content"><p>你展开我了 👋</p></div></details>
+<h3>页面目录 TOC</h3>
+<div data-type="table-of-content"></div>
+<h3>嵌入 Iframe</h3>
+<div class="tk-iframe" data-url="https://example.com" data-width="100%" data-height="320"></div>
+<h3>附件 Attachment</h3>
+<div class="tk-attachment" data-filename="项目设计文档.pdf" data-filesize="2048576" data-filetype="application/pdf" data-fileext="pdf" data-url="#"></div>
 `;
 
 export function DemoEditor({

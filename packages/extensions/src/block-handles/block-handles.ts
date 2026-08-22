@@ -10,48 +10,15 @@ import {
 } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
 
-/* BlockHandles：Notion 风格块级双柄（迁移自 blog rich-text/ext/block-handles.ts）。
- * 鼠标悬停块时在左侧显示 +（插入）与 ⋮⋮（拖拽）按钮。
- * 视觉类名 tk-*，样式由主题 CSS 提供。 */
-
-const BLOCK_SELECTOR = new Set([
-  "P",
-  "H1",
-  "H2",
-  "H3",
-  "H4",
-  "H5",
-  "H6",
-  "BLOCKQUOTE",
-  "UL",
-  "OL",
-  "TABLE",
-  "HR",
-  "LI",
-]);
-
-const SKIP_CLASS = ["tk-columns", "tk-column", "tk-details", "tk-details-content"];
-
-function isNodeViewWrapper(el: Element): boolean {
-  return (
-    el.hasAttribute("data-node-view-wrapper") &&
-    !el.hasAttribute("data-node-view-content-react")
-  );
-}
-
-function isBlockDom(el: Element | null): boolean {
-  if (!el || el.nodeType !== 1) return false;
-  if (el.classList.contains("ProseMirror")) return false;
-  if (SKIP_CLASS.some((c) => el.classList.contains(c))) return false;
-  if (isNodeViewWrapper(el)) return true;
-  if (el.hasAttribute("data-type")) return true;
-  if (!BLOCK_SELECTOR.has(el.tagName)) return false;
-  if (el.tagName === "UL" || el.tagName === "OL") return false;
-  return true;
-}
+/* BlockHandles：Notion 风格块级双柄。
+ * 手柄锚定到编辑器根（.ProseMirror）的直接子块元素：<p>/<hN>/<blockquote>/
+ * <ul>/<ol>/.tableWrapper/<details>/NodeView wrapper 等，每个顶层块占一整行，
+ * 最小块是 <p>。块内部结构变化不影响手柄位置。 */
 
 function findFirstLineEl(blockEl: HTMLElement): HTMLElement | null {
-  const summary = blockEl.querySelector(":scope > summary");
+  const summary = blockEl.querySelector(
+    ":scope > summary, :scope > .tk-details > summary"
+  );
   if (summary instanceof HTMLElement) return summary;
 
   const firstColumn = blockEl.querySelector(
@@ -70,37 +37,29 @@ function findFirstLineEl(blockEl: HTMLElement): HTMLElement | null {
   );
   if (firstInner instanceof HTMLElement) return firstInner;
 
+  if (blockEl.tagName === "UL" || blockEl.tagName === "OL") {
+    const firstListItem = blockEl.querySelector(
+      ":scope > li, :scope > [data-type='taskItem']"
+    ) as HTMLElement | null;
+    if (firstListItem) {
+      const firstText = firstListItem.querySelector(
+        "p, h1, h2, h3, h4, h5, h6"
+      );
+      if (firstText instanceof HTMLElement) return firstText;
+      return firstListItem;
+    }
+  }
+
   return null;
 }
 
 function findBlockEl(start: EventTarget | null, root: HTMLElement): HTMLElement | null {
-  const candidates: HTMLElement[] = [];
   let el = start as HTMLElement | null;
   while (el && el !== root) {
-    const cur = el;
-    if (isNodeViewWrapper(cur)) {
-      if (SKIP_CLASS.some((c) => cur.classList.contains(c))) return null;
-      return cur;
-    }
-    if (isBlockDom(cur)) {
-      if (cur.tagName !== "LI" && cur.closest("li")) {
-        el = cur.parentElement;
-        continue;
-      }
-      candidates.push(cur);
-    }
-    el = cur.parentElement;
+    if (el.parentElement === root) return el;
+    el = el.parentElement;
   }
-  if (candidates.length === 0) return null;
-
-  const innermostLi = candidates.find((c) => c.tagName === "LI");
-  if (innermostLi) {
-    const list = innermostLi.parentElement;
-    if (list && list.childElementCount <= 1) return null;
-    return innermostLi;
-  }
-
-  return candidates[candidates.length - 1];
+  return null;
 }
 
 function getBlockNodePos(view: EditorView, el: HTMLElement): number | null {
@@ -108,7 +67,7 @@ function getBlockNodePos(view: EditorView, el: HTMLElement): number | null {
   if (pos == null || pos <= 0) return null;
   const $pos = view.state.doc.resolve(pos);
   if ($pos.parentOffset === 0 && $pos.nodeAfter && $pos.nodeAfter.isBlock) {
-    return pos;
+    return $pos.depth === 0 ? pos : pos - 1;
   }
   const start = $pos.before();
   return start < 0 ? null : start;
@@ -198,17 +157,16 @@ export const BlockHandles = Extension.create({
       const rect = blockEl.getBoundingClientRect();
       const wrapW = wrap.offsetWidth || 48;
       const wrapH = wrap.offsetHeight || 24;
-      const isLi = blockEl.tagName === "LI";
 
       let left: number;
       const editorWrap = view.dom.closest(".tk-editor") as HTMLElement | null;
       if (editorWrap) {
         const editorRect = editorWrap.getBoundingClientRect();
-        left = rect.left - wrapW - 8 - (isLi ? 24 : 0);
+        left = rect.left - wrapW - 8;
         const minLeft = editorRect.left + 8;
         if (left < minLeft) left = minLeft;
       } else {
-        left = rect.left - wrapW - 8 - (isLi ? 24 : 0);
+        left = rect.left - wrapW - 8;
       }
 
       const firstLineEl = findFirstLineEl(blockEl);

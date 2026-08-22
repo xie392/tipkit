@@ -830,13 +830,47 @@
   margin-top: 6px;
 }
 
-/* 提示框（内联色由 renderHTML 写入 style） */
+/* 提示框：编辑器内 NodeView 不带内联 style，按 variant 类名上色
+ * （导出 HTML 时由 renderHTML 写内联 style，两套保持一致） */
 .tk-callout {
   position: relative;
   border: 2px solid;
   border-radius: 10px;
   padding: 12px 14px 12px 44px;
   margin: 0.75em 0;
+  color: #1e40af;
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.tk-callout-info {
+  color: #1e40af;
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.tk-callout-success {
+  color: #166534;
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.tk-callout-warning {
+  color: #854d0e;
+  border-color: #fcd34d;
+  background: #fefce8;
+}
+
+.tk-callout-danger {
+  color: #991b1b;
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.tk-callout-note {
+  color: #3f3f46;
+  border-color: #d4d4d8;
+  background: #f4f4f5;
 }
 
 .tk-callout-head {
@@ -923,13 +957,19 @@
 
 .tk-callout-variant-cell {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
   border: 1px solid;
   border-radius: 6px;
   padding: 4px 10px;
   cursor: pointer;
   font-size: 12px;
+}
+
+.tk-callout-variant-cell.is-active {
+  box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 40%, transparent);
 }
 
 /* 分栏 */
@@ -957,17 +997,66 @@
   margin: 0.75em 0;
   border: 1px solid var(--border, #ddd);
   border-radius: 8px;
-  padding: 8px 12px;
+  overflow: hidden;
 }
 
-.tk-details-summary {
+.tk-details > summary {
+  list-style: none;
   cursor: pointer;
+  padding: 8px 12px;
   font-weight: 600;
-  padding: 4px 0;
+  position: relative;
+  padding-left: 30px;
+  background: color-mix(in srgb, var(--muted, #f5f5f5) 40%, transparent);
+}
+
+.tk-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.tk-details > summary::before {
+  content: "▸";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-block;
+  color: var(--muted-foreground, #888);
+  transition: transform 0.15s ease;
+  font-size: 12px;
+}
+
+.tk-details[open] > summary::before {
+  transform: translateY(-50%) rotate(90deg);
+}
+
+/* 编辑态：summary 文字区域显示文本光标（箭头伪元素区域仍为指针） */
+.ProseMirror .tk-details > summary {
+  cursor: text;
+}
+
+.ProseMirror .tk-details > summary::before {
+  cursor: pointer;
+}
+
+.ProseMirror .tk-details > summary:focus {
+  outline: none;
+}
+
+.tk-details[open] > summary {
+  border-bottom: 1px solid var(--border, #ddd);
 }
 
 .tk-details-content {
-  padding-top: 8px;
+  padding: 8px 12px 12px;
+}
+
+.tk-details-content > :first-child {
+  margin-top: 0;
+}
+
+.tk-details-content > :last-child {
+  margin-bottom: 0;
 }
 
 /* 目录 */

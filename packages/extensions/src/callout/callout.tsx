@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { mergeAttributes, Node as TiptapNode, wrappingInputRule } from "@tiptap/core";
 import {
   ReactNodeViewRenderer,
@@ -170,6 +170,29 @@ function CalloutView(props: NodeViewProps) {
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [emojiQuery, setEmojiQuery] = useState("");
   const emojiInputRef = useRef<HTMLInputElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!variantOpen && !emojiOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setVariantOpen(false);
+        setEmojiOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setVariantOpen(false);
+        setEmojiOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [variantOpen, emojiOpen]);
 
   const filteredEmojis = useMemo(() => {
     const q = emojiQuery.trim().toLowerCase();
@@ -183,7 +206,7 @@ function CalloutView(props: NodeViewProps) {
   };
 
   return (
-    <NodeViewWrapper className={`tk-callout tk-callout-${variant}`}>
+    <NodeViewWrapper ref={wrapRef} className={`tk-callout tk-callout-${variant}`}>
       <div className="tk-callout-head">
         <button
           type="button"
