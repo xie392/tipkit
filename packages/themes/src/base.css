@@ -671,41 +671,45 @@
 /* 斜杠菜单（交互定位，视觉归主题）：左侧命令列表 + 右侧预览面板 */
 .tk-slash-menu {
   display: flex;
-  border-radius: 10px;
+  flex-direction: column;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 8px 28px rgb(0 0 0 / 0.18);
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.18), 0 2px 8px rgb(0 0 0 / 0.08);
   background: var(--popover, #fff);
   color: var(--popover-foreground, #111);
+  border: 1px solid var(--border, #e5e5e5);
 }
 
 .tk-slash-menu-list {
-  padding: 4px;
+  padding: 6px;
   overflow-y: auto;
-  max-height: 360px;
+  overscroll-behavior: contain;
+  max-height: 300px;
 }
 
 .tk-slash-menu-empty {
-  padding: 12px;
+  padding: 20px 12px;
+  text-align: center;
   font-size: 13px;
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
 .tk-slash-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  padding: 7px 8px;
-  font-size: 13px;
+  padding: 7px 10px;
   text-align: left;
   border: none;
   background: transparent;
   cursor: pointer;
-  border-radius: 7px;
+  border-radius: 8px;
+  color: inherit;
 }
 
 .tk-slash-item[data-active="true"] {
-  background: var(--accent, #eee);
+  background: var(--muted, #f4f4f5);
 }
 
 .tk-slash-item[data-disabled="true"] {
@@ -717,67 +721,98 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: 7px;
   background: var(--muted, #f0f0f0);
+  color: var(--muted-foreground, #71717a);
+  font-size: 15px;
 }
 
 .tk-slash-item[data-active="true"] .tk-slash-item-icon {
-  background: var(--accent-foreground, #fff);
-  color: var(--accent, #eee);
+  background: var(--accent, #111);
+  color: var(--accent-foreground, #fff);
+}
+
+.tk-slash-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
 }
 
 .tk-slash-item-label {
   font-weight: 500;
+  font-size: 13.5px;
+  line-height: 1.3;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tk-slash-item-desc {
-  flex: 1;
-  min-width: 0;
+  font-size: 11.5px;
+  line-height: 1.3;
+  opacity: 0.55;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  opacity: 0.6;
-  font-size: 12px;
 }
 
 .tk-slash-item-shortcut {
   font-size: 11px;
-  opacity: 0.5;
-  font-family: monospace;
+  opacity: 0.4;
+  font-family: ui-monospace, monospace;
+  flex-shrink: 0;
 }
 
-/* 右侧预览面板 */
-.tk-slash-menu-preview {
-  border-left: 1px solid var(--border, #e5e5e5);
-  padding: 12px;
-  background: var(--muted, #f7f7f7);
+.tk-slash-menu-footer {
   display: flex;
   align-items: center;
-  justify-content: center;
-  overflow-y: auto;
+  justify-content: space-between;
+  padding: 7px 12px;
+  border-top: 1px solid var(--border, #eee);
+  font-size: 11.5px;
+  opacity: 0.5;
 }
 
-.tk-slash-menu-preview-body {
+.tk-slash-menu-footer kbd {
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--muted, #f0f0f0);
+  border: 1px solid var(--border, #ddd);
+}
+
+/* 跟随高亮项的黑色预览卡片 */
+.tk-slash-preview {
+  transition: top 0.1s ease-out;
+}
+
+.tk-slash-preview-card {
+  background: #111;
+  border-radius: 10px;
+  padding: 8px;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.3);
+  overflow: hidden;
+}
+
+.tk-slash-preview-body {
   font-size: 12px;
   width: 100%;
   line-height: 1.5;
 }
 
-.tk-slash-menu-preview-body h1,
-.tk-slash-menu-preview-body h2,
-.tk-slash-menu-preview-body h3,
-.tk-slash-menu-preview-body h4 {
-  margin: 0;
-  font-weight: 700;
-}
-
-.tk-slash-menu-preview-empty {
-  font-size: 11px;
-  opacity: 0.5;
+.tk-slash-preview-title {
+  margin-top: 8px;
+  padding: 0 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.9);
+  text-align: center;
 }
 
 /* ============================================================
@@ -1385,10 +1420,10 @@
 /* emoji 浮层 */
 .tk-emoji-menu {
   background: var(--popover, #fff);
-  border: 1px solid var(--border, #ddd);
-  border-radius: 10px;
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 12px;
   padding: 8px;
-  box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.18), 0 2px 8px rgb(0 0 0 / 0.08);
   z-index: 9999;
 }
 
@@ -1396,23 +1431,36 @@
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 2px;
-  max-height: 220px;
+  max-height: 256px;
   overflow-y: auto;
-  width: 240px;
+  overscroll-behavior: contain;
+  width: 264px;
+  scrollbar-width: thin;
 }
 
 .tk-emoji-cell {
-  font-size: 17px;
-  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
   background: transparent;
   border: none;
-  border-radius: 6px;
+  border-radius: 7px;
   cursor: pointer;
+  transition: background 0.1s ease, transform 0.1s ease;
 }
 
 .tk-emoji-cell[data-active="true"],
 .tk-emoji-cell:hover {
-  background: var(--accent, #eee);
+  background: var(--muted, #f4f4f5);
+}
+
+.tk-emoji-cell[data-active="true"] {
+  box-shadow: inset 0 0 0 1.5px var(--accent, #111);
 }
 
 /* ============================================================

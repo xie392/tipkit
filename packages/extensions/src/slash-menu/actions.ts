@@ -17,6 +17,8 @@ export interface InsertAction {
   run: () => void;
   /** false 表示命令依赖尚未迁移的扩展（M3），菜单中仍可展示但禁用 */
   available: boolean;
+  /** 右侧预览面板的标题 */
+  previewTitle?: string;
   /** 右侧预览面板的 HTML（内联样式，消费方也可忽略） */
   preview?: string;
 }
@@ -109,21 +111,26 @@ export function getInsertActions({
     if (clearSlashQuery) replaceSlashWithEmpty(editor);
   };
 
-  const heading = (level: 1 | 2 | 3 | 4): InsertAction => ({
-    id: `heading-${level}`,
-    group: "基础",
-    label: `标题 ${level}`,
-    description: `${"#".repeat(level)} 章节标题`,
-    aliases: [`h${level}`, `biaoti${level}`],
-    icon: `Heading${level}`,
-    shortcut: "#".repeat(level),
-    available: true,
-    preview: `<h${level} style="margin:0;color:inherit">标题 ${level} 示例</h${level}>`,
-    run: () => {
-      prepareInsert();
-      editor.chain().focus().toggleHeading({ level }).run();
-    },
-  });
+  const heading = (level: 1 | 2 | 3 | 4): InsertAction => {
+    const size = level === 1 ? 18 : level === 2 ? 15 : level === 3 ? 13 : 12;
+    const titleMap = { 1: "大型章节标题", 2: "中型版块标题", 3: "小节标题", 4: "次级标题" } as const;
+    return {
+      id: `heading-${level}`,
+      group: "基础",
+      label: `标题 ${level}`,
+      description: `${"#".repeat(level)} 章节标题`,
+      aliases: [`h${level}`, `biaoti${level}`],
+      icon: `Heading${level}`,
+      shortcut: "#".repeat(level),
+      available: true,
+      previewTitle: titleMap[level],
+      preview: `<div style="background:#fff;border-radius:6px;padding:12px"><div style="font-size:${size}px;font-weight:700;line-height:1.25;color:#111">标题 ${level} 示例</div><div style="margin-top:6px;height:6px;width:100%;border-radius:3px;background:#e5e7eb"></div><div style="margin-top:4px;height:6px;width:78%;border-radius:3px;background:#e5e7eb"></div></div>`,
+      run: () => {
+        prepareInsert();
+        editor.chain().focus().toggleHeading({ level }).run();
+      },
+    };
+  };
 
   return [
     heading(1),
@@ -138,6 +145,9 @@ export function getInsertActions({
       aliases: ["zhengwen", "p"],
       icon: "Text",
       available: true,
+      previewTitle: "普通段落",
+      preview:
+        '<div style="background:#fff;border-radius:6px;padding:12px"><div style="height:6px;width:100%;border-radius:3px;background:#d1d5db"></div><div style="margin-top:6px;height:6px;width:100%;border-radius:3px;background:#e5e7eb"></div><div style="margin-top:6px;height:6px;width:60%;border-radius:3px;background:#e5e7eb"></div></div>',
       run: () => {
         prepareInsert();
         editor.chain().focus().setParagraph().run();
@@ -152,8 +162,9 @@ export function getInsertActions({
       icon: "List",
       shortcut: "- ",
       available: true,
+      previewTitle: "无序列表",
       preview:
-        '<ul style="margin:0;padding-left:18px"><li>项目一</li><li>项目二</li><li>项目三</li></ul>',
+        '<div style="background:#fff;border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border-radius:50%;background:#6b7280;flex-shrink:0"></span><span style="font-size:11px;color:#4b5563">列表项一</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border-radius:50%;background:#6b7280;flex-shrink:0"></span><span style="font-size:11px;color:#4b5563">列表项二</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border-radius:50%;background:#6b7280;flex-shrink:0"></span><span style="font-size:11px;color:#4b5563">列表项三</span></div></div>',
       run: () => {
         prepareInsert();
         editor.chain().focus().toggleBulletList().run();
@@ -168,8 +179,9 @@ export function getInsertActions({
       icon: "ListOrdered",
       shortcut: "1. ",
       available: true,
+      previewTitle: "有序列表",
       preview:
-        '<ol style="margin:0;padding-left:18px"><li>第一步</li><li>第二步</li><li>第三步</li></ol>',
+        '<div style="background:#fff;border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:8px"><span style="width:12px;flex-shrink:0;font-size:11px;font-weight:500;color:#6b7280">1.</span><span style="font-size:11px;color:#4b5563">第一项内容</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:12px;flex-shrink:0;font-size:11px;font-weight:500;color:#6b7280">2.</span><span style="font-size:11px;color:#4b5563">第二项内容</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:12px;flex-shrink:0;font-size:11px;font-weight:500;color:#6b7280">3.</span><span style="font-size:11px;color:#4b5563">第三项内容</span></div></div>',
       run: () => {
         prepareInsert();
         editor.chain().focus().toggleOrderedList().run();
@@ -184,8 +196,9 @@ export function getInsertActions({
       icon: "ListChecks",
       shortcut: "[] ",
       available: true,
+      previewTitle: "待办任务",
       preview:
-        '<ul style="margin:0;padding-left:18px;list-style:none"><li>☐ 待办事项 A</li><li>☑ 已完成事项 B</li></ul>',
+        '<div style="background:#fff;border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:3px;background:#22c55e;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px">✓</span><span style="font-size:11px;color:#9ca3af;text-decoration:line-through">已完成任务</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:3px;border:1.5px solid #d1d5db;flex-shrink:0"></span><span style="font-size:11px;color:#4b5563">待办任务一</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:3px;border:1.5px solid #d1d5db;flex-shrink:0"></span><span style="font-size:11px;color:#4b5563">待办任务二</span></div></div>',
       run: () => {
         prepareInsert();
         editor.chain().focus().toggleTaskList().run();
@@ -200,8 +213,9 @@ export function getInsertActions({
       icon: "Quote",
       shortcut: "> ",
       available: true,
+      previewTitle: "引用块",
       preview:
-        '<blockquote style="margin:0;padding:6px 10px;border-left:3px solid #999;color:#555;background:#f7f7f7;border-radius:0 6px 6px 0">引用一段话，强调观点来源</blockquote>',
+        '<div style="background:#fff;border-radius:6px;padding:12px"><div style="border-left:3px solid #111;padding-left:10px"><div style="font-size:11px;font-style:italic;line-height:1.6;color:#4b5563">真知无形，大音希声。这是一段引用的示例文本。</div></div></div>',
       run: () => {
         prepareInsert();
         editor.chain().focus().toggleBlockquote().run();
@@ -216,8 +230,9 @@ export function getInsertActions({
       icon: "Code2",
       shortcut: "```",
       available: true,
+      previewTitle: "代码块",
       preview:
-        '<pre style="margin:0;padding:10px;background:#1e1e1e;color:#d4d4d4;border-radius:6px;font-size:12px;font-family:monospace"><span style="color:#569cd6">const</span> greet = <span style="color:#ce9178">"hello"</span>;<br/>console.log(greet);</pre>',
+        '<div style="background:#111827;border-radius:6px;padding:12px;font-family:monospace;font-size:10px;line-height:1.7;color:#d1d5db"><div><span style="color:#a78bfa">const</span> <span style="color:#60a5fa">greet</span> = () =&gt; &#123;</div><div style="padding-left:12px"><span style="color:#9ca3af">// Hello</span></div><div style="padding-left:12px"><span style="color:#fcd34d">return</span> <span style="color:#34d399">"Hi"</span>;</div><div>&#125;;</div></div>',
       run: () => {
         prepareInsert();
         editor.chain().focus().toggleCodeBlock().run();
@@ -231,8 +246,9 @@ export function getInsertActions({
       aliases: ["biaoge", "table"],
       icon: "Table2",
       available: true,
+      previewTitle: "表格",
       preview:
-        '<table style="border-collapse:collapse;width:100%;font-size:11px"><tr><th style="border:1px solid #ccc;padding:4px">表头 A</th><th style="border:1px solid #ccc;padding:4px">表头 B</th></tr><tr><td style="border:1px solid #ccc;padding:4px">1</td><td style="border:1px solid #ccc;padding:4px">2</td></tr></table>',
+        '<div style="background:#fff;border-radius:6px;padding:8px"><table style="border-collapse:collapse;width:100%;font-size:9px"><tr><th style="border:1px solid #e5e7eb;padding:4px 6px;background:#f9fafb;text-align:left;color:#6b7280">列 A</th><th style="border:1px solid #e5e7eb;padding:4px 6px;background:#f9fafb;text-align:left;color:#6b7280">列 B</th><th style="border:1px solid #e5e7eb;padding:4px 6px;background:#f9fafb;text-align:left;color:#6b7280">列 C</th></tr><tr><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据1</td><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据2</td><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据3</td></tr><tr><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据4</td><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据5</td><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据6</td></tr></table></div>',
       run: () => {
         prepareInsert();
         editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
@@ -246,8 +262,9 @@ export function getInsertActions({
       aliases: ["tupian", "image", "img", "upload"],
       icon: "Image",
       available: true,
+      previewTitle: "图片",
       preview:
-        '<div style="display:flex;align-items:center;justify-content:center;height:80px;border:1px dashed #ccc;border-radius:8px;color:#999;font-size:12px">🖼 图片预览占位</div>',
+        '<div style="background:#fff;border-radius:6px;overflow:hidden"><div style="display:flex;align-items:center;justify-content:center;height:72px;background:linear-gradient(135deg,#f3f4f6,#e5e7eb)"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#9ca3af" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div></div>',
       run: () => {
         prepareInsert();
         if (openImagePicker) {
@@ -267,6 +284,9 @@ export function getInsertActions({
       aliases: ["lianjie", "link", "href"],
       icon: "Link",
       available: true,
+      previewTitle: "链接",
+      preview:
+        '<div style="background:#fff;border-radius:6px;padding:16px;display:flex;align-items:center;justify-content:center"><span style="display:inline-flex;align-items:center;gap:4px;background:#eff6ff;padding:4px 8px;border-radius:6px;font-size:11px;color:#2563eb;text-decoration:underline">链接文字</span></div>',
       run: () => {
         prepareInsert();
         const href = window.prompt("链接地址（https://…）");
@@ -283,6 +303,9 @@ export function getInsertActions({
       aliases: ["fenlan", "columns", "col"],
       icon: "Columns2",
       available: true,
+      previewTitle: "多栏布局",
+      preview:
+        '<div style="background:#fff;border-radius:6px;padding:10px;display:flex;gap:8px"><div style="flex:1;display:flex;flex-direction:column;gap:4px"><div style="height:6px;width:100%;border-radius:3px;background:#d1d5db"></div><div style="height:6px;width:72%;border-radius:3px;background:#e5e7eb"></div></div><div style="width:1px;background:#e5e7eb"></div><div style="flex:1;display:flex;flex-direction:column;gap:4px"><div style="height:6px;width:100%;border-radius:3px;background:#d1d5db"></div><div style="height:6px;width:64%;border-radius:3px;background:#e5e7eb"></div></div></div>',
       run: () => {
         prepareInsert();
         editor.chain().focus().setColumns().run();
@@ -296,6 +319,9 @@ export function getInsertActions({
       aliases: ["zhedie", "details", "collapse"],
       icon: "ChevronDownSquare",
       available: true,
+      previewTitle: "折叠块",
+      preview:
+        '<div style="background:#fff;border-radius:6px;padding:12px;display:flex;align-items:center;gap:6px"><svg viewBox="0 0 12 12" width="10" height="10" fill="#6b7280"><path d="M4 2l4 4-4 4z"/></svg><span style="font-size:11px;font-weight:500;color:#374151">点击展开 / 收起</span></div>',
       run: () => {
         prepareInsert();
         editor.chain().focus().setDetails().run();
@@ -309,6 +335,9 @@ export function getInsertActions({
       aliases: ["mulu", "outline", "catalog"],
       icon: "ListTree",
       available: true,
+      previewTitle: "页面目录",
+      preview:
+        '<div style="background:#fff;border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:8px"><span style="width:5px;height:5px;border-radius:50%;background:#9ca3af"></span><span style="height:5px;width:64px;border-radius:3px;background:#d1d5db"></span></div><div style="display:flex;align-items:center;gap:8px;padding-left:12px"><span style="width:4px;height:4px;border-radius:50%;background:#d1d5db"></span><span style="height:5px;width:48px;border-radius:3px;background:#e5e7eb"></span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:5px;height:5px;border-radius:50%;background:#9ca3af"></span><span style="height:5px;width:80px;border-radius:3px;background:#d1d5db"></span></div></div>',
       run: () => {
         prepareInsert();
         editor.chain().focus().insertTableOfContents().run();
@@ -322,6 +351,9 @@ export function getInsertActions({
       aliases: ["tishi", "callout", "alert"],
       icon: "TriangleAlert",
       available: true,
+      previewTitle: "提示框",
+      preview:
+        '<div style="display:flex;gap:8px;border-radius:6px;background:#fffbeb;padding:10px"><span style="font-size:14px">💡</span><div style="flex:1;display:flex;flex-direction:column;gap:4px"><span style="font-size:11px;font-weight:500;color:#92400e">提示</span><span style="height:5px;width:100%;border-radius:3px;background:#fde68a"></span><span style="height:5px;width:72%;border-radius:3px;background:#fde68a"></span></div></div>',
       run: () => {
         prepareInsert();
         editor.chain().focus().setCallout().run();
@@ -335,6 +367,9 @@ export function getInsertActions({
       aliases: ["gongshi", "math", "latex"],
       icon: "Sigma",
       available: true,
+      previewTitle: "数学公式",
+      preview:
+        '<div style="background:#fff;border-radius:6px;padding:16px;display:flex;align-items:center;justify-content:center"><span style="font-size:18px;font-style:italic;color:#111;font-family:Georgia,serif">E = mc²</span></div>',
       run: () => {
         prepareInsert();
         editor.chain().focus().setKatex({ text: "" }).run();
@@ -348,6 +383,9 @@ export function getInsertActions({
       aliases: ["qianru", "embed", "video"],
       icon: "Frame",
       available: true,
+      previewTitle: "嵌入网页",
+      preview:
+        '<div style="background:#fff;border-radius:6px;overflow:hidden"><div style="display:flex;align-items:center;justify-content:center;height:64px;background:#f3f4f6"><span style="font-size:10px;color:#9ca3af">🔗 外部网页</span></div></div>',
       run: () => {
         prepareInsert();
         editor.chain().focus().setIframe({ url: null }).run();
@@ -361,6 +399,9 @@ export function getInsertActions({
       aliases: ["fujian", "file", "upload"],
       icon: "Paperclip",
       available: true,
+      previewTitle: "附件",
+      preview:
+        '<div style="background:#fff;border-radius:6px;padding:12px"><div style="display:flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:6px;padding:8px"><span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#fef2f2;font-size:10px;font-weight:700;color:#ef4444">PDF</span><span style="flex:1;display:flex;flex-direction:column;gap:4px"><span style="height:5px;width:80px;border-radius:3px;background:#d1d5db"></span><span style="height:4px;width:40px;border-radius:2px;background:#e5e7eb"></span></span></div></div>',
       run: () => {
         prepareInsert();
         editor.chain().focus().setAttachment().run();
@@ -374,9 +415,11 @@ export function getInsertActions({
       aliases: ["biaoqing", "face", "smile"],
       icon: "Smile",
       available: true,
+      previewTitle: "Emoji 表情",
+      preview:
+        '<div style="background:#fff;border-radius:6px;padding:16px;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-size:20px">😀</span><span style="font-size:20px">🎉</span><span style="font-size:20px">❤️</span><span style="font-size:20px">🔥</span><span style="font-size:20px">✨</span></div>',
       run: () => {
         prepareInsert();
-        // 在光标处插入 : 触发 emoji 建议
         editor.chain().focus().insertContent(":").run();
       },
     },

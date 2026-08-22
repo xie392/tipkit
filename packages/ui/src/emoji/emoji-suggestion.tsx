@@ -128,9 +128,9 @@ export function EmojiSuggestion({ editor }: { editor: Editor | null }) {
       shouldShow={({ editor: ed }) => getEmojiSuggestionState(ed).active}
     >
       <div className="tk-emoji-grid">
-        {filtered.slice(0, 80).map((item, idx) => (
+        {filtered.map((item, idx) => (
           <button
-            key={item.name}
+            key={`${idx}-${item.name}`}
             type="button"
             title={`:${item.name}:`}
             data-active={activeIndex === idx || undefined}

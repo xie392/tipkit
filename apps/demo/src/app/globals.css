@@ -210,6 +210,119 @@ body::after {
   border-radius: 0;
   box-shadow: none;
   background: transparent;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+}
+.demo-toolbar-bar .tk-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- + 插入面板 ---------- */
+.tk-insert-panel {
+  display: flex;
+  flex-direction: column;
+  max-height: 420px;
+}
+
+.tk-insert-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tk-insert-search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--popover-foreground);
+}
+
+.tk-insert-search-input::placeholder {
+  color: color-mix(in srgb, var(--popover-foreground) 45%, transparent);
+}
+
+.tk-insert-body {
+  overflow-y: auto;
+  padding: 8px;
+  overscroll-behavior: contain;
+}
+
+.tk-insert-group + .tk-insert-group {
+  margin-top: 10px;
+}
+
+.tk-insert-group-title {
+  padding: 4px 6px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--popover-foreground) 45%, transparent);
+}
+
+.tk-insert-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.tk-insert-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 4px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--popover-foreground);
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.tk-insert-card:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.tk-insert-card:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tk-insert-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.tk-insert-card:hover .tk-insert-card-icon {
+  background: color-mix(in srgb, var(--accent-foreground) 12%, transparent);
+  color: var(--accent-foreground);
+}
+
+.tk-insert-card-label {
+  font-size: 11.5px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.tk-insert-empty {
+  padding: 28px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: color-mix(in srgb, var(--popover-foreground) 50%, transparent);
 }
 
 /* ---------- 主区：仅编辑器 ---------- */

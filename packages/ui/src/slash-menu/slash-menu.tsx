@@ -11,18 +11,9 @@ import {
   type SlashCommandState,
 } from "@tipkit/extensions";
 
-/**
- * 无头 SlashMenu：斜杠菜单的交互原语（定位、键盘导航、滚动跟随、预览）。
- *
- * 键盘导航监听 editor.view.dom（而非菜单 DOM）——菜单经 portal 渲染到 body，
- * 键盘事件发生在 ProseMirror 内，只有监听编辑器 DOM 才能收到。
- * 视觉剥离：只带语义类名（tk-slash-*），视觉由主题 CSS 提供。
- */
-
 export interface SlashMenuProps {
   editor: Editor | null;
   onUploadImage?: (file: File) => Promise<string>;
-  /** 图标映射：lucide 图标名 → React 节点（消费方提供图标库） */
   iconRenderer?: (icon: string) => React.ReactNode;
 }
 
@@ -34,9 +25,10 @@ const INACTIVE: SlashCommandState = {
   key: "",
 };
 
-const MENU_WIDTH = 256;
-const PREVIEW_WIDTH = 232;
-const MENU_MAX_HEIGHT = 360;
+const MENU_WIDTH = 288;
+const PREVIEW_WIDTH = 200;
+const PREVIEW_GAP = 8;
+const MENU_MAX_HEIGHT = 340;
 const OFFSET = 8;
 
 export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProps) {
@@ -44,10 +36,10 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
   const [activeIndex, setActiveIndex] = useState(0);
   const [hiddenKey, setHiddenKey] = useState("");
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const [previewPos, setPreviewPos] = useState<{ top: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  // 供 keydown 监听器读取最新状态（避免闭包过期）
   const stateRef = useRef({ slash, activeIndex, actions: [] as InsertAction[] });
 
   const allActions = useMemo(
@@ -81,8 +73,8 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
     let top = coords.bottom + OFFSET;
     let left = coords.left;
 
-    const menuW = (menuRef.current?.offsetWidth || MENU_WIDTH) + PREVIEW_WIDTH;
     const menuH = menuRef.current?.offsetHeight || MENU_MAX_HEIGHT;
+    const menuW = MENU_WIDTH;
     if (top + menuH > vh - 12) {
       top = coords.top - menuH - OFFSET;
     }
@@ -97,7 +89,6 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
     setPos({ top, left });
   }, [editor, hiddenKey]);
 
-  /* 状态同步 + 键盘导航（监听编辑器 DOM，捕获阶段） */
   useEffect(() => {
     if (!editor) return;
     const syncSlash = () => {
@@ -108,38 +99,11 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
     syncSlash();
     editor.on("update", syncSlash);
     editor.on("selectionUpdate", syncSlash);
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const { slash: cur, actions: list } = stateRef.current;
-      if (!cur.active || hiddenKey === cur.key || list.length === 0) return;
-
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        setActiveIndex((i) => (i + 1) % list.length);
-      } else if (event.key === "ArrowUp") {
-        event.preventDefault();
-        setActiveIndex((i) => (i - 1 + list.length) % list.length);
-      } else if (event.key === "Enter") {
-        event.preventDefault();
-        const action = list[stateRef.current.activeIndex];
-        if (action && action.available) {
-          action.run();
-          setHiddenKey(cur.key);
-          setPos(null);
-        }
-      } else if (event.key === "Escape") {
-        event.preventDefault();
-        setHiddenKey(cur.key);
-        setPos(null);
-      }
-    };
-    editor.view.dom.addEventListener("keydown", handleKeyDown, true);
     return () => {
       editor.off("update", syncSlash);
       editor.off("selectionUpdate", syncSlash);
-      editor.view.dom.removeEventListener("keydown", handleKeyDown, true);
     };
-  }, [editor, hiddenKey, updatePosition]);
+  }, [editor, updatePosition]);
 
   useEffect(() => {
     if (!slash.active || hiddenKey === slash.key) {
@@ -158,22 +122,59 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
     };
   }, [slash.active, slash.key, hiddenKey, updatePosition]);
 
-  /* 键盘导航时滚动列表，让高亮项始终可见 */
   useEffect(() => {
-    const list = listRef.current;
-    if (!list) return;
-    const item = list.children[activeIndex] as HTMLElement | undefined;
-    if (!item) return;
-    const itemTop = item.offsetTop;
-    if (itemTop < list.scrollTop) {
-      list.scrollTop = itemTop;
-    } else if (itemTop + item.offsetHeight > list.scrollTop + list.clientHeight) {
-      list.scrollTop = itemTop + item.offsetHeight - list.clientHeight;
-    }
+    if (!listRef.current) return;
+    const el = listRef.current.children[activeIndex] as HTMLElement | undefined;
+    if (!el) return;
+    el.scrollIntoView({ block: "nearest" });
+    requestAnimationFrame(() => {
+      const listRect = listRef.current!.getBoundingClientRect();
+      const itemRect = el.getBoundingClientRect();
+      setPreviewPos({ top: itemRect.top - listRect.top });
+    });
   }, [activeIndex]);
 
+  useEffect(() => {
+    if (!editor) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const { slash: cur, actions: list } = stateRef.current;
+      if (!cur.active || hiddenKey === cur.key || list.length === 0) return;
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setActiveIndex((i) => (i + 1) % list.length);
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setActiveIndex((i) => (i - 1 + list.length) % list.length);
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        const action = list[stateRef.current.activeIndex];
+        if (action && action.available) action.run();
+        setHiddenKey(cur.key);
+        setPos(null);
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        setHiddenKey(cur.key);
+        setPos(null);
+      }
+    };
+    editor.view.dom.addEventListener("keydown", handleKeyDown, true);
+    return () => editor.view.dom.removeEventListener("keydown", handleKeyDown, true);
+  }, [editor, hiddenKey]);
+
+  useEffect(() => {
+    if (!editor) return;
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        const currentSlash = getSlashCommandState(editor);
+        if (currentSlash.active) setHiddenKey(currentSlash.key);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [editor]);
+
   const isVisible = slash.active && hiddenKey !== slash.key && pos !== null;
-  const activeAction = actions[activeIndex];
+  const activeAction = actions[activeIndex] ?? null;
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -191,6 +192,18 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
     setPos(null);
   };
 
+  let previewLeft = 0;
+  let previewTop = 0;
+  let showPreview = false;
+  if (isVisible && pos && previewPos !== null && activeAction?.preview) {
+    const onRight = pos.left + MENU_WIDTH + PREVIEW_GAP + PREVIEW_WIDTH + 16 < window.innerWidth;
+    previewLeft = onRight
+      ? pos.left + MENU_WIDTH + PREVIEW_GAP
+      : pos.left - PREVIEW_WIDTH - PREVIEW_GAP;
+    previewTop = Math.min(pos.top + previewPos.top - 4, window.innerHeight - 180);
+    showPreview = true;
+  }
+
   const menu = isVisible ? (
     <div
       ref={menuRef}
@@ -199,12 +212,14 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
         position: "fixed",
         top: pos?.top,
         left: pos?.left,
-        width: MENU_WIDTH + PREVIEW_WIDTH,
+        width: MENU_WIDTH,
+        maxHeight: MENU_MAX_HEIGHT,
         zIndex: 9999,
       }}
+      onMouseDown={(e) => e.preventDefault()}
       role="menu"
     >
-      <div ref={listRef} className="tk-slash-menu-list" style={{ width: MENU_WIDTH }}>
+      <div ref={listRef} className="tk-slash-menu-list">
         {actions.length === 0 && <div className="tk-slash-menu-empty">没有匹配的命令</div>}
         {actions.map((item, idx) => (
           <SlashItem
@@ -217,24 +232,43 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
           />
         ))}
       </div>
-      {/* 右侧预览面板：高亮项的预览（HTML 字符串） */}
-      <div className="tk-slash-menu-preview" style={{ width: PREVIEW_WIDTH }}>
-        {activeAction?.preview ? (
-          <div
-            className="tk-slash-menu-preview-body"
-            dangerouslySetInnerHTML={{ __html: activeAction.preview }}
-          />
-        ) : (
-          <div className="tk-slash-menu-preview-empty">选中命令查看预览</div>
-        )}
+      <div className="tk-slash-menu-footer">
+        <span>关闭菜单</span>
+        <kbd>esc</kbd>
       </div>
     </div>
   ) : null;
+
+  const preview =
+    showPreview && activeAction?.preview ? (
+      <div
+        className="tk-slash-preview"
+        style={{
+          position: "fixed",
+          top: previewTop,
+          left: previewLeft,
+          width: PREVIEW_WIDTH,
+          zIndex: 9998,
+          pointerEvents: "none",
+        }}
+      >
+        <div className="tk-slash-preview-card">
+          <div
+            className="tk-slash-preview-body"
+            dangerouslySetInnerHTML={{ __html: activeAction.preview }}
+          />
+        </div>
+        {activeAction.previewTitle && (
+          <div className="tk-slash-preview-title">{activeAction.previewTitle}</div>
+        )}
+      </div>
+    ) : null;
 
   return (
     <>
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
       {typeof document !== "undefined" && menu ? createPortal(menu, document.body) : null}
+      {typeof document !== "undefined" && preview ? createPortal(preview, document.body) : null}
     </>
   );
 }
@@ -263,8 +297,10 @@ function SlashItem({
       onClick={onClick}
     >
       <span className="tk-slash-item-icon">{iconRenderer ? iconRenderer(item.icon) : item.icon}</span>
-      <span className="tk-slash-item-label">{item.label}</span>
-      <span className="tk-slash-item-desc">{item.description}</span>
+      <span className="tk-slash-item-text">
+        <span className="tk-slash-item-label">{item.label}</span>
+        <span className="tk-slash-item-desc">{item.description}</span>
+      </span>
       {item.shortcut && <span className="tk-slash-item-shortcut">{item.shortcut}</span>}
     </button>
   );
