@@ -1,7 +1,7 @@
 "use client";
 
 import type { Editor } from "@tiptap/react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@tipkit/components";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Tooltip, TooltipContent, TooltipTrigger } from "@tipkit/components";
 import { Text, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, ChevronDown, type LucideIcon } from "lucide-react";
 import { ToolbarBtn } from "./toolbar-button";
 
@@ -36,15 +36,20 @@ export function BlockStyleMenu({ editor }: { editor: Editor }) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <ToolbarBtn title="块样式" className="w-fit px-2">
-          <span className="flex items-center gap-1 text-[12px]">
-            <ActiveIcon className="h-4 w-4" />
-            <span className="truncate">{activeStyle.label}</span>
-            <ChevronDown className="h-3.5 w-3.5 opacity-60" />
-          </span>
-        </ToolbarBtn>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <ToolbarBtn title="块样式" className="w-fit px-2">
+              <span className="flex items-center gap-1 text-[12px]">
+                <ActiveIcon className="h-4 w-4" />
+                <span className="truncate">{activeStyle.label}</span>
+                <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+              </span>
+            </ToolbarBtn>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">块样式</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent align="start" className="w-36">
         {BLOCK_STYLES.map((item) => {
           const Icon = item.icon;

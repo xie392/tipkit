@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import { CellSelection, TableMap } from "@tiptap/pm/tables";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@tipkit/components";
 
 const PICKER_COLS = 8;
 const PICKER_ROWS = 6;
@@ -27,15 +28,21 @@ function TbBtn({
   children: React.ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      title={title}
-      onMouseDown={(e) => e.preventDefault()}
-      onClick={onClick}
-      className="tk-table-btn"
-    >
-      {children}
-    </button>
+    <TooltipProvider delayDuration={300}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onClick}
+            className="tk-table-btn"
+          >
+            {children}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">{title}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -80,16 +87,20 @@ export function TablePicker({
 
   return (
     <div ref={wrapRef} className="relative">
-      <button
-        type="button"
-        title="插入表格"
-        data-active={open || undefined}
-        className="tk-toolbar-btn inline-flex items-center justify-center w-8 h-8 rounded"
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <IconTableGrid />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            data-active={open || undefined}
+            className="tk-toolbar-btn inline-flex items-center justify-center w-8 h-8 rounded"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setOpen((v) => !v)}
+          >
+            <IconTableGrid />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">插入表格</TooltipContent>
+      </Tooltip>
       {open && (
         <div className="tk-table-picker" onMouseLeave={() => setHover({ cols: 0, rows: 0 })}>
           <div

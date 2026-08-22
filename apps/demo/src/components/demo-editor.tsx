@@ -5,6 +5,7 @@ import { TipKitEditor } from "@tipkit/editor";
 import type { EditorDeps, IconRef } from "@tipkit/editor";
 import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensions";
 import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, BlockBubbleMenu, TableControls } from "@tipkit/ui";
+import { TooltipProvider } from "@tipkit/components";
 import {
   Bold,
   Italic,
@@ -143,14 +144,14 @@ export function DemoEditor({
     >
       {(editor) =>
         editor ? (
-          <>
+          <TooltipProvider delayDuration={300}>
             <SlashMenu editor={editor} onUploadImage={uploadImage} iconRenderer={renderSlashIcon} />
             <EmojiSuggestion editor={editor} />
             <TextMenu editor={editor} />
             <LinkBubble editor={editor} />
             <BlockBubbleMenu editor={editor} />
             <TableControls editor={editor} />
-          </>
+          </TooltipProvider>
         ) : null
       }
     </TipKitEditor>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Editor } from "@tiptap/react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@tipkit/components";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Tooltip, TooltipContent, TooltipTrigger } from "@tipkit/components";
 import { AlignLeft, AlignCenter, AlignRight, type LucideIcon } from "lucide-react";
 import { ToolbarBtn } from "./toolbar-button";
 
@@ -20,11 +20,16 @@ export function AlignMenu({ editor }: { editor: Editor }) {
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <ToolbarBtn title="对齐方式" active={open}>
-          <ActiveIcon className="h-4 w-4" />
-        </ToolbarBtn>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <ToolbarBtn title="对齐方式" active={open}>
+              <ActiveIcon className="h-4 w-4" />
+            </ToolbarBtn>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">对齐方式</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent align="start" className="w-36 p-1">
         {OPTIONS.map((o) => {
           const Icon = o.icon;

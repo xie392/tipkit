@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@tipkit/components";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, Tooltip, TooltipContent, TooltipTrigger } from "@tipkit/components";
 import { Highlighter, Palette } from "lucide-react";
 import { ToolbarBtn } from "./toolbar-button";
 
@@ -123,11 +123,16 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <ToolbarBtn title={isText ? "文字颜色" : "高亮颜色"} active={open}>
-          {isText ? <Palette className="h-4 w-4" /> : <Highlighter className="h-4 w-4" />}
-        </ToolbarBtn>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <ToolbarBtn active={open}>
+              {isText ? <Palette className="h-4 w-4" /> : <Highlighter className="h-4 w-4" />}
+            </ToolbarBtn>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">{isText ? "文字颜色" : "高亮颜色"}</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent align="start" className="w-56 p-2">
         {/* 灰阶 */}
         <div className="mb-2 flex flex-wrap gap-0.5">

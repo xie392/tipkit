@@ -14,7 +14,7 @@ export function ToolbarBtn({
   children,
   ...rest
 }: {
-  title: string;
+  title?: string;
   /** asChild 模式下由 DropdownMenuTrigger 注入，可为空 */
   active?: boolean;
   disabled?: boolean;
