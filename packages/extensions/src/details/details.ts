@@ -73,8 +73,15 @@ export const Details = Node.create({
         if (v != null && typeof v === "string") dom.setAttribute(k, v);
       });
 
-      // 箭头区域宽度（与 summary::before 的箭头+margin 对齐，约 28px）
-      const ARROW_ZONE = 28;
+      // 箭头区域宽度（与 summary::before 的箭头+padding 对齐，约 34px）
+      const ARROW_ZONE = 34;
+
+      const toggleOpen = () => {
+        isOpen = !isOpen;
+        if (isOpen) dom.setAttribute("open", "open");
+        else dom.removeAttribute("open");
+        editor.commands.updateAttributes("details", { open: isOpen });
+      };
 
       // 必须在 mousedown 阶段拦截：
       // 浏览器原生 <summary> 在 mousedown 就会 toggle <details> open 状态，
@@ -84,16 +91,18 @@ export const Details = Node.create({
         const summary = target.closest("summary");
         if (!summary || !dom.contains(summary)) return;
 
+        // 完全阻止浏览器原生 toggle，所有切换由我们手动控制
+        e.preventDefault();
+
         const rect = summary.getBoundingClientRect();
         const inArrowZone = e.clientX - rect.left < ARROW_ZONE;
         if (inArrowZone) {
-          // 箭头区域：交给浏览器原生 toggle（mousedown 默认行为会切换 open）
+          // 箭头区域：手动 toggle
+          toggleOpen();
           return;
         }
 
-        // 文字区域：阻止原生 toggle，手动把光标定位到点击处
-        e.preventDefault();
-
+        // 文字区域：手动把光标定位到点击处
         const posAtCoords = view.posAtCoords({
           left: e.clientX,
           top: e.clientY,
@@ -119,6 +128,15 @@ export const Details = Node.create({
         }
       };
 
+      // click 阶段也要拦截，防止浏览器在 summary 上的原生 toggle 行为
+      const onClick = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        const summary = target.closest("summary");
+        if (summary && dom.contains(summary)) {
+          e.preventDefault();
+        }
+      };
+
       // 键盘操作：空格/回车在 summary 上原生会 toggle，阻止以允许输入空格
       const onKeyDown = (e: KeyboardEvent) => {
         const target = e.target as HTMLElement;
@@ -132,17 +150,8 @@ export const Details = Node.create({
       };
 
       dom.addEventListener("mousedown", onMouseDown);
+      dom.addEventListener("click", onClick);
       dom.addEventListener("keydown", onKeyDown);
-
-      // 箭头区域走原生 toggle 后，同步 open 属性到节点
-      const onToggle = () => {
-        const nowOpen = dom.hasAttribute("open");
-        if (nowOpen !== isOpen) {
-          isOpen = nowOpen;
-          editor.commands.updateAttributes("details", { open: nowOpen });
-        }
-      };
-      dom.addEventListener("toggle", onToggle);
 
       return {
         dom,
@@ -160,8 +169,8 @@ export const Details = Node.create({
         },
         destroy() {
           dom.removeEventListener("mousedown", onMouseDown);
+          dom.removeEventListener("click", onClick);
           dom.removeEventListener("keydown", onKeyDown);
-          dom.removeEventListener("toggle", onToggle);
         },
         ignoreMutation: (mutation) =>
           mutation.type === "attributes" &&

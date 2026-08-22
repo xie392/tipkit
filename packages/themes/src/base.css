@@ -1074,10 +1074,10 @@
 .tk-details > summary {
   list-style: none;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 10px 12px;
   font-weight: 600;
   position: relative;
-  padding-left: 30px;
+  padding-left: 36px;
   background: color-mix(in srgb, var(--muted, #f5f5f5) 40%, transparent);
 }
 
@@ -1086,19 +1086,20 @@
 }
 
 .tk-details > summary::before {
-  content: "▸";
+  content: "";
   position: absolute;
-  left: 10px;
+  left: 13px;
   top: 50%;
-  transform: translateY(-50%);
-  display: inline-block;
-  color: var(--muted-foreground, #888);
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--muted-foreground, #888);
+  border-top: 2px solid var(--muted-foreground, #888);
+  transform: translateY(-60%) rotate(45deg);
   transition: transform 0.15s ease;
-  font-size: 12px;
 }
 
 .tk-details[open] > summary::before {
-  transform: translateY(-50%) rotate(90deg);
+  transform: translateY(-50%) rotate(135deg);
 }
 
 /* 编辑态：summary 文字区域显示文本光标（箭头伪元素区域仍为指针） */
