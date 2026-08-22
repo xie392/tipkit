@@ -121,13 +121,6 @@
   text-decoration: line-through;
 }
 
-/* Focus：当前块高亮 */
-.tk-theme-devkb .tk-prosemirror .has-focus {
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--primary) 6%, transparent);
-  transition: background-color 0.2s ease;
-}
-
 /* 斜杠菜单预览：简洁排版 */
 .tk-theme-devkb .tk-slash-menu-preview {
   background: var(--muted);

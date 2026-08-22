@@ -164,16 +164,6 @@
   text-decoration: line-through;
 }
 
-/* ---------- Focus：当前块高亮 ---------- */
-.tk-theme-default .tk-editor .tk-prosemirror .has-focus {
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--accent) 55%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--border) 80%, transparent);
-  transition:
-    background-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
 /* ---------- 工具栏 ---------- */
 .tk-theme-default .tk-toolbar {
   background: transparent;

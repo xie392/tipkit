@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { BlockActionProps } from "./types";
 import {
   IconAlignLeft,
@@ -9,6 +11,7 @@ import {
   IconLink,
   IconCaption,
   IconWidth,
+  IconZoomIn,
 } from "./icons";
 import { ActionDropdown, ActionButton, ActionMenuItem } from "./shared";
 
@@ -21,6 +24,33 @@ const WIDTH_OPTIONS = [
 
 type Align = "left" | "center" | "right";
 
+function PreviewOverlay({ src, alt, onClose }: { src: string; alt?: string; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return createPortal(
+    <div className="tk-image-preview-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt ?? ""}
+        className="tk-image-preview-img"
+        onMouseDown={(e) => e.stopPropagation()}
+      />
+    </div>,
+    document.body,
+  );
+}
+
 export function ImageBlockActions({ node, updateAttributes }: BlockActionProps) {
   const attrs = node.attrs as {
     width: string;
@@ -29,6 +59,8 @@ export function ImageBlockActions({ node, updateAttributes }: BlockActionProps) 
     caption?: string | null;
     src: string;
   };
+
+  const [preview, setPreview] = useState(false);
 
   const currentWidth = attrs.width || "100%";
   const align = attrs.align || "center";
@@ -108,6 +140,11 @@ export function ImageBlockActions({ node, updateAttributes }: BlockActionProps) 
         active={attrs.caption != null}
         onClick={toggleCaption}
       />
+      <ActionButton icon={<IconZoomIn />} label="预览图片" onClick={() => setPreview(true)} />
+
+      {preview && (
+        <PreviewOverlay src={attrs.src} alt={attrs.alt} onClose={() => setPreview(false)} />
+      )}
     </>
   );
 }

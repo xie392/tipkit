@@ -152,3 +152,12 @@ export function IconList(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function IconZoomIn(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 16 16" width="15" height="15" {...base} strokeWidth="1.3" {...props}>
+      <circle cx="7" cy="7" r="4.5" />
+      <path d="M10.5 10.5L14 14M7 5.5v3M5.5 7h3" />
+    </svg>
+  );
+}

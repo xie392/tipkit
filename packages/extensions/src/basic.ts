@@ -17,7 +17,6 @@ import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
 import CharacterCount from "@tiptap/extension-character-count";
 import { Dropcursor } from "@tiptap/extension-dropcursor";
-import Focus from "@tiptap/extension-focus";
 import { Markdown } from "@tiptap/markdown";
 
 import { CustomBold, CustomItalic, CustomStrike, CustomCode } from "./markdown/marks";
@@ -96,6 +95,5 @@ function buildBasicExtensions(): AnyExtension[] {
     ListInputRules,
     CharacterCount.configure({ limit: 100000 }),
     Dropcursor.configure({ width: 2 }),
-    Focus.configure({ mode: "all" }),
   ];
 }

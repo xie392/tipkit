@@ -245,13 +245,6 @@
   text-decoration-color: color-mix(in srgb, var(--tk-accent) 55%, transparent);
 }
 
-/* Focus：当前块高亮（马克笔淡染） */
-.tk-theme-blog .tk-editor .tk-prosemirror .has-focus {
-  background: color-mix(in srgb, var(--tk-accent) 10%, transparent);
-  border-radius: 8px 6px 10px 7px;
-  transition: background-color 0.2s ease;
-}
-
 /* 斜杠菜单预览：手写纸张感 */
 .tk-theme-blog .tk-slash-menu-preview {
   background: color-mix(in srgb, var(--card) 72%, transparent);

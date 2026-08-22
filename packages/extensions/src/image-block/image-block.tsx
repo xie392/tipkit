@@ -2,6 +2,7 @@ import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import Image from "@tiptap/extension-image";
 import type { NodeViewProps } from "@tiptap/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 /* ImageBlock 节点（迁移自 blog rich-text/ext/image-block/image-block.ts）。
  * - parseHTML 只认 div[data-type="image-block"]，与 inline <img> 共存
@@ -138,7 +139,40 @@ export const ImageBlock = Image.extend({
   },
 });
 
-/** ImageBlock NodeView：图片 + 宽度拖拽 + 就地 caption。视觉走主题。 */
+/** 图片预览遮罩（全屏 lightbox），readonly 下点击图片或工具栏按钮触发 */
+function ImagePreview({ src, alt, onClose }: { src: string; alt?: string; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      className="tk-image-preview-overlay"
+      onMouseDown={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt ?? ""}
+        className="tk-image-preview-img"
+        onMouseDown={(e) => e.stopPropagation()}
+      />
+    </div>,
+    document.body,
+  );
+}
+
+/** ImageBlock NodeView：图片 + 左右宽度拖拽手柄 + 就地 caption + 预览。视觉走主题。 */
 function ImageBlockView(props: NodeViewProps) {
   const { editor, node, updateAttributes, selected } = props;
   const attrs = node.attrs as unknown as ImageBlockAttrs;
@@ -148,6 +182,7 @@ function ImageBlockView(props: NodeViewProps) {
   const captionRef = useRef<HTMLDivElement | null>(null);
   const [dragWidth, setDragWidth] = useState<number | null>(null);
   const [editingCaption, setEditingCaption] = useState(false);
+  const [preview, setPreview] = useState(false);
 
   useEffect(() => {
     const el = captionRef.current;
@@ -166,21 +201,23 @@ function ImageBlockView(props: NodeViewProps) {
     updateAttributes({ caption: text.trim() ? text : null });
   };
 
-  const onHandleDown = useCallback(
-    (e: React.MouseEvent) => {
+  const startResize = useCallback(
+    (side: "left" | "right") => (e: React.MouseEvent) => {
       if (!editor.isEditable) return;
       e.preventDefault();
       e.stopPropagation();
       const startX = e.clientX;
-      const startW = wrapRef.current?.getBoundingClientRect().width ?? 0;
-      const containerW =
-        wrapRef.current?.parentElement?.getBoundingClientRect().width ?? startW;
+      const wrapEl = wrapRef.current;
+      const startW = wrapEl?.getBoundingClientRect().width ?? 0;
+      const containerW = wrapEl?.parentElement?.getBoundingClientRect().width ?? startW;
       const startPercent = (startW / containerW) * 100 || Number(width) || 100;
 
       const onMove = (ev: MouseEvent) => {
         const dx = ev.clientX - startX;
-        const next = Math.max(15, Math.min(100, startPercent + (dx / containerW) * 100));
-        setDragWidth(Math.round(next));
+        const delta = (dx / containerW) * 100;
+        const next =
+          side === "right" ? startPercent + delta : startPercent - delta;
+        setDragWidth(Math.max(15, Math.min(100, Math.round(next))));
       };
       const onUp = () => {
         document.removeEventListener("mousemove", onMove);
@@ -199,26 +236,72 @@ function ImageBlockView(props: NodeViewProps) {
   const effectiveWidth = dragWidth ?? (Number(String(width).replace("%", "")) || 100);
   const wrapperAlign =
     align === "left" ? "ml-0 mr-auto" : align === "right" ? "ml-auto mr-0" : "mx-auto";
+  const showHandles = selected && editor.isEditable;
+
+  const onImageClick = (e: React.MouseEvent) => {
+    if (editor.isEditable) return;
+    e.preventDefault();
+    setPreview(true);
+  };
 
   return (
-    <NodeViewWrapper className="tk-image-block" data-align={align} data-selected={selected ? "true" : undefined}>
+    <NodeViewWrapper
+      className={`tk-image-block${editor.isEditable ? "" : " is-readonly"}`}
+      data-align={align}
+      data-selected={selected ? "true" : undefined}
+    >
       <div
         ref={wrapRef}
-        className={`tk-image-block-wrap ${wrapperAlign}`}
+        className={`tk-image-block-wrap ${wrapperAlign}${showHandles ? " is-selected" : ""}`}
         style={{ width: `${effectiveWidth}%`, maxWidth: "100%" }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={alt ?? ""} className="tk-image-block-img block w-full h-auto" draggable={false} />
-        {selected && editor.isEditable && (
-          <span
-            role="button"
-            aria-label="拖拽调整宽度"
-            title="拖拽调整宽度"
-            onMouseDown={onHandleDown}
-            className="tk-image-block-handle"
-          />
+        <img
+          src={src}
+          alt={alt ?? ""}
+          className="tk-image-block-img block w-full h-auto"
+          draggable={false}
+          onClick={onImageClick}
+        />
+        {showHandles && (
+          <>
+            <span
+              role="slider"
+              aria-label="左上角拖拽调整大小"
+              title="拖拽调整大小"
+              tabIndex={-1}
+              onMouseDown={startResize("left")}
+              className="tk-image-block-handle is-tl"
+            />
+            <span
+              role="slider"
+              aria-label="右上角拖拽调整大小"
+              title="拖拽调整大小"
+              tabIndex={-1}
+              onMouseDown={startResize("right")}
+              className="tk-image-block-handle is-tr"
+            />
+            <span
+              role="slider"
+              aria-label="左下角拖拽调整大小"
+              title="拖拽调整大小"
+              tabIndex={-1}
+              onMouseDown={startResize("left")}
+              className="tk-image-block-handle is-bl"
+            />
+            <span
+              role="slider"
+              aria-label="右下角拖拽调整大小"
+              title="拖拽调整大小"
+              tabIndex={-1}
+              onMouseDown={startResize("right")}
+              className="tk-image-block-handle is-br"
+            />
+          </>
         )}
-        {dragWidth !== null && <span className="tk-image-block-width-tag">{Math.round(effectiveWidth)}%</span>}
+        {dragWidth !== null && (
+          <span className="tk-image-block-width-tag">{Math.round(effectiveWidth)}%</span>
+        )}
       </div>
 
       {(editingCaption || caption) && (
@@ -238,7 +321,7 @@ function ImageBlockView(props: NodeViewProps) {
           }}
         />
       )}
-      {selected && editor.isEditable && !caption && !editingCaption && (
+      {showHandles && !caption && !editingCaption && (
         <button
           type="button"
           className={`tk-image-block-add-caption ${wrapperAlign}`}
@@ -252,6 +335,8 @@ function ImageBlockView(props: NodeViewProps) {
           + 添加说明
         </button>
       )}
+
+      {preview && <ImagePreview src={src} alt={alt} onClose={() => setPreview(false)} />}
     </NodeViewWrapper>
   );
 }
