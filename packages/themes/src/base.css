@@ -481,10 +481,20 @@
 }
 
 /* 暗色代码块主题 */
+.tk-code-block-dark {
+  caret-color: #e6edf3;
+}
+
 .tk-code-block-dark .tk-code-block-pre {
   background: #0d1117;
   color: #e6edf3;
   border: 1px solid #21262d;
+  caret-color: #e6edf3;
+}
+
+.tk-editor .tk-prosemirror .tk-code-block-dark ::selection,
+.tk-editor .tk-prosemirror .tk-code-block-dark *::selection {
+  background: #3a3e45 !important;
 }
 
 .tk-code-block-dark .tk-code-block-toolbar {

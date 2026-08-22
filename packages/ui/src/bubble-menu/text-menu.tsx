@@ -77,6 +77,10 @@ export function TextMenu({ editor }: { editor: Editor | null }) {
       if (sel.empty) return false;
       if (sel instanceof NodeSelection) return false;
       if (sel instanceof CellSelection) return false;
+      const { $from, $to } = sel;
+      if ($from.parent.type.name === "codeBlock" || $to.parent.type.name === "codeBlock") {
+        return false;
+      }
       const { from, to } = sel;
       const text = state.doc.textBetween(from, to, "\n", "\n").trim();
       return text.length > 0;
