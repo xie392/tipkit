@@ -4,7 +4,15 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
-import { CellSelection, TableMap } from "@tiptap/pm/tables";
+import {
+  CellSelection,
+  TableMap,
+  selectedRect,
+  columnIsHeader,
+  rowIsHeader,
+  isInTable,
+  selectionCell,
+} from "@tiptap/pm/tables";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@tipkit/components";
 
 const PICKER_COLS = 8;
@@ -22,10 +30,12 @@ function IconTableGrid() {
 function TbBtn({
   title,
   onClick,
+  active,
   children,
 }: {
   title: string;
   onClick: () => void;
+  active?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -36,7 +46,7 @@ function TbBtn({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={onClick}
-            className="tk-table-btn"
+            className={`tk-table-btn ${active ? "is-active" : ""}`}
           >
             {children}
           </button>
@@ -165,6 +175,68 @@ function isTableSelection(state: Editor["state"]): boolean {
   return isWholeTableSelection(state) || isMultiCellSelection(state);
 }
 
+/* ─── 表格状态读取（表头/对齐） ─── */
+
+function getTableRect(state: Editor["state"]) {
+  if (!isInTable(state)) return null;
+  try {
+    return selectedRect(state);
+  } catch {
+    return null;
+  }
+}
+
+function isHeaderRowActive(state: Editor["state"]): boolean {
+  const rect = getTableRect(state);
+  if (!rect) return false;
+  return rowIsHeader(rect.map, rect.table, 0);
+}
+
+function isHeaderColumnActive(state: Editor["state"]): boolean {
+  const rect = getTableRect(state);
+  if (!rect) return false;
+  return columnIsHeader(rect.map, rect.table, 0);
+}
+
+function getCellAlign(state: Editor["state"]): string | null {
+  if (!isInTable(state)) return null;
+  const $cell = selectionCell(state);
+  return $cell?.nodeAfter?.attrs.align ?? null;
+}
+
+function resetColumnWidths(editor: Editor) {
+  const { state } = editor;
+  if (!isInTable(state)) return;
+  const rect = selectedRect(state);
+  const tr = state.tr;
+  let changed = false;
+  for (const pos of rect.map.map) {
+    const cell = rect.table.nodeAt(pos);
+    const cellPos = rect.tableStart + pos;
+    if (cell && cell.attrs.colwidth) {
+      tr.setNodeMarkup(cellPos, undefined, { ...cell.attrs, colwidth: null });
+      changed = true;
+    }
+  }
+  if (changed) editor.view.dispatch(tr.scrollIntoView());
+}
+
+/* 订阅选区/文档更新，驱动按钮激活态重渲染。
+ * 不能用 "transaction"：它会对每次事务（含 BubbleMenu 定位插件自身派发的事务）触发，
+ * 造成 setTick → 重渲染 → 新事务 → setTick 的无限循环。 */
+function useEditorTick(editor: Editor) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const onUpdate = () => setTick((t) => t + 1);
+    editor.on("selectionUpdate", onUpdate);
+    editor.on("update", onUpdate);
+    return () => {
+      editor.off("selectionUpdate", onUpdate);
+      editor.off("update", onUpdate);
+    };
+  }, [editor]);
+}
+
 /* ─── 单元格/整表工具栏（用 BubbleMenu 定位） ─── */
 
 function IconMerge() {
@@ -238,8 +310,53 @@ function IconHeader() {
   );
 }
 
+function IconHeaderColumn() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="12" height="10" rx="1" />
+      <path d="M5.5 3v10" />
+    </svg>
+  );
+}
+
+function IconAlignLeft() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+      <path d="M2.5 4h11M2.5 8h7M2.5 12h9" />
+    </svg>
+  );
+}
+
+function IconAlignCenter() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+      <path d="M2.5 4h11M4.5 8h7M3.5 12h9" />
+    </svg>
+  );
+}
+
+function IconAlignRight() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+      <path d="M2.5 4h11M6.5 8h7M4.5 12h9" />
+    </svg>
+  );
+}
+
+function IconAutofit() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 8L5 5M2 8l3 3M14 8l-3-3m3 3l-3 3" />
+      <path d="M5 8h6" />
+    </svg>
+  );
+}
+
 export function TableBubbleToolbar({ editor }: { editor: Editor }) {
   const whole = useRef(false);
+  useEditorTick(editor);
+
+  const align = getCellAlign(editor.state);
 
   return (
     <BubbleMenu
@@ -274,9 +391,46 @@ export function TableBubbleToolbar({ editor }: { editor: Editor }) {
           <IconRowAfter />
         </TbBtn>
         <TbDivider />
-        <TbBtn title="切换表头行" onClick={() => editor.chain().focus().toggleHeaderRow().run()}>
+        <TbBtn
+          title="切换表头行"
+          active={isHeaderRowActive(editor.state)}
+          onClick={() => editor.chain().focus().toggleHeaderRow().run()}
+        >
           <IconHeader />
         </TbBtn>
+        <TbBtn
+          title="切换表头列"
+          active={isHeaderColumnActive(editor.state)}
+          onClick={() => editor.chain().focus().toggleHeaderColumn().run()}
+        >
+          <IconHeaderColumn />
+        </TbBtn>
+        <TbDivider />
+        <TbBtn
+          title="左对齐"
+          active={align === "left"}
+          onClick={() => editor.chain().focus().setCellAttribute("align", "left").run()}
+        >
+          <IconAlignLeft />
+        </TbBtn>
+        <TbBtn
+          title="居中对齐"
+          active={align === "center"}
+          onClick={() => editor.chain().focus().setCellAttribute("align", "center").run()}
+        >
+          <IconAlignCenter />
+        </TbBtn>
+        <TbBtn
+          title="右对齐"
+          active={align === "right"}
+          onClick={() => editor.chain().focus().setCellAttribute("align", "right").run()}
+        >
+          <IconAlignRight />
+        </TbBtn>
+        <TbBtn title="重置列宽" onClick={() => resetColumnWidths(editor)}>
+          <IconAutofit />
+        </TbBtn>
+        <TbDivider />
         <TbBtn title="删除表格" onClick={() => editor.chain().focus().deleteTable().run()}>
           <IconTrash />
         </TbBtn>
@@ -358,20 +512,27 @@ export function TableContextMenu({ editor }: { editor: Editor }) {
 
   if (!pos || !adjusted) return null;
 
-  const c = editor.chain().focus();
   const items: MenuItem[] = [
-    { key: "merge", label: "合并单元格", run: () => c.mergeCells().run() },
-    { key: "split", label: "拆分单元格", run: () => c.splitCell().run() },
+    { key: "merge", label: "合并单元格", run: () => editor.chain().focus().mergeCells().run() },
+    { key: "split", label: "拆分单元格", run: () => editor.chain().focus().splitCell().run() },
     { key: "sep1", label: "", run: () => {}, divider: true },
-    { key: "colBefore", label: "左侧插入列", run: () => c.addColumnBefore().run() },
-    { key: "colAfter", label: "右侧插入列", run: () => c.addColumnAfter().run() },
-    { key: "colDel", label: "删除列", run: () => c.deleteColumn().run() },
-    { key: "rowBefore", label: "上方插入行", run: () => c.addRowBefore().run() },
-    { key: "rowAfter", label: "下方插入行", run: () => c.addRowAfter().run() },
-    { key: "rowDel", label: "删除行", run: () => c.deleteRow().run() },
+    { key: "colBefore", label: "左侧插入列", run: () => editor.chain().focus().addColumnBefore().run() },
+    { key: "colAfter", label: "右侧插入列", run: () => editor.chain().focus().addColumnAfter().run() },
+    { key: "colDel", label: "删除列", run: () => editor.chain().focus().deleteColumn().run() },
+    { key: "rowBefore", label: "上方插入行", run: () => editor.chain().focus().addRowBefore().run() },
+    { key: "rowAfter", label: "下方插入行", run: () => editor.chain().focus().addRowAfter().run() },
+    { key: "rowDel", label: "删除行", run: () => editor.chain().focus().deleteRow().run() },
     { key: "sep2", label: "", run: () => {}, divider: true },
-    { key: "header", label: "切换表头行", run: () => c.toggleHeaderRow().run() },
-    { key: "del", label: "删除表格", run: () => c.deleteTable().run(), danger: true },
+    { key: "alignLeft", label: "左对齐", run: () => editor.chain().focus().setCellAttribute("align", "left").run() },
+    { key: "alignCenter", label: "居中对齐", run: () => editor.chain().focus().setCellAttribute("align", "center").run() },
+    { key: "alignRight", label: "右对齐", run: () => editor.chain().focus().setCellAttribute("align", "right").run() },
+    { key: "autofit", label: "重置列宽", run: () => resetColumnWidths(editor) },
+    { key: "sep3", label: "", run: () => {}, divider: true },
+    { key: "headerRow", label: "切换表头行", run: () => editor.chain().focus().toggleHeaderRow().run() },
+    { key: "headerCol", label: "切换表头列", run: () => editor.chain().focus().toggleHeaderColumn().run() },
+    { key: "headerCell", label: "切换表头单元格", run: () => editor.chain().focus().toggleHeaderCell().run() },
+    { key: "sep4", label: "", run: () => {}, divider: true },
+    { key: "del", label: "删除表格", run: () => editor.chain().focus().deleteTable().run(), danger: true },
   ];
 
   const close = () => {

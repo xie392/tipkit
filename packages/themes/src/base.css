@@ -263,10 +263,12 @@
 .tk-editor .tableWrapper {
   margin: 1em 0;
   overflow-x: auto;
+  overflow-y: visible;
 }
 
 .tk-editor table {
   border-collapse: collapse;
+  table-layout: fixed;
   width: 100%;
   margin: 0 !important;
 }
@@ -277,7 +279,7 @@
   border: 1px solid var(--border, #ddd);
   padding: 8px 12px;
   vertical-align: top;
-  min-width: 80px;
+  min-width: 48px;
 }
 
 .tk-editor th {
@@ -295,15 +297,22 @@
   background: var(--tk-accent, #3b82f6);
   pointer-events: none;
   opacity: 0;
+  z-index: 3;
   transition: opacity 0.15s;
 }
 
-.tk-editor .resize-cursor {
+.tk-editor .resize-cursor,
+.tk-editor .resize-cursor * {
   cursor: col-resize;
 }
 
 .tk-editor table:hover .column-resize-handle {
-  opacity: 0.5;
+  opacity: 0.4;
+}
+
+.tk-editor .column-resize-handle:hover,
+.tk-editor .resize-cursor .column-resize-handle {
+  opacity: 1;
 }
 
 /* 失焦选区（extensions/basic/selection.ts 添加的语义类名）：
