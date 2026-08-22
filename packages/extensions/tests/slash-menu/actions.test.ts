@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Editor } from "@tiptap/core";
-import { createBasicExtensions, createAdvancedExtensions } from "../index";
-import { filterInsertActions, getInsertActions, getSlashCommandState } from "./actions";
+import { createBasicExtensions, createAdvancedExtensions } from "../../src/index";
+import { filterInsertActions, getInsertActions, getSlashCommandState } from "../../src/slash-menu/actions";
 
 describe("filterInsertActions（斜杠菜单过滤）", () => {
   const actions = getInsertActions({ editor: null as never }).map((a) => a);

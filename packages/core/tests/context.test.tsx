@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createRoot } from "react-dom/client";
 import { act } from "react";
-import { EditorProvider, useEditorDeps } from "./context";
-import type { EditorDeps } from "./types";
+import { EditorProvider, useEditorDeps } from "../src/context";
+import type { EditorDeps } from "../src/types";
 
 /** 探针组件：把 context 值透传给断言 */
 function Probe({ onDeps }: { onDeps: (deps: EditorDeps) => void }) {

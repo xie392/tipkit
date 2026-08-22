@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createRoot } from "react-dom/client";
 import { act } from "react";
-import { TipKitEditor } from "./tiptap-editor";
+import { TipKitEditor } from "../src/tiptap-editor";
 
 /**
  * 客户端渲染集成测试：验证 TipKitEditor 渲染出可编辑的 ProseMirror。

@@ -277,6 +277,42 @@
       "accessCount": 1,
       "lastAccessed": 1787383814884,
       "type": "file"
+    },
+    {
+      "path": "packages/editor/tests/render.test.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1787414842423,
+      "type": "file"
+    },
+    {
+      "path": "packages/core/tests/context.test.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1787414842969,
+      "type": "file"
+    },
+    {
+      "path": "packages/extensions/tests/slash-menu/actions.test.ts",
+      "accessCount": 1,
+      "lastAccessed": 1787414852655,
+      "type": "file"
+    },
+    {
+      "path": "packages/editor/tests/index.test.ts",
+      "accessCount": 1,
+      "lastAccessed": 1787414909808,
+      "type": "file"
+    },
+    {
+      "path": "packages/extensions/tests/index.test.ts",
+      "accessCount": 1,
+      "lastAccessed": 1787414910404,
+      "type": "file"
+    },
+    {
+      "path": "packages/ui/tests/index.test.ts",
+      "accessCount": 1,
+      "lastAccessed": 1787414910986,
+      "type": "file"
     }
   ],
   "userDirectives": []
