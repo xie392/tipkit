@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import { CellSelection, TableMap } from "@tiptap/pm/tables";
@@ -295,7 +296,8 @@ interface MenuItem {
 }
 
 export function TableContextMenu({ editor }: { editor: Editor }) {
-  const [open, setOpen] = useState<{ x: number; y: number } | null>(null);
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [adjusted, setAdjusted] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -304,22 +306,25 @@ export function TableContextMenu({ editor }: { editor: Editor }) {
       const target = e.target as HTMLElement;
       if (!target.closest("td, th")) return;
       e.preventDefault();
-
-      const menuW = 180;
-      const menuH = 360;
-      let x = e.clientX;
-      let y = e.clientY;
-      if (x + menuW > window.innerWidth - 8) x = window.innerWidth - menuW - 8;
-      if (y + menuH > window.innerHeight - 8) y = window.innerHeight - menuH - 8;
-      if (x < 8) x = 8;
-      if (y < 8) y = 8;
-      setOpen({ x, y });
+      setPos({ x: e.clientX, y: e.clientY });
+      setAdjusted({ x: e.clientX, y: e.clientY });
     };
     const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(null);
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setPos(null);
+        setAdjusted(null);
+      }
     };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(null); };
-    const onScroll = () => setOpen(null);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setPos(null);
+        setAdjusted(null);
+      }
+    };
+    const onScroll = () => {
+      setPos(null);
+      setAdjusted(null);
+    };
     el.addEventListener("contextmenu", onContext);
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
@@ -334,7 +339,24 @@ export function TableContextMenu({ editor }: { editor: Editor }) {
     };
   }, [editor]);
 
-  if (!open) return null;
+  useLayoutEffect(() => {
+    if (!pos || !ref.current) return;
+    const menu = ref.current;
+    const rect = menu.getBoundingClientRect();
+    const margin = 8;
+    let { x, y } = pos;
+    if (x + rect.width > window.innerWidth - margin) {
+      x = window.innerWidth - rect.width - margin;
+    }
+    if (y + rect.height > window.innerHeight - margin) {
+      y = window.innerHeight - rect.height - margin;
+    }
+    if (x < margin) x = margin;
+    if (y < margin) y = margin;
+    setAdjusted({ x, y });
+  }, [pos]);
+
+  if (!pos || !adjusted) return null;
 
   const c = editor.chain().focus();
   const items: MenuItem[] = [
@@ -352,13 +374,16 @@ export function TableContextMenu({ editor }: { editor: Editor }) {
     { key: "del", label: "删除表格", run: () => c.deleteTable().run(), danger: true },
   ];
 
-  const close = () => setOpen(null);
+  const close = () => {
+    setPos(null);
+    setAdjusted(null);
+  };
 
-  return (
+  return createPortal(
     <div
       ref={ref}
       className="tk-context-menu"
-      style={{ position: "fixed", left: open.x, top: open.y, zIndex: 60 }}
+      style={{ position: "fixed", left: adjusted.x, top: adjusted.y, zIndex: 60 }}
     >
       {items.map((it) =>
         it.divider ? (
@@ -378,7 +403,8 @@ export function TableContextMenu({ editor }: { editor: Editor }) {
           </button>
         ),
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }
 
