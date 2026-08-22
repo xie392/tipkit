@@ -133,39 +133,6 @@
   margin: 0.25em 0;
 }
 
-/* ---------- 代码块：浅底 ---------- */
-.tk-theme-default .tk-code-block {
-  background: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) - 2px);
-}
-
-.tk-theme-default .tk-code-block-bar {
-  background: transparent;
-  color: var(--muted-foreground);
-  border-bottom: 1px solid var(--border);
-}
-
-.tk-theme-default .tk-code-block-lang {
-  color: var(--muted-foreground);
-}
-
-.tk-theme-default .tk-code-block-btn {
-  color: var(--muted-foreground);
-}
-
-.tk-theme-default .tk-code-block-btn:hover {
-  color: var(--foreground);
-  background: color-mix(in srgb, var(--foreground) 8%, transparent);
-}
-
-.tk-theme-default .tk-code-block-pre {
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 13.5px;
-  line-height: 1.7;
-  color: var(--foreground);
-}
-
 /* ---------- 表格 ---------- */
 .tk-theme-default .tk-editor .tk-prosemirror table {
   border-collapse: collapse;

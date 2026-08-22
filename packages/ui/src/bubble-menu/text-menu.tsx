@@ -5,6 +5,7 @@ import { BubbleMenu } from "@tiptap/react/menus";
 import type { Editor } from "@tiptap/react";
 import { useEditorState } from "@tiptap/react";
 import { NodeSelection } from "@tiptap/pm/state";
+import { CellSelection } from "@tiptap/pm/tables";
 import { Bold, Italic, Underline, Strikethrough, Code, Link } from "lucide-react";
 
 /* 选中文字浮层（迁移自 blog rich-text/text-menu.tsx）：
@@ -75,6 +76,7 @@ export function TextMenu({ editor }: { editor: Editor | null }) {
       const sel = state.selection;
       if (sel.empty) return false;
       if (sel instanceof NodeSelection) return false;
+      if (sel instanceof CellSelection) return false;
       const { from, to } = sel;
       const text = state.doc.textBetween(from, to, "\n", "\n").trim();
       return text.length > 0;

@@ -20,6 +20,8 @@ export type { SlashMenuProps } from "./slash-menu/slash-menu";
 export { EmojiSuggestion, getEmojiSuggestionState } from "./emoji/emoji-suggestion";
 export { TextMenu } from "./bubble-menu/text-menu";
 export { LinkBubble } from "./bubble-menu/link-bubble";
+export { BlockBubbleMenu } from "./bubble-menu/block-bubble";
+export { TablePicker, TableBubbleToolbar, TableContextMenu, TableControls } from "./table-controls";
 
 // 工具栏菜单（完整版）
 export { ToolbarBtn } from "./toolbar/toolbar-button";

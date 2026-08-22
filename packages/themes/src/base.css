@@ -10,7 +10,7 @@
 .tk-editor {
   position: relative;
   min-height: 300px;
-  padding: 16px;
+  padding: 24px 24px 24px 72px;
   border: 1px solid var(--border, #e5e5e5);
   border-radius: 8px;
   background: var(--background, #fff);
@@ -54,6 +54,230 @@
 .tk-table th {
   vertical-align: top;
   min-width: 3rem;
+}
+
+/* 表格控件 */
+.tk-table-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0 6px;
+  font-size: 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  transition: background 0.12s, color 0.12s;
+}
+
+.tk-table-btn:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.tk-table-btn.is-active {
+  background: color-mix(in srgb, var(--tk-accent, currentColor) 15%, transparent);
+  color: var(--tk-accent, currentColor);
+}
+
+.tk-table-btn-text {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.tk-table-btn-th {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.tk-table-divider {
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background: var(--border, #ddd);
+}
+
+.tk-table-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-radius: 10px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #ddd);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+}
+
+.tk-table-picker {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(100% + 6px);
+  z-index: 50;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #ddd);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
+}
+
+.tk-table-picker-grid {
+  display: grid;
+  gap: 3px;
+}
+
+.tk-table-picker-cell {
+  width: 18px;
+  height: 18px;
+  border-radius: 2px;
+  border: 1px solid var(--border, #ccc);
+  background: var(--background, #fff);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.1s;
+}
+
+.tk-table-picker-cell:hover,
+.tk-table-picker-cell.is-active {
+  background: var(--tk-accent, #3b82f6);
+  border-color: var(--tk-accent, #3b82f6);
+}
+
+.tk-table-picker-label {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted-foreground, #888);
+}
+
+.tk-table-grip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #ddd);
+  color: var(--muted-foreground, #888);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+}
+
+.tk-table-grip:hover {
+  color: var(--tk-accent, #3b82f6);
+  border-color: var(--tk-accent, #3b82f6);
+}
+
+.tk-context-menu {
+  min-width: 160px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #ddd);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
+}
+
+.tk-context-item {
+  display: block;
+  width: 100%;
+  padding: 7px 12px;
+  font-size: 13px;
+  text-align: left;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  color: var(--foreground, #222);
+}
+
+.tk-context-item:hover {
+  background: var(--accent, #f0f0f0);
+}
+
+.tk-context-item.is-danger {
+  color: var(--destructive, #dc2626);
+}
+
+.tk-context-item.is-danger:hover {
+  background: color-mix(in srgb, var(--destructive, #dc2626) 10%, transparent);
+}
+
+.tk-context-sep {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--border, #eee);
+}
+
+/* 表格选中样式 */
+.tk-editor .selectedCell {
+  background: color-mix(in srgb, var(--tk-accent, #3b82f6) 12%, transparent) !important;
+}
+
+/* 节点选中（点击拖拽手柄时的 NodeSelection）视觉反馈 */
+.tk-editor .ProseMirror-selectednode {
+  outline: 2px solid color-mix(in srgb, var(--tk-accent, #3b82f6) 60%, transparent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.tk-editor .ProseMirror-selectednode[data-type="codeBlock"],
+.tk-editor .ProseMirror-selectednode[data-type="callout"],
+.tk-editor .ProseMirror-selectednode[data-type="imageBlock"],
+.tk-editor .ProseMirror-selectednode.tk-code-block,
+.tk-editor .ProseMirror-selectednode.tk-callout {
+  outline-offset: 4px;
+}
+
+.tk-editor .tableWrapper {
+  margin: 1em 0;
+  overflow-x: auto;
+}
+
+.tk-editor table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0 !important;
+}
+
+.tk-editor th,
+.tk-editor td {
+  position: relative;
+  border: 1px solid var(--border, #ddd);
+  padding: 8px 12px;
+  vertical-align: top;
+  min-width: 80px;
+}
+
+.tk-editor th {
+  background: var(--muted, #f7f7f7);
+  font-weight: 600;
+  text-align: left;
+}
+
+.tk-editor .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--tk-accent, #3b82f6);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.tk-editor .resize-cursor {
+  cursor: col-resize;
+}
+
+.tk-editor table:hover .column-resize-handle {
+  opacity: 0.5;
 }
 
 /* 失焦选区（extensions/basic/selection.ts 添加的语义类名）：
@@ -139,50 +363,309 @@
 /* 代码块 */
 .tk-code-block {
   position: relative;
-  margin: 0.75em 0;
-  border-radius: 8px;
-  overflow: hidden;
+  margin: 1em 0;
+  border-radius: 10px;
   font-size: 0.9em;
 }
 
-.tk-code-block-bar {
+.tk-code-block-toolbar {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  z-index: 10;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  padding: 4px 8px;
-  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-.tk-code-block-lang {
-  background: transparent;
-  border: none;
+.tk-code-block:hover .tk-code-block-toolbar,
+.tk-code-block:focus-within .tk-code-block-toolbar {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tk-code-block-lang-wrap {
+  position: relative;
+}
+
+.tk-code-block-lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
   font-size: 12px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
   cursor: pointer;
 }
 
-.tk-code-block-lang-label {
-  opacity: 0.7;
+.tk-code-block-lang-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 20;
+  min-width: 160px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 4px;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
+}
+
+.tk-code-block-lang-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 12px;
+  text-align: left;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tk-code-block-check {
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .tk-code-block-actions {
-  margin-left: auto;
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 2px;
 }
 
-.tk-code-block-btn {
-  padding: 2px 8px;
-  font-size: 12px;
-  cursor: pointer;
+.tk-code-block-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   background: transparent;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.tk-code-block-action-danger:hover {
+  color: #dc2626 !important;
 }
 
 .tk-code-block-pre {
   margin: 0;
   overflow-x: auto;
-  padding: 12px 16px;
+  padding: 16px;
+  border-radius: 10px;
+}
+
+.tk-code-block-pre code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13.5px;
+  line-height: 1.7;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* 暗色代码块主题 */
+.tk-code-block-dark .tk-code-block-pre {
+  background: #0d1117;
+  color: #e6edf3;
+  border: 1px solid #21262d;
+}
+
+.tk-code-block-dark .tk-code-block-toolbar {
+  background: #161b22;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  color: #9d9d9d;
+}
+
+.tk-code-block-dark .tk-code-block-lang-btn {
+  color: #9d9d9d;
+}
+
+.tk-code-block-dark .tk-code-block-lang-btn:hover {
+  background: rgb(255 255 255 / 0.1);
+  color: #fff;
+}
+
+.tk-code-block-dark .tk-code-block-lang-dropdown {
+  background: #161b22;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  color: #e6edf3;
+}
+
+.tk-code-block-dark .tk-code-block-lang-option:hover {
+  background: rgb(255 255 255 / 0.1);
+}
+
+.tk-code-block-dark .tk-code-block-lang-option.is-active {
+  color: #e6a700;
+  font-weight: 600;
+}
+
+.tk-code-block-dark .tk-code-block-action-btn {
+  color: #9d9d9d;
+}
+
+.tk-code-block-dark .tk-code-block-action-btn:hover {
+  background: rgb(255 255 255 / 0.1);
+  color: #fff;
+}
+
+.tk-code-block-dark .hljs-comment,
+.tk-code-block-dark .hljs-quote {
+  color: #8b949e;
+}
+
+.tk-code-block-dark .hljs-keyword,
+.tk-code-block-dark .hljs-selector-tag,
+.tk-code-block-dark .hljs-literal,
+.tk-code-block-dark .hljs-type,
+.tk-code-block-dark .hljs-section {
+  color: #ff7b72;
+}
+
+.tk-code-block-dark .hljs-string,
+.tk-code-block-dark .hljs-attr,
+.tk-code-block-dark .hljs-template-tag,
+.tk-code-block-dark .hljs-template-variable {
+  color: #a5d6ff;
+}
+
+.tk-code-block-dark .hljs-number,
+.tk-code-block-dark .hljs-symbol,
+.tk-code-block-dark .hljs-bullet,
+.tk-code-block-dark .hljs-link {
+  color: #79c0ff;
+}
+
+.tk-code-block-dark .hljs-title,
+.tk-code-block-dark .hljs-name,
+.tk-code-block-dark .hljs-function .hljs-title {
+  color: #d2a8ff;
+}
+
+.tk-code-block-dark .hljs-variable,
+.tk-code-block-dark .hljs-attribute,
+.tk-code-block-dark .hljs-tag {
+  color: #7ee787;
+}
+
+.tk-code-block-dark .hljs-built_in,
+.tk-code-block-dark .hljs-class .hljs-title {
+  color: #ffa657;
+}
+
+.tk-code-block-dark .hljs-meta {
+  color: #8b949e;
+}
+
+/* 亮色代码块主题 */
+.tk-code-block-light .tk-code-block-pre {
+  background: #f6f8fa;
+  color: #24292f;
+  border: 1px solid #d0d7de;
+}
+
+.tk-code-block-light .tk-code-block-toolbar {
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  color: #656d76;
+}
+
+.tk-code-block-light .tk-code-block-lang-btn {
+  color: #656d76;
+}
+
+.tk-code-block-light .tk-code-block-lang-btn:hover {
+  background: rgb(0 0 0 / 0.05);
+  color: #24292f;
+}
+
+.tk-code-block-light .tk-code-block-lang-dropdown {
+  background: #fff;
+  border: 1px solid #d0d7de;
+  color: #24292f;
+}
+
+.tk-code-block-light .tk-code-block-lang-option:hover {
+  background: #f3f4f6;
+}
+
+.tk-code-block-light .tk-code-block-lang-option.is-active {
+  color: #0969da;
+  font-weight: 600;
+}
+
+.tk-code-block-light .tk-code-block-action-btn {
+  color: #656d76;
+}
+
+.tk-code-block-light .tk-code-block-action-btn:hover {
+  background: rgb(0 0 0 / 0.05);
+  color: #24292f;
+}
+
+.tk-code-block-light .hljs-comment,
+.tk-code-block-light .hljs-quote {
+  color: #6e7781;
+}
+
+.tk-code-block-light .hljs-keyword,
+.tk-code-block-light .hljs-selector-tag,
+.tk-code-block-light .hljs-literal,
+.tk-code-block-light .hljs-type,
+.tk-code-block-light .hljs-section {
+  color: #cf222e;
+}
+
+.tk-code-block-light .hljs-string,
+.tk-code-block-light .hljs-attr,
+.tk-code-block-light .hljs-template-tag,
+.tk-code-block-light .hljs-template-variable {
+  color: #0a3069;
+}
+
+.tk-code-block-light .hljs-number,
+.tk-code-block-light .hljs-symbol,
+.tk-code-block-light .hljs-bullet,
+.tk-code-block-light .hljs-link {
+  color: #0550ae;
+}
+
+.tk-code-block-light .hljs-title,
+.tk-code-block-light .hljs-name,
+.tk-code-block-light .hljs-function .hljs-title {
+  color: #8250df;
+}
+
+.tk-code-block-light .hljs-variable,
+.tk-code-block-light .hljs-attribute,
+.tk-code-block-light .hljs-tag {
+  color: #116329;
+}
+
+.tk-code-block-light .hljs-built_in,
+.tk-code-block-light .hljs-class .hljs-title {
+  color: #953800;
+}
+
+.tk-code-block-light .hljs-meta {
+  color: #6e7781;
 }
 
 /* 斜杠菜单（交互定位，视觉归主题）：左侧命令列表 + 右侧预览面板 */
@@ -844,9 +1327,10 @@
 }
 
 /* ============================================================
- * 气泡菜单（选中文字浮层 / 链接气泡）
+ * 气泡菜单（选中文字浮层 / 链接气泡 / 块工具条）
  * ============================================================ */
-.tk-bubble-menu {
+.tk-bubble-menu,
+.tk-block-bubble {
   display: flex;
   align-items: center;
   gap: 2px;
@@ -856,6 +1340,39 @@
   border: 1px solid var(--border, #e0e0e0);
   box-shadow: 0 4px 20px rgb(0 0 0 / 0.14);
   z-index: 9999;
+}
+
+.tk-block-bubble-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 2px;
+  background: var(--border, #e0e0e0);
+}
+
+.tk-block-bubble-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--muted-foreground, #666);
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.tk-block-bubble-btn:hover {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  color: var(--foreground, #222);
+}
+
+.tk-block-bubble-btn.is-danger:hover {
+  color: var(--destructive, #dc2626);
+  background: color-mix(in srgb, var(--destructive, #dc2626) 10%, transparent);
 }
 
 .tk-bubble-btn {

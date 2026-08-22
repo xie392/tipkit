@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import type { Editor } from "@tiptap/react";
-import { CellSelection } from "@tiptap/pm/tables";
 import {
   AlignMenu,
   BlockStyleMenu,
   ColorMenu,
   FontFamilyPicker,
   FontSizePicker,
+  TablePicker,
 } from "@tipkit/ui";
 import {
   Bold,
@@ -22,7 +22,6 @@ import {
   Quote,
   Redo2,
   Strikethrough,
-  Table2,
   Underline,
   Undo2,
   type LucideIcon,
@@ -73,7 +72,9 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
       <ToolbarBtn icon={ListChecks} label="任务列表" active={editor.isActive("taskList")} onClick={() => editor.chain().focus().toggleTaskList().run()} />
       <ToolbarBtn icon={Quote} label="引用" active={editor.isActive("blockquote")} onClick={() => editor.chain().focus().toggleBlockquote().run()} />
       <ToolbarBtn icon={Code2} label="代码块" active={editor.isActive("codeBlock")} onClick={() => editor.chain().focus().toggleCodeBlock().run()} />
-      <ToolbarBtn icon={Table2} label="插入表格" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} />
+      <div className="inline-flex items-center">
+        <TablePicker editor={editor} />
+      </div>
       <ToolbarDivider />
       <ToolbarBtn
         icon={Link}
@@ -84,140 +85,8 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
           if (href) editor.chain().focus().setLink({ href }).run();
         }}
       />
-      <TableMenu editor={editor} />
     </div>
   );
-}
-
-/** 表格操作：光标/选区在表格内时显示（合并、行列、全选等） */
-function TableMenu({ editor }: { editor: Editor }) {
-  // 订阅 selection/内容变化，否则点击单元格不会触发重渲染
-  const [, force] = useState(0);
-  useEffect(() => {
-    const refresh = () => force((n) => n + 1);
-    editor.on("selectionUpdate", refresh);
-    editor.on("update", refresh);
-    return () => {
-      editor.off("selectionUpdate", refresh);
-      editor.off("update", refresh);
-    };
-  }, [editor]);
-
-  if (!editor.isActive("table")) return null;
-  const btn =
-    "text-xs px-2 py-1 rounded-md transition-colors hover:bg-accent disabled:opacity-40 disabled:pointer-events-none";
-  return (
-    <span className="ml-1 flex items-center gap-0.5 border-l border-border pl-2">
-      <button
-        type="button"
-        title="合并选中单元格"
-        disabled={!editor.can().mergeCells()}
-        onClick={() => editor.chain().focus().mergeCells().run()}
-        className={btn}
-      >
-        合并
-      </button>
-      <button
-        type="button"
-        title="拆分单元格"
-        disabled={!editor.can().splitCell()}
-        onClick={() => editor.chain().focus().splitCell().run()}
-        className={btn}
-      >
-        拆分
-      </button>
-      <button
-        type="button"
-        title="上方插入行"
-        disabled={!editor.can().addRowBefore()}
-        onClick={() => editor.chain().focus().addRowBefore().run()}
-        className={btn}
-      >
-        ↑行
-      </button>
-      <button
-        type="button"
-        title="下方插入行"
-        disabled={!editor.can().addRowAfter()}
-        onClick={() => editor.chain().focus().addRowAfter().run()}
-        className={btn}
-      >
-        ↓行
-      </button>
-      <button
-        type="button"
-        title="左侧插入列"
-        disabled={!editor.can().addColumnBefore()}
-        onClick={() => editor.chain().focus().addColumnBefore().run()}
-        className={btn}
-      >
-        ←列
-      </button>
-      <button
-        type="button"
-        title="右侧插入列"
-        disabled={!editor.can().addColumnAfter()}
-        onClick={() => editor.chain().focus().addColumnAfter().run()}
-        className={btn}
-      >
-        →列
-      </button>
-      <button
-        type="button"
-        title="删除当前行"
-        disabled={!editor.can().deleteRow()}
-        onClick={() => editor.chain().focus().deleteRow().run()}
-        className={btn}
-      >
-        删行
-      </button>
-      <button
-        type="button"
-        title="删除当前列"
-        disabled={!editor.can().deleteColumn()}
-        onClick={() => editor.chain().focus().deleteColumn().run()}
-        className={btn}
-      >
-        删列
-      </button>
-      <button type="button" title="全选表格" onClick={() => selectAllCells(editor)} className={btn}>
-        全选
-      </button>
-      <button
-        type="button"
-        title="删除表格"
-        disabled={!editor.can().deleteTable()}
-        onClick={() => editor.chain().focus().deleteTable().run()}
-        className={btn}
-      >
-        删表
-      </button>
-    </span>
-  );
-}
-
-/** 全选表格：把选区扩展为覆盖所有单元格的 CellSelection */
-function selectAllCells(editor: Editor) {
-  const { state } = editor;
-  // 选区必须在表格内（表格菜单仅在表格中显示）
-  const $pos = state.doc.resolve(state.selection.from);
-  let depth = $pos.depth;
-  while (depth > 0 && $pos.node(depth).type.name !== "table") depth--;
-  if (depth <= 0) return;
-  const tableNode = $pos.node(depth);
-  const tablePos = $pos.before(depth);
-  const cells: number[] = [];
-  tableNode.descendants((child, cpos) => {
-    if (child.type.name === "tableCell" || child.type.name === "tableHeader") {
-      // cpos 相对 table 节点起点（含 table 自身 1 偏移），tablePos + cpos 即 doc pos
-      cells.push(tablePos + cpos);
-    }
-    return true;
-  });
-  if (cells.length === 0) return;
-  const $a = state.doc.resolve(cells[0] + 1);
-  const $b = state.doc.resolve(cells[cells.length - 1] + 1);
-  editor.view.dispatch(state.tr.setSelection(new CellSelection($a, $b)));
 }
 
 function ToolbarBtn({

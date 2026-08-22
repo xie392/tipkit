@@ -4,7 +4,7 @@ import type { Editor } from "@tiptap/react";
 import { TipKitEditor } from "@tipkit/editor";
 import type { EditorDeps, IconRef } from "@tipkit/editor";
 import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensions";
-import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble } from "@tipkit/ui";
+import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, BlockBubbleMenu, TableControls } from "@tipkit/ui";
 import {
   Bold,
   Italic,
@@ -148,6 +148,8 @@ export function DemoEditor({
             <EmojiSuggestion editor={editor} />
             <TextMenu editor={editor} />
             <LinkBubble editor={editor} />
+            <BlockBubbleMenu editor={editor} />
+            <TableControls editor={editor} />
           </>
         ) : null
       }

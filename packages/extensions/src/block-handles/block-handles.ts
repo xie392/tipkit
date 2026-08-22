@@ -50,7 +50,31 @@ function isBlockDom(el: Element | null): boolean {
   return true;
 }
 
+function findFirstLineEl(blockEl: HTMLElement): HTMLElement | null {
+  const summary = blockEl.querySelector(":scope > summary");
+  if (summary instanceof HTMLElement) return summary;
+
+  const firstColumn = blockEl.querySelector(
+    ":scope > .tk-column"
+  ) as HTMLElement | null;
+  if (firstColumn) {
+    const firstChild = firstColumn.querySelector(
+      ":scope > p, :scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6"
+    );
+    if (firstChild instanceof HTMLElement) return firstChild;
+    return firstColumn;
+  }
+
+  const firstInner = blockEl.querySelector(
+    ":scope > p, :scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6"
+  );
+  if (firstInner instanceof HTMLElement) return firstInner;
+
+  return null;
+}
+
 function findBlockEl(start: EventTarget | null, root: HTMLElement): HTMLElement | null {
+  const candidates: HTMLElement[] = [];
   let el = start as HTMLElement | null;
   while (el && el !== root) {
     const cur = el;
@@ -59,15 +83,24 @@ function findBlockEl(start: EventTarget | null, root: HTMLElement): HTMLElement 
       return cur;
     }
     if (isBlockDom(cur)) {
-      if (cur.tagName === "LI") {
-        const list = cur.parentElement;
-        if (list && list.childElementCount <= 1) return null;
+      if (cur.tagName !== "LI" && cur.closest("li")) {
+        el = cur.parentElement;
+        continue;
       }
-      return cur;
+      candidates.push(cur);
     }
     el = cur.parentElement;
   }
-  return null;
+  if (candidates.length === 0) return null;
+
+  const innermostLi = candidates.find((c) => c.tagName === "LI");
+  if (innermostLi) {
+    const list = innermostLi.parentElement;
+    if (list && list.childElementCount <= 1) return null;
+    return innermostLi;
+  }
+
+  return candidates[candidates.length - 1];
 }
 
 function getBlockNodePos(view: EditorView, el: HTMLElement): number | null {
@@ -163,26 +196,39 @@ export const BlockHandles = Extension.create({
     const positionUI = (blockEl: HTMLElement) => {
       if (!wrap || !view) return;
       const rect = blockEl.getBoundingClientRect();
-      const wrapW = wrap.offsetWidth || 40;
+      const wrapW = wrap.offsetWidth || 48;
       const wrapH = wrap.offsetHeight || 24;
       const isLi = blockEl.tagName === "LI";
-      // 以编辑器容器（.tk-editor）左边框为基准，句柄整体放在卡片外、紧贴边框 8px：
-      // 不遮挡正文（卡片内会盖住文字），也不悬空太远（远离边框会显得飘）
-      const editorEl = view.dom.parentElement;
+
       let left: number;
-      if (editorEl) {
-        const editorLeft = editorEl.getBoundingClientRect().left;
-        // editorLeft 是内容左边缘（边框 + 16px padding），边框在 editorLeft - 16
-        left = editorLeft - 16 - 8 - wrapW - (isLi ? 24 : 0);
+      const editorWrap = view.dom.closest(".tk-editor") as HTMLElement | null;
+      if (editorWrap) {
+        const editorRect = editorWrap.getBoundingClientRect();
+        left = rect.left - wrapW - 8 - (isLi ? 24 : 0);
+        const minLeft = editorRect.left + 8;
+        if (left < minLeft) left = minLeft;
       } else {
         left = rect.left - wrapW - 8 - (isLi ? 24 : 0);
       }
-      const cs = getComputedStyle(blockEl);
-      const padTop = parseFloat(cs.paddingTop) || 0;
-      const lineH = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.6 || 24;
-      const firstLineCenter = padTop + lineH / 2;
-      const top = rect.top + firstLineCenter - wrapH / 2;
-      wrap.style.left = `${Math.max(6, left)}px`;
+
+      const firstLineEl = findFirstLineEl(blockEl);
+      let top: number;
+      if (firstLineEl) {
+        const r = firstLineEl.getBoundingClientRect();
+        const cs = getComputedStyle(firstLineEl);
+        const padTop = parseFloat(cs.paddingTop) || 0;
+        const lineH =
+          parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.6 || 24;
+        top = r.top + padTop + lineH / 2 - wrapH / 2;
+      } else {
+        const cs = getComputedStyle(blockEl);
+        const padTop = parseFloat(cs.paddingTop) || 0;
+        const lineH =
+          parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.6 || 24;
+        top = rect.top + padTop + lineH / 2 - wrapH / 2;
+      }
+
+      wrap.style.left = `${left}px`;
       wrap.style.top = `${top}px`;
       wrap.classList.remove("is-hidden");
     };
