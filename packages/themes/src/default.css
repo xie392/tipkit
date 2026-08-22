@@ -263,5 +263,4 @@
 /* ---------- 图片 ---------- */
 .tk-theme-default .tk-image-block-img {
   border-radius: calc(var(--radius) - 2px);
-  border: 1px solid var(--border);
 }

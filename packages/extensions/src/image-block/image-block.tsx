@@ -150,9 +150,13 @@ function ImageBlockView(props: NodeViewProps) {
   const [editingCaption, setEditingCaption] = useState(false);
 
   useEffect(() => {
-    if (editingCaption && captionRef.current) {
-      captionRef.current.textContent = caption ?? "";
-      captionRef.current.focus();
+    const el = captionRef.current;
+    if (!el) return;
+    if (editingCaption) {
+      el.textContent = caption ?? "";
+      el.focus();
+    } else {
+      el.textContent = caption ?? "";
     }
   }, [editingCaption, caption]);
 

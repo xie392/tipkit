@@ -228,10 +228,14 @@
 
 .tk-editor .ProseMirror-selectednode[data-type="codeBlock"],
 .tk-editor .ProseMirror-selectednode[data-type="callout"],
-.tk-editor .ProseMirror-selectednode[data-type="imageBlock"],
 .tk-editor .ProseMirror-selectednode.tk-code-block,
 .tk-editor .ProseMirror-selectednode.tk-callout {
   outline-offset: 4px;
+}
+
+.tk-editor .ProseMirror-selectednode.tk-image-block,
+.tk-editor .ProseMirror-selectednode[data-type="imageBlock"] {
+  outline: none;
 }
 
 /* 块激活（点击拖拽手柄时）：Notion 风格淡色整行背景，不选中文字。
@@ -354,11 +358,6 @@
 .tk-image-block-img {
   border-radius: 8px;
   display: block;
-}
-
-.tk-image-block[data-selected="true"] .tk-image-block-img {
-  outline: 2px solid var(--tk-accent, currentColor);
-  outline-offset: 2px;
 }
 
 .tk-image-block-handle {
@@ -1628,6 +1627,121 @@
 .tk-link-dialog-footer {
   margin-top: 20px;
   gap: 8px;
+}
+
+.tk-block-bubble-drag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: grab;
+  color: var(--muted-foreground, #888);
+  padding: 0;
+}
+.tk-block-bubble-drag:hover {
+  color: var(--foreground, #222);
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+.tk-block-bubble-drag:active {
+  cursor: grabbing;
+}
+
+.tk-block-bubble-actions {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.tk-block-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0 5px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--muted-foreground, #666);
+  font-size: 12px;
+  line-height: 1;
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+.tk-block-action-btn:hover {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  color: var(--foreground, #222);
+}
+.tk-block-action-btn.is-active {
+  color: var(--primary, #2563eb);
+  background: color-mix(in srgb, var(--primary, #2563eb) 12%, transparent);
+}
+.tk-block-action-btn svg {
+  flex-shrink: 0;
+}
+
+.tk-block-action-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 3px;
+  background: var(--border, #e0e0e0);
+}
+
+.tk-block-action-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.tk-block-action-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 120px;
+  padding: 4px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+  z-index: 100;
+}
+
+.tk-block-action-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  color: var(--foreground, #222);
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+  transition: background 0.1s;
+}
+.tk-block-action-item:hover {
+  background: color-mix(in srgb, var(--primary, #2563eb) 8%, transparent);
+}
+.tk-block-action-item.is-active {
+  color: var(--primary, #2563eb);
+  background: color-mix(in srgb, var(--primary, #2563eb) 10%, transparent);
+  font-weight: 500;
+}
+.tk-block-action-item-icon {
+  display: inline-flex;
+  width: 16px;
+  justify-content: center;
+  font-size: 15px;
 }
 
 
