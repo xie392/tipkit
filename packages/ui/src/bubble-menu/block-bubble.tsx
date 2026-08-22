@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback } from "react";
-import { BubbleMenu } from "@tiptap/react/menus";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
-import { NodeSelection } from "@tiptap/pm/state";
+import { createPortal } from "react-dom";
 
 function IconTrash() {
   return (
@@ -22,55 +21,114 @@ function IconDuplicate() {
   );
 }
 
-export function BlockBubbleMenu({ editor }: { editor: Editor }) {
-  const shouldShow = useCallback(
-    ({ state }: { state: Editor["state"] }) => {
-      if (!editor.isEditable) return false;
-      const sel = state.selection;
-      if (!(sel instanceof NodeSelection)) return false;
-      const name = sel.node.type.name;
-      return name !== "table";
-    },
-    [editor],
-  );
+function findPluginState(editor: Editor): number | null {
+  const plugin = editor.state.plugins.find((p) => {
+    const key = (p as unknown as { key: string }).key;
+    return typeof key === "string" && key.indexOf("blockHandles") === 0;
+  });
+  if (!plugin) return null;
+  const state = plugin.getState(editor.state) as { pos: number | null } | undefined;
+  return state?.pos ?? null;
+}
 
-  return (
-    <BubbleMenu
-      editor={editor}
-      pluginKey="tk-block-bubble"
-      shouldShow={shouldShow}
-      options={{ placement: "top", offset: 8 }}
-      updateDelay={50}
+export function BlockBubbleMenu({ editor }: { editor: Editor }) {
+  const [activePos, setActivePos] = useState<number | null>(null);
+  const [coords, setCoords] = useState<{ left: number; top: number } | null>(null);
+  const toolbarRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const update = () => setActivePos(findPluginState(editor));
+    update();
+    editor.on("transaction", update);
+    return () => {
+      editor.off("transaction", update);
+    };
+  }, [editor]);
+
+  const updatePosition = useCallback(() => {
+    if (activePos == null) {
+      setCoords(null);
+      return;
+    }
+    const activeEl = editor.view.dom.querySelector<HTMLElement>(".tk-block-active");
+    if (!activeEl) {
+      setCoords(null);
+      return;
+    }
+    const rect = activeEl.getBoundingClientRect();
+    const tb = toolbarRef.current;
+    const tbW = tb?.offsetWidth || 90;
+    const tbH = tb?.offsetHeight || 34;
+    let left = rect.left + rect.width / 2 - tbW / 2;
+    const margin = 8;
+    if (left < margin) left = margin;
+    const vw = window.innerWidth;
+    if (left + tbW > vw - margin) left = vw - margin - tbW;
+    setCoords({ left, top: rect.top - tbH - 8 });
+  }, [activePos, editor]);
+
+  useLayoutEffect(() => {
+    updatePosition();
+    if (activePos == null) return;
+    const onScroll = () => updatePosition();
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onScroll, true);
+    return () => {
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onScroll, true);
+    };
+  }, [updatePosition, activePos]);
+
+  if (activePos == null || !coords) return null;
+
+  const duplicate = () => {
+    if (activePos == null) return;
+    const { doc } = editor.state;
+    const $pos = doc.resolve(activePos);
+    const node = $pos.nodeAfter;
+    if (!node) return;
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(activePos + node.nodeSize, node.toJSON())
+      .run();
+  };
+
+  const remove = () => {
+    if (activePos == null) return;
+    const { doc } = editor.state;
+    const $pos = doc.resolve(activePos);
+    const node = $pos.nodeAfter;
+    if (!node) return;
+    editor.chain().focus().deleteRange({ from: activePos, to: activePos + node.nodeSize }).run();
+  };
+
+  return createPortal(
+    <div
+      ref={toolbarRef}
+      className="tk-block-bubble"
+      style={{ position: "fixed", left: coords.left, top: coords.top, zIndex: 60 }}
     >
-      <div className="tk-block-bubble">
-        <button
-          type="button"
-          title="复制块"
-          className="tk-block-bubble-btn"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => {
-            const { selection } = editor.state;
-            if (!(selection instanceof NodeSelection)) return;
-            editor
-              .chain()
-              .focus()
-              .insertContentAt(selection.to, selection.node.toJSON())
-              .run();
-          }}
-        >
-          <IconDuplicate />
-        </button>
-        <span className="tk-block-bubble-divider" />
-        <button
-          type="button"
-          title="删除块"
-          className="tk-block-bubble-btn is-danger"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().deleteSelection().run()}
-        >
-          <IconTrash />
-        </button>
-      </div>
-    </BubbleMenu>
+      <button
+        type="button"
+        title="复制块"
+        className="tk-block-bubble-btn"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={duplicate}
+      >
+        <IconDuplicate />
+      </button>
+      <span className="tk-block-bubble-divider" />
+      <button
+        type="button"
+        title="删除块"
+        className="tk-block-bubble-btn is-danger"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={remove}
+      >
+        <IconTrash />
+      </button>
+    </div>,
+    document.body,
   );
 }

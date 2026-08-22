@@ -219,7 +219,7 @@
   background: color-mix(in srgb, var(--tk-accent, #3b82f6) 12%, transparent) !important;
 }
 
-/* 节点选中（点击拖拽手柄时的 NodeSelection）视觉反馈 */
+/* 节点选中（图片等 NodeSelection）视觉反馈 */
 .tk-editor .ProseMirror-selectednode {
   outline: 2px solid color-mix(in srgb, var(--tk-accent, #3b82f6) 60%, transparent);
   outline-offset: 2px;
@@ -232,6 +232,32 @@
 .tk-editor .ProseMirror-selectednode.tk-code-block,
 .tk-editor .ProseMirror-selectednode.tk-callout {
   outline-offset: 4px;
+}
+
+/* 块激活（点击拖拽手柄时）：Notion 风格淡蓝色整行背景，不选中文字 */
+.tk-editor .tk-block-active {
+  background: color-mix(in srgb, var(--tk-accent, #3b82f6) 12%, transparent);
+  border-radius: 6px;
+  margin-left: -4px;
+  margin-right: -4px;
+  padding-left: 4px;
+  padding-right: 4px;
+  transition: background 0.12s ease;
+}
+
+/* 已有内边距/背景的块，仅加外框，避免背景叠加 */
+.tk-editor .tk-block-active.tk-code-block,
+.tk-editor .tk-block-active.tk-callout,
+.tk-editor .tk-block-active[data-type="codeBlock"],
+.tk-editor .tk-block-active[data-type="callout"],
+.tk-editor .tk-block-active[data-type="imageBlock"] {
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
+  background: transparent;
+  outline: 2px solid color-mix(in srgb, var(--tk-accent, #3b82f6) 45%, transparent);
+  outline-offset: 2px;
 }
 
 .tk-editor .tableWrapper {

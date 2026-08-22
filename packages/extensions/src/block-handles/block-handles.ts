@@ -6,14 +6,20 @@ import {
   Plugin,
   PluginKey,
   TextSelection,
-  type Selection,
+  type EditorState,
 } from "@tiptap/pm/state";
+import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { EditorView } from "@tiptap/pm/view";
 
 /* BlockHandles：Notion 风格块级双柄。
  * 手柄锚定到编辑器根（.ProseMirror）的直接子块元素：<p>/<hN>/<blockquote>/
  * <ul>/<ol>/.tableWrapper/<details>/NodeView wrapper 等，每个顶层块占一整行，
- * 最小块是 <p>。块内部结构变化不影响手柄位置。 */
+ * 最小块是 <p>。块内部结构变化不影响手柄位置。
+ *
+ * 点击拖拽按钮只激活块（淡蓝行高亮 + 工具栏），不改变 ProseMirror 选区、
+ * 不选中文字；真正开始拖拽时才临时建立 NodeSelection 以生成拖拽数据。 */
+
+const ACTIVE_CLASS = "tk-block-active";
 
 function findFirstLineEl(blockEl: HTMLElement): HTMLElement | null {
   const summary = blockEl.querySelector(
@@ -73,19 +79,33 @@ function getBlockNodePos(view: EditorView, el: HTMLElement): number | null {
   return start < 0 ? null : start;
 }
 
+export const blockHandlesKey = new PluginKey("blockHandles");
+
+export function getActiveBlockPos(state: EditorState): number | null {
+  return (blockHandlesKey.getState(state) as { pos: number | null } | undefined)?.pos ?? null;
+}
+
 export const BlockHandles = Extension.create({
   name: "blockHandles",
 
   addProseMirrorPlugins() {
-    const key = new PluginKey("blockHandles");
-
     let view: EditorView | null = null;
     let wrap: HTMLElement | null = null;
     let addBtn: HTMLButtonElement | null = null;
     let dragBtn: HTMLButtonElement | null = null;
-    let activeEl: HTMLElement | null = null;
+    let hoverEl: HTMLElement | null = null;
+    let activePos: number | null = null;
     let hideTimer: ReturnType<typeof setTimeout> | null = null;
-    let activeSelection: Selection | null = null;
+    let dragSelection: NodeSelection | null = null;
+
+    const setActive = (pos: number | null) => {
+      if (!view) return;
+      if (pos === activePos) return;
+      activePos = pos;
+      view.dispatch(
+        view.state.tr.setMeta(blockHandlesKey, { type: "setActive", pos })
+      );
+    };
 
     const clearHide = () => {
       if (hideTimer) {
@@ -103,8 +123,8 @@ export const BlockHandles = Extension.create({
     const onAddClick = (e: Event) => {
       e.preventDefault();
       e.stopPropagation();
-      if (!activeEl || !view) return;
-      const nodePos = getBlockNodePos(view, activeEl);
+      if (!hoverEl || !view) return;
+      const nodePos = getBlockNodePos(view, hoverEl);
       if (nodePos == null) return;
       const { paragraph } = view.state.schema.nodes;
       const tr = view.state.tr;
@@ -114,6 +134,7 @@ export const BlockHandles = Extension.create({
       view.dispatch(tr.scrollIntoView());
       view.focus();
       wrap?.classList.add("is-hidden");
+      setActive(null);
     };
 
     const onButtonMouseDown = (e: Event) => {
@@ -121,35 +142,32 @@ export const BlockHandles = Extension.create({
       e.stopPropagation();
     };
 
-    const onDragMouseDown = (_e: Event) => {
-      if (!activeEl || !view) return;
-      const nodePos = getBlockNodePos(view, activeEl);
+    const onDragMouseDown = () => {
+      if (!hoverEl || !view) return;
+      const nodePos = getBlockNodePos(view, hoverEl);
       if (nodePos == null) return;
-      // 不 preventDefault：需要让浏览器原生 dragstart 触发（按钮 draggable=true）
+      setActive(nodePos);
       try {
-        const sel = NodeSelection.create(view.state.doc, nodePos);
-        view.dispatch(view.state.tr.setSelection(sel));
-        view.focus();
-        activeSelection = sel;
+        dragSelection = NodeSelection.create(view.state.doc, nodePos);
       } catch {
-        activeSelection = null;
+        dragSelection = null;
       }
     };
 
     const onDragStart = (e: DragEvent) => {
-      if (!activeEl || !activeSelection || !view || !e.dataTransfer) return;
-      const slice = activeSelection.content();
+      if (!view || !dragSelection || !e.dataTransfer) return;
+      const slice = dragSelection.content();
       const { dom, text } = view.serializeForClipboard(slice);
       e.dataTransfer.effectAllowed = "copyMove";
       e.dataTransfer.clearData();
       e.dataTransfer.setData("text/html", dom.innerHTML);
       e.dataTransfer.setData("text/plain", text);
-      e.dataTransfer.setDragImage(activeEl, 0, 0);
+      if (hoverEl) e.dataTransfer.setDragImage(hoverEl, 0, 0);
       view.dragging = { slice, move: true };
     };
 
     const onDragEnd = () => {
-      activeSelection = null;
+      dragSelection = null;
     };
 
     const positionUI = (blockEl: HTMLElement) => {
@@ -191,22 +209,9 @@ export const BlockHandles = Extension.create({
       wrap.classList.remove("is-hidden");
     };
 
-    const positionAtSelection = (v: EditorView) => {
-      const { selection } = v.state;
-      if (!(selection instanceof NodeSelection)) return;
-      const dom = v.nodeDOM(selection.from);
-      if (dom instanceof HTMLElement) {
-        const blockEl = findBlockEl(dom, v.dom as HTMLElement);
-        if (blockEl) {
-          activeEl = blockEl;
-          positionUI(blockEl);
-        }
-      }
-    };
-
     const onScroll = () => {
-      if (activeEl && wrap && !wrap.classList.contains("is-hidden")) {
-        positionUI(activeEl);
+      if (hoverEl && wrap && !wrap.classList.contains("is-hidden")) {
+        positionUI(hoverEl);
       }
     };
 
@@ -263,36 +268,50 @@ export const BlockHandles = Extension.create({
       wrap?.removeEventListener("mouseleave", scheduleHide);
       wrap?.remove();
       wrap = addBtn = dragBtn = null;
-      activeEl = null;
+      hoverEl = null;
+      activePos = null;
     };
 
     return [
       new Plugin({
-        key,
-        view: (v) => {
-          view = v;
-          if (v.editable) createUI();
-          return {
-            update: (updatedView) => {
-              view = updatedView;
-              if (updatedView.editable && wrap) {
-                positionAtSelection(updatedView);
-              }
-            },
-            destroy: () => destroyUI(),
-          };
+        key: blockHandlesKey,
+        state: {
+          init: () => ({ pos: null as number | null }),
+          apply(tr, value) {
+            const meta = tr.getMeta(blockHandlesKey) as
+              | { type: string; pos: number | null }
+              | undefined;
+            if (meta && meta.type === "setActive") {
+              return { pos: meta.pos };
+            }
+            if (value.pos != null && (tr.docChanged || tr.selectionSet)) {
+              return { pos: null };
+            }
+            return value;
+          },
         },
         props: {
+          decorations: (state) => {
+            const { pos } = blockHandlesKey.getState(state) as { pos: number | null };
+            if (pos == null) return DecorationSet.empty;
+            const $pos = state.doc.resolve(pos);
+            const node = $pos.nodeAfter;
+            if (!node || !node.isBlock) return DecorationSet.empty;
+            const deco = Decoration.node(pos, pos + node.nodeSize, {
+              class: ACTIVE_CLASS,
+            });
+            return DecorationSet.create(state.doc, [deco]);
+          },
           handleDOMEvents: {
             mousemove: (v, event) => {
               if (!v.editable || !wrap) return false;
               const blockEl = findBlockEl(event.target as EventTarget, v.dom as HTMLElement);
               if (!blockEl) {
                 scheduleHide();
-                activeEl = null;
+                hoverEl = null;
                 return false;
               }
-              activeEl = blockEl;
+              hoverEl = blockEl;
               positionUI(blockEl);
               return false;
             },
@@ -300,21 +319,45 @@ export const BlockHandles = Extension.create({
               scheduleHide();
               return false;
             },
-            mousedown: () => {
+            mousedown: (_v, event) => {
+              const target = event.target as HTMLElement;
+              if (wrap?.contains(target)) return false;
+              if (activePos != null) {
+                setActive(null);
+              }
               wrap?.classList.add("is-hidden");
-              requestAnimationFrame(() => {
-                if (view) positionAtSelection(view);
-              });
               return false;
             },
             keydown: (_v, event) => {
-              if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+              if (event.key === "Escape") {
+                if (activePos != null) setActive(null);
                 return false;
+              }
+              if (event.altKey || event.ctrlKey || event.metaKey) {
+                return false;
+              }
+              if (
+                event.key.length === 1 ||
+                event.key === "Backspace" ||
+                event.key === "Delete" ||
+                event.key === "Enter"
+              ) {
+                if (activePos != null) setActive(null);
               }
               wrap?.classList.add("is-hidden");
               return false;
             },
           },
+        },
+        view: (v) => {
+          view = v;
+          if (v.editable) createUI();
+          return {
+            update: (updatedView) => {
+              view = updatedView;
+            },
+            destroy: () => destroyUI(),
+          };
         },
       }),
     ];
