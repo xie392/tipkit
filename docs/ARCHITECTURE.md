@@ -1,0 +1,127 @@
+# TipKit 架构设计
+
+> 版本：v0.1（骨架阶段）
+
+## 1. 设计原则
+
+1. **无头（Headless）**：core/extensions 零视觉样式，只描述行为与数据结构
+2. **风格后置**：一切视觉（颜色/字体/边框/背景）属于主题层（themes）
+3. **依赖注入**：上传、存储、Katex 渲染等项目特定能力从 `EditorDeps` 注入
+4. **模块自包含**：扩展目录内部相对导入，可按需裁剪
+5. **源码共享**：monorepo 内 workspace 包直接引用 TS 源码（main 指向 src/index.ts），不构建产物
+
+## 2. 总体架构
+
+```mermaid
+flowchart TB
+    subgraph Consumer[消费方项目]
+        App[blog / devkb / 其他]
+    end
+
+    subgraph TipKit[tipkit monorepo]
+        subgraph Theme[主题层 @tipkit/themes]
+            Devkb[devkb.css]
+            Blog[blog.css]
+            Base[base.css 布局]
+        end
+
+        subgraph Editor[聚合入口 @tipkit/editor]
+            TE[TipKitEditor 组件<br/>buildToolbarGroups]
+        end
+
+        subgraph Logic[逻辑层]
+            Core[@tipkit/core<br/>useTipKitEditor / 序列化 / EditorDeps]
+            Ext[@tipkit/extensions<br/>全部 Tiptap 扩展]
+            UI[@tipkit/ui<br/>浮层定位 / 键盘导航 / 激活态]
+        end
+
+        Comp[@tipkit/components<br/>shadcn 组件]
+    end
+
+    App -->|"import 主题 CSS"| Theme
+    App -->|"import TipKitEditor"| Editor
+    Editor --> Logic
+    UI --> Comp
+    Ext --> Core
+```
+
+## 3. 分层职责
+
+| 包 | 职责 | 允许的样式 | 依赖 |
+|---|---|---|---|
+| `@tipkit/core` | 编辑器 hook、序列化、依赖注入容器、共享类型 | **零样式** | tiptap v3 |
+| `@tipkit/extensions` | 全部 Tiptap 扩展（斜杠菜单、katex、附件…） | 语义类名 `tk-*` + 少量可覆盖默认样式 | core |
+| `@tipkit/ui` | 交互原语：浮层定位、键盘导航、激活态 | 仅布局（flex/gap/z-index） | core, components |
+| `@tipkit/components` | shadcn 基础组件（button/popover/…） | CSS 变量驱动 | radix, cva |
+| `@tipkit/themes` | 主题皮肤：CSS 变量 + 自定义 CSS | **一切视觉** | 无 |
+| `@tipkit/editor` | 聚合入口：组装 core+extensions+ui | — | 全部 | 
+
+## 4. 主题机制
+
+```mermaid
+sequenceDiagram
+    participant App as 消费方应用
+    participant Theme as @tipkit/themes
+    participant Editor as TipKitEditor
+
+    App->>Theme: import "@tipkit/themes/blog.css"
+    Theme->>App: 注入 CSS 变量（--primary 等）+ 自定义样式
+    App->>Editor: <TipKitEditor deps={...}/>
+    Editor-->>App: 渲染语义类名节点（tk-editor / tk-image）
+    Note over App,Editor: 视觉完全由已加载的主题 CSS 决定
+```
+
+- 主题切换 = 加载不同 CSS 文件，**不改变任何组件代码**
+- 自定义风格：复制一份主题 CSS 改变量（或仅覆盖 `--tk-*` 语义变量）
+- blog 手绘风格需要字体资源，由消费方引入（主题包不打包字体文件）
+
+## 5. 依赖注入
+
+```ts
+interface EditorDeps {
+  uploadImage?: (file: File, editor: Editor) => Promise<string>;
+  uploadAttachment?: (file: File, editor: Editor) => Promise<AttachmentMeta>;
+  renderKatex?: (tex: string, displayMode: boolean) => Promise<string>;
+}
+```
+
+- 通过 `<EditorProvider deps={...}>` 提供，扩展内 `useEditorDeps()` 读取
+- **禁止**扩展内部直接调用项目 API / 全局变量
+
+## 6. 数据流
+
+```mermaid
+flowchart LR
+    User[用户输入] --> Editor[Tiptap 实例]
+    Editor -->|onUpdate| JSON[ProseMirror JSON]
+    JSON -->|serialize| HTML[HTML 字符串]
+    JSON -->|serialize| MD[Markdown]
+    HTML -->|"保存（消费方）"| Backend[(后端)]
+    Backend -->|"加载"| JSON
+```
+
+- 保存/加载格式由消费方决定（推荐存 JSON，渲染用 HTML）
+- `@tiptap/markdown` v3 提供 Markdown 双向转换
+
+## 7. 目录结构
+
+```
+tipkit/
+├── apps/demo/                 # Next.js 演示（/devkb /blog 双主题页面）
+├── packages/
+│   ├── core/                  # 无头核心
+│   ├── extensions/            # 扩展集（迁移自 blog rich-text）
+│   ├── ui/                    # 无头 UI 原语
+│   ├── components/            # shadcn 组件
+│   ├── themes/                # 双主题皮肤
+│   └── editor/                # 聚合入口
+└── docs/                      # PRD / 架构 / 技术设计
+```
+
+## 8. 与现有项目的关系
+
+| 来源 | 迁移内容 |
+|---|---|
+| blog `src/components/rich-text/` | 全部扩展（Tiptap v3 源码级复用）→ `extensions/`、`ui/` |
+| devkb `@devkb/editor` | monorepo 工程经验、测试规范（vitest+happy-dom）→ 工程配置 |
+| shadcn/ui 官方 | 基础组件 → `components/` |

@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# builds
+dist/
+.next/
+out/
+tsconfig.tsbuildinfo
+
+# turbo
+.turbo/
+
+# env
+.env
+.env.local
+.env.*.local
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# editor / os
+.DS_Store
+.idea/
+.vscode/
+
+# test
+coverage/
+test-results/
+
+# omc runtime state
+.omc/state/

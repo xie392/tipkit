@@ -1,0 +1,251 @@
+@import "tailwindcss";
+@import "@tipkit/themes/base.css";
+@import "@tipkit/themes/default.css";
+@import "@tipkit/themes/devkb.css";
+@import "@tipkit/themes/blog.css";
+
+/* 非 git 仓库时 Tailwind v4 自动检测不会扫到 workspace 包，
+ * 显式纳入 ui/components/extensions 源码，使其中的 Tailwind 类（hidden、下拉菜单样式等）生效 */
+@source "../../../../packages/ui/src";
+@source "../../../../packages/components/src";
+@source "../../../../packages/extensions/src";
+
+/* ============================================================
+ * Tailwind v4 → shadcn 变量映射：
+ * 让 bg-background / border-border / text-muted-foreground 等
+ * 类名跟随主题 CSS 变量（default / devkb / blog）联动。
+ * ============================================================ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+/* ============================================================
+ * 页面基础
+ * ============================================================ */
+html {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background-color 0.35s ease,
+    color 0.35s ease;
+}
+
+/* 编辑器内容区与主题切换联动 */
+.tk-prosemirror,
+.tk-toolbar {
+  transition:
+    background-color 0.35s ease,
+    border-color 0.35s ease,
+    color 0.35s ease;
+}
+
+/* ============================================================
+ * 页面外壳：编辑部工作台
+ * 氛围光 + 标尺网格 + 噪点
+ * ============================================================ */
+.demo-shell {
+  position: relative;
+  min-height: 100vh;
+  background-color: var(--background);
+  background-image:
+    radial-gradient(1100px 460px at 50% -120px, color-mix(in srgb, var(--primary) 9%, transparent), transparent 70%),
+    linear-gradient(color-mix(in srgb, var(--foreground) 3.6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--foreground) 3.6%, transparent) 1px, transparent 1px);
+  background-size: auto, 28px 28px, 28px 28px;
+  transition: background-color 0.35s ease;
+}
+
+/* 全局噪点质感层 */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- Header ---------- */
+.demo-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--background) 80%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  transition: border-color 0.35s ease;
+}
+
+.demo-header-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  height: 58px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 字标：编辑红方块 + 衬线名 */
+.demo-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.demo-brand-mark {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  background: var(--primary);
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--primary) 30%, transparent);
+  transition: background-color 0.35s ease;
+}
+
+.demo-brand-name {
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.demo-brand-sub {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+}
+
+/* ---------- 主题切换：校样标签 ---------- */
+.demo-switch {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--card) 70%, transparent);
+}
+
+.demo-switch-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 5px 13px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  border-radius: 7px;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.demo-switch-btn:hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--muted) 60%, transparent);
+}
+
+.demo-switch-btn[data-active="true"] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+/* ---------- 顶部工具条：sticky 在 header 下方 ---------- */
+.demo-toolbar-bar {
+  position: sticky;
+  top: 58px;
+  z-index: 30;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--background) 84%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  transition:
+    background-color 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.demo-toolbar-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 7px 20px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* 通栏条内：去掉主题给工具栏的卡片边框/圆角，按钮样式保留 */
+.demo-toolbar-bar .tk-toolbar {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+/* ---------- 主区：仅编辑器 ---------- */
+.demo-main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 20px 72px;
+}
+
+/* ============================================================
+ * 入场动画：staggered reveal
+ * ============================================================ */
+@keyframes tk-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tk-reveal {
+  animation: tk-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tk-reveal {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

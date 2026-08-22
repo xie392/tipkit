@@ -1,0 +1,904 @@
+/* ============================================================
+ * @tipkit/themes —— base.css
+ * 所有主题共享的"布局层"样式。
+ * 只允许：布局、间距、定位、z-index、默认行为（如 outline 归零）。
+ * 禁止：颜色、字体、阴影、边框视觉。
+ * ============================================================ */
+
+/* 编辑器容器（TipKitEditor 包裹 EditorContent）：
+ * 少量可覆盖的默认样式，颜色/边框走 CSS 变量，主题可整体覆盖 */
+.tk-editor {
+  position: relative;
+  min-height: 300px;
+  padding: 16px;
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 8px;
+  background: var(--background, #fff);
+}
+
+/* ProseMirror 内容区基础排版（语义结构，不含视觉） */
+.tk-editor .tk-prosemirror {
+  outline: none;
+  position: relative;
+}
+
+.tk-editor .tk-prosemirror > * + * {
+  margin-top: 0.75em;
+}
+
+/* 图片块容器（布局由扩展负责，视觉由主题负责） */
+.tk-image {
+  position: relative;
+  display: block;
+  max-width: 100%;
+}
+
+.tk-image.is-selected img {
+  outline: 2px solid var(--tk-accent, currentColor);
+  outline-offset: 2px;
+}
+
+/* 表格基础布局 */
+.tk-table-wrap {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.tk-table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.tk-table td,
+.tk-table th {
+  vertical-align: top;
+  min-width: 3rem;
+}
+
+/* 失焦选区（extensions/basic/selection.ts 添加的语义类名）：
+ * 默认半透明高亮，主题可覆盖 */
+.tk-selection-blur {
+  background: color-mix(in srgb, var(--tk-accent, currentColor) 30%, transparent);
+  border-radius: 2px;
+}
+
+/* ============================================================
+ * M2 语义类基础布局（布局/交互定位，视觉由主题决定）
+ * ============================================================ */
+
+/* 图片块 */
+.tk-image-block {
+  position: relative;
+  margin: 0.75em 0;
+}
+
+.tk-image-block[data-align="left"] {
+  text-align: left;
+}
+
+.tk-image-block[data-align="right"] {
+  text-align: right;
+}
+
+.tk-image-block[data-align="center"] {
+  text-align: center;
+}
+
+.tk-image-block-wrap {
+  position: relative;
+}
+
+.tk-image-block-img {
+  border-radius: 8px;
+  display: block;
+}
+
+.tk-image-block[data-selected="true"] .tk-image-block-img {
+  outline: 2px solid var(--tk-accent, currentColor);
+  outline-offset: 2px;
+}
+
+.tk-image-block-handle {
+  position: absolute;
+  right: -6px;
+  bottom: 10px;
+  width: 12px;
+  height: 24px;
+  cursor: ew-resize;
+  background: var(--tk-accent, currentColor);
+  border-radius: 4px;
+  opacity: 0.8;
+}
+
+.tk-image-block-width-tag {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 2px 6px;
+  font-size: 11px;
+  background: var(--popover, #222);
+  color: var(--popover-foreground, #fff);
+  border-radius: 4px;
+}
+
+.tk-image-block-caption,
+.tk-image-block-add-caption {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted-foreground, #888);
+  text-align: center;
+}
+
+.tk-image-block-caption[data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: var(--muted-foreground, #aaa);
+}
+
+/* 代码块 */
+.tk-code-block {
+  position: relative;
+  margin: 0.75em 0;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.9em;
+}
+
+.tk-code-block-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.tk-code-block-lang {
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tk-code-block-lang-label {
+  opacity: 0.7;
+}
+
+.tk-code-block-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.tk-code-block-btn {
+  padding: 2px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+}
+
+.tk-code-block-pre {
+  margin: 0;
+  overflow-x: auto;
+  padding: 12px 16px;
+}
+
+/* 斜杠菜单（交互定位，视觉归主题）：左侧命令列表 + 右侧预览面板 */
+.tk-slash-menu {
+  display: flex;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 0.18);
+  background: var(--popover, #fff);
+  color: var(--popover-foreground, #111);
+}
+
+.tk-slash-menu-list {
+  padding: 4px;
+  overflow-y: auto;
+  max-height: 360px;
+}
+
+.tk-slash-menu-empty {
+  padding: 12px;
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+.tk-slash-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  font-size: 13px;
+  text-align: left;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 7px;
+}
+
+.tk-slash-item[data-active="true"] {
+  background: var(--accent, #eee);
+}
+
+.tk-slash-item[data-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tk-slash-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: var(--muted, #f0f0f0);
+}
+
+.tk-slash-item[data-active="true"] .tk-slash-item-icon {
+  background: var(--accent-foreground, #fff);
+  color: var(--accent, #eee);
+}
+
+.tk-slash-item-label {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tk-slash-item-desc {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.6;
+  font-size: 12px;
+}
+
+.tk-slash-item-shortcut {
+  font-size: 11px;
+  opacity: 0.5;
+  font-family: monospace;
+}
+
+/* 右侧预览面板 */
+.tk-slash-menu-preview {
+  border-left: 1px solid var(--border, #e5e5e5);
+  padding: 12px;
+  background: var(--muted, #f7f7f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.tk-slash-menu-preview-body {
+  font-size: 12px;
+  width: 100%;
+  line-height: 1.5;
+}
+
+.tk-slash-menu-preview-body h1,
+.tk-slash-menu-preview-body h2,
+.tk-slash-menu-preview-body h3,
+.tk-slash-menu-preview-body h4 {
+  margin: 0;
+  font-weight: 700;
+}
+
+.tk-slash-menu-preview-empty {
+  font-size: 11px;
+  opacity: 0.5;
+}
+
+/* ============================================================
+ * M3 高级节点基础样式（少量可覆盖默认样式，视觉由主题决定）
+ * ============================================================ */
+
+/* 数学公式 */
+.tk-katex {
+  margin: 0.75em 0;
+  text-align: center;
+  padding: 8px 0;
+  border-radius: 8px;
+}
+
+.tk-katex.is-selected {
+  outline: 2px solid var(--tk-accent, currentColor);
+  outline-offset: 2px;
+}
+
+.tk-katex-placeholder,
+.tk-katex-btn {
+  border: 1px dashed var(--border, #ccc);
+  background: transparent;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.tk-katex-btn-primary {
+  border-style: solid;
+  background: var(--primary, #222);
+  color: var(--primary-foreground, #fff);
+}
+
+.tk-katex-textarea {
+  width: 100%;
+  font-family: monospace;
+  font-size: 13px;
+  border: 1px solid var(--border, #ccc);
+  border-radius: 6px;
+  padding: 8px;
+  background: var(--background, #fff);
+}
+
+.tk-katex-editor-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+/* 提示框（内联色由 renderHTML 写入 style） */
+.tk-callout {
+  position: relative;
+  border: 2px solid;
+  border-radius: 10px;
+  padding: 12px 14px 12px 44px;
+  margin: 0.75em 0;
+}
+
+.tk-callout-head {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+}
+
+.tk-callout-emoji {
+  font-size: 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.tk-callout-emoji-panel {
+  position: absolute;
+  left: 0;
+  top: 28px;
+  z-index: 30;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #ddd);
+  border-radius: 8px;
+  padding: 8px;
+  width: 240px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
+}
+
+.tk-callout-emoji-search {
+  width: 100%;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  margin-bottom: 6px;
+  background: var(--background, #fff);
+}
+
+.tk-callout-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.tk-callout-emoji-cell {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.tk-callout-switcher {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+}
+
+.tk-callout-switcher-btn {
+  font-size: 11px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.tk-callout-variant-panel {
+  position: absolute;
+  right: 0;
+  bottom: 24px;
+  display: grid;
+  gap: 4px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #ddd);
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
+  z-index: 30;
+}
+
+.tk-callout-variant-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* 分栏 */
+.tk-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 0.75em 0;
+}
+
+.tk-columns.layout-sidebar-left {
+  grid-template-columns: 1fr 2fr;
+}
+
+.tk-columns.layout-sidebar-right {
+  grid-template-columns: 2fr 1fr;
+}
+
+.tk-column {
+  min-width: 0;
+}
+
+/* 折叠块 */
+.tk-details {
+  margin: 0.75em 0;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.tk-details-summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.tk-details-content {
+  padding-top: 8px;
+}
+
+/* 目录 */
+.tk-toc {
+  margin: 0.75em 0;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 8px;
+  background: var(--muted, #f5f5f5);
+  padding: 12px;
+}
+
+.tk-toc-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.tk-toc-empty {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.tk-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tk-toc-item {
+  cursor: pointer;
+  font-size: 13px;
+  opacity: 0.85;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+.tk-toc-item:hover {
+  background: var(--accent, #eee);
+  opacity: 1;
+}
+
+.tk-toc-dot {
+  margin-right: 4px;
+  opacity: 0.5;
+}
+
+/* iframe 嵌入 */
+.tk-iframe {
+  margin: 0.75em 0;
+  position: relative;
+}
+
+.tk-iframe-inner {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border, #ddd);
+  max-width: 100%;
+}
+
+.tk-iframe-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.tk-iframe-empty {
+  border: 1px dashed var(--border, #ccc);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tk-iframe-empty-title {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.tk-iframe-input {
+  border: 1px solid var(--border, #ddd);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  background: var(--background, #fff);
+}
+
+.tk-iframe-empty-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.tk-iframe-btn {
+  border: 1px solid var(--border, #ddd);
+  background: transparent;
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.tk-iframe-btn-primary {
+  background: var(--primary, #222);
+  color: var(--primary-foreground, #fff);
+  border-color: var(--primary, #222);
+}
+
+.tk-iframe-handle {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  width: 48px;
+  height: 8px;
+  cursor: ns-resize;
+  background: var(--tk-accent, currentColor);
+  border-radius: 4px;
+  opacity: 0.7;
+}
+
+.tk-iframe-edit {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 11px;
+  border: none;
+  background: rgb(0 0 0 / 0.5);
+  color: #fff;
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+/* 附件 */
+.tk-attachment {
+  margin: 0.75em 0;
+}
+
+.tk-att-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+
+.tk-att-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.tk-att-name {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tk-att-size {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.tk-att-btn {
+  font-size: 12px;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 6px;
+  padding: 4px 10px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tk-att-empty {
+  border: 1px dashed var(--border, #ccc);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.tk-att-empty-icon {
+  font-size: 22px;
+  opacity: 0.5;
+}
+
+.tk-att-empty-hint {
+  font-size: 11px;
+  opacity: 0.5;
+}
+
+.tk-att-uploading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 13px;
+}
+
+.tk-att-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border, #ddd);
+  border-top-color: var(--primary, #222);
+  border-radius: 50%;
+  animation: tk-spin 0.8s linear infinite;
+}
+
+@keyframes tk-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tk-att-error {
+  border: 1px solid var(--destructive, #dc2626);
+  color: var(--destructive, #dc2626);
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* 任务列表（Tiptap TaskList/TaskItem）：checkbox 与内容水平对齐 */
+.tk-editor ul[data-type="taskList"] {
+  list-style: none;
+  padding: 0;
+  margin: 0.75em 0;
+}
+
+.tk-editor ul[data-type="taskList"] li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tk-editor ul[data-type="taskList"] li > label {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tk-editor ul[data-type="taskList"] li > label input {
+  margin: 0;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.tk-editor ul[data-type="taskList"] li > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tk-editor ul[data-type="taskList"] li > div > p {
+  margin: 0.15em 0;
+}
+
+/* 嵌套任务列表缩进 */
+.tk-editor ul[data-type="taskList"] ul[data-type="taskList"] {
+  margin: 0.25em 0;
+  padding-left: 1.5em;
+}
+
+/* 块句柄 */
+.tk-block-handles {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  opacity: 1;
+  transition: opacity 0.15s;
+}
+
+.tk-block-handles.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tk-block-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border, #ddd);
+  background: var(--popover, #fff);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--muted-foreground, #777);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
+}
+
+.tk-block-handle:hover {
+  background: var(--accent, #eee);
+  color: var(--accent-foreground, #222);
+}
+
+.tk-block-handle-add:hover {
+  background: var(--primary, #222);
+  color: var(--primary-foreground, #fff);
+}
+
+.tk-block-handle-drag {
+  cursor: grab;
+}
+
+/* emoji 浮层 */
+.tk-emoji-menu {
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #ddd);
+  border-radius: 10px;
+  padding: 8px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
+  z-index: 9999;
+}
+
+.tk-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+  width: 240px;
+}
+
+.tk-emoji-cell {
+  font-size: 17px;
+  padding: 3px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tk-emoji-cell[data-active="true"],
+.tk-emoji-cell:hover {
+  background: var(--accent, #eee);
+}
+
+/* ============================================================
+ * 气泡菜单（选中文字浮层 / 链接气泡）
+ * ============================================================ */
+.tk-bubble-menu {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-radius: 10px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  box-shadow: 0 4px 20px rgb(0 0 0 / 0.14);
+  z-index: 9999;
+}
+
+.tk-bubble-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--muted-foreground, #666);
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.tk-bubble-btn:hover {
+  background: var(--accent, #eee);
+  color: var(--accent-foreground, #222);
+}
+
+.tk-bubble-btn[data-active="true"] {
+  background: color-mix(in srgb, var(--primary, #222) 12%, transparent);
+  color: var(--primary, #222);
+}
+
+.tk-bubble-divider {
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background: var(--border, #e5e5e5);
+}
+
+.tk-bubble-href {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  padding: 0 4px;
+  color: var(--muted-foreground, #888);
+}
+
+

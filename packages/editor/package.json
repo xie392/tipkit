@@ -1,0 +1,37 @@
+{
+  "name": "@tipkit/editor",
+  "version": "0.0.0",
+  "private": true,
+  "description": "TipKit 聚合入口：core + extensions + ui 组装，对外暴露 <TipKitEditor> / useTipKitEditor",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "lint": "eslint src/",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tipkit/core": "workspace:*",
+    "@tipkit/extensions": "workspace:*",
+    "@tipkit/ui": "workspace:*",
+    "@tiptap/react": "^3.30.1"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "happy-dom": "^15.11.7"
+  }
+}

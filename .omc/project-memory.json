@@ -1,0 +1,283 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1787374552143,
+  "projectRoot": "/Users/xie392/Desktop/workspace/project/tipkit",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": ">=20.0.0",
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "pnpm",
+    "runtime": "Node.js 20.0.0"
+  },
+  "build": {
+    "buildCommand": "pnpm build",
+    "testCommand": "pnpm test",
+    "lintCommand": "pnpm lint",
+    "devCommand": "pnpm dev",
+    "scripts": {
+      "dev": "turbo dev",
+      "build": "turbo build",
+      "lint": "turbo lint",
+      "type-check": "turbo type-check",
+      "test": "turbo test",
+      "clean": "turbo clean && rm -rf node_modules"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": true,
+    "workspaces": [],
+    "mainDirectories": [
+      "docs"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "apps": {
+      "path": "apps",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1787374552123,
+      "keyFiles": []
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 3,
+      "lastAccessed": 1787374552123,
+      "keyFiles": [
+        "ARCHITECTURE.md",
+        "PRD.md",
+        "TECHNICAL-DESIGN.md"
+      ]
+    },
+    "packages": {
+      "path": "packages",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1787374552134,
+      "keyFiles": []
+    },
+    "packages/components": {
+      "path": "packages/components",
+      "purpose": "UI components",
+      "fileCount": 3,
+      "lastAccessed": 1787374552135,
+      "keyFiles": [
+        "package.json",
+        "tsconfig.json"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "apps/demo/src/components/editor-toolbar.tsx",
+      "accessCount": 11,
+      "lastAccessed": 1787381142120,
+      "type": "file"
+    },
+    {
+      "path": "apps/demo/src/components/demo-editor.tsx",
+      "accessCount": 9,
+      "lastAccessed": 1787379993094,
+      "type": "file"
+    },
+    {
+      "path": "packages/themes/src/base.css",
+      "accessCount": 8,
+      "lastAccessed": 1787376791806,
+      "type": "file"
+    },
+    {
+      "path": "apps/demo/src/app/globals.css",
+      "accessCount": 8,
+      "lastAccessed": 1787383695873,
+      "type": "file"
+    },
+    {
+      "path": "packages/extensions/src/basic.ts",
+      "accessCount": 6,
+      "lastAccessed": 1787379404295,
+      "type": "file"
+    },
+    {
+      "path": "packages/themes/src/devkb.css",
+      "accessCount": 6,
+      "lastAccessed": 1787379432373,
+      "type": "file"
+    },
+    {
+      "path": "packages/ui/src/slash-menu/slash-menu.tsx",
+      "accessCount": 5,
+      "lastAccessed": 1787375406030,
+      "type": "file"
+    },
+    {
+      "path": "packages/themes/src/default.css",
+      "accessCount": 5,
+      "lastAccessed": 1787379425190,
+      "type": "file"
+    },
+    {
+      "path": "packages/themes/src/blog.css",
+      "accessCount": 5,
+      "lastAccessed": 1787379433290,
+      "type": "file"
+    },
+    {
+      "path": "apps/demo/src/app/page.tsx",
+      "accessCount": 5,
+      "lastAccessed": 1787379440437,
+      "type": "file"
+    },
+    {
+      "path": "packages/extensions/src/block-handles/block-handles.ts",
+      "accessCount": 5,
+      "lastAccessed": 1787381133486,
+      "type": "file"
+    },
+    {
+      "path": "packages/extensions/src/__tmp-taskitem.test.ts",
+      "accessCount": 4,
+      "lastAccessed": 1787376969641,
+      "type": "file"
+    },
+    {
+      "path": "packages/themes/src/index.ts",
+      "accessCount": 3,
+      "lastAccessed": 1787379439140,
+      "type": "file"
+    },
+    {
+      "path": "apps/demo/src/app/layout.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1787374840153,
+      "type": "file"
+    },
+    {
+      "path": "packages/core/src/use-editor.ts",
+      "accessCount": 2,
+      "lastAccessed": 1787378363765,
+      "type": "file"
+    },
+    {
+      "path": "packages/ui/src/toolbar/toolbar-button.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1787383838036,
+      "type": "file"
+    },
+    {
+      "path": "apps/demo/package.json",
+      "accessCount": 1,
+      "lastAccessed": 1787374614490,
+      "type": "file"
+    },
+    {
+      "path": "apps/demo/postcss.config.mjs",
+      "accessCount": 1,
+      "lastAccessed": 1787374647601,
+      "type": "file"
+    },
+    {
+      "path": "packages/themes/package.json",
+      "accessCount": 1,
+      "lastAccessed": 1787374728355,
+      "type": "file"
+    },
+    {
+      "path": "packages/extensions/src/code-block/code-block.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1787374808371,
+      "type": "file"
+    },
+    {
+      "path": "packages/editor/src/tiptap-editor.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1787374989663,
+      "type": "file"
+    },
+    {
+      "path": "packages/extensions/src/slash-menu/actions.ts",
+      "accessCount": 1,
+      "lastAccessed": 1787375365145,
+      "type": "file"
+    },
+    {
+      "path": "packages/extensions/src/__tmp-tasklist.test.ts",
+      "accessCount": 1,
+      "lastAccessed": 1787376433184,
+      "type": "file"
+    },
+    {
+      "path": ".playwright-cli/page-2026-08-22T05-51-10-881Z.yml",
+      "accessCount": 1,
+      "lastAccessed": 1787377886797,
+      "type": "file"
+    },
+    {
+      "path": ".playwright-cli/page-2026-08-22T05-52-25-709Z.png",
+      "accessCount": 1,
+      "lastAccessed": 1787377950421,
+      "type": "file"
+    },
+    {
+      "path": "packages/extensions/src/advanced.ts",
+      "accessCount": 1,
+      "lastAccessed": 1787378240959,
+      "type": "file"
+    },
+    {
+      "path": "packages/core/src/context.test.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1787378250141,
+      "type": "file"
+    },
+    {
+      "path": "packages/extensions/src/__tmp-react-taskitem.test.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1787378280383,
+      "type": "file"
+    },
+    {
+      "path": ".playwright-cli/page-2026-08-22T06-14-54-616Z.png",
+      "accessCount": 1,
+      "lastAccessed": 1787379306291,
+      "type": "file"
+    },
+    {
+      "path": "packages/ui/src/toolbar/block-style-menu.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1787383683075,
+      "type": "file"
+    },
+    {
+      "path": "packages/components/src/ui/dropdown-menu.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1787383814884,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
