@@ -1601,4 +1601,28 @@
   color: var(--muted-foreground, #888);
 }
 
+/* 链接弹窗（布局层；颜色由 shadcn/ui CSS 变量驱动） */
+.tk-link-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tk-link-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tk-link-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--foreground, #222);
+}
+
+.tk-link-dialog-footer {
+  margin-top: 20px;
+  gap: 8px;
+}
+
 

@@ -4,6 +4,7 @@ import { BubbleMenu } from "@tiptap/react/menus";
 import type { Editor } from "@tiptap/react";
 import { useEditorState } from "@tiptap/react";
 import { Pencil, ExternalLink, Unlink } from "lucide-react";
+import { openLinkDialog } from "./link-dialog";
 
 /* 链接气泡（迁移自 blog rich-text/link-bubble.tsx）：
  * 选中/点击链接时显示编辑小工具条。视觉走主题（tk-bubble-*）。 */
@@ -53,13 +54,7 @@ export function LinkBubble({ editor }: { editor: Editor | null }) {
     >
       <span className="tk-bubble-href">{href}</span>
       <span className="tk-bubble-divider" />
-      <BubbleBtn
-        title="编辑链接"
-        onClick={() => {
-          const next = window.prompt("链接地址（https://…）", href);
-          if (next) editor.chain().focus().extendMarkRange("link").setLink({ href: next }).run();
-        }}
-      >
+      <BubbleBtn title="编辑链接" onClick={() => openLinkDialog()}>
         <Pencil className="h-3.5 w-3.5" />
       </BubbleBtn>
       <BubbleBtn

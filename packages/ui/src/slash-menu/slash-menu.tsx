@@ -10,6 +10,7 @@ import {
   type InsertAction,
   type SlashCommandState,
 } from "@tipkit/extensions";
+import { openLinkDialog } from "../bubble-menu/link-dialog";
 
 export interface SlashMenuProps {
   editor: Editor | null;
@@ -48,6 +49,7 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
         ? getInsertActions({
             editor,
             openImagePicker: onUploadImage ? () => fileRef.current?.click() : undefined,
+            openLinkDialog,
             clearSlashQuery: true,
           })
         : [],

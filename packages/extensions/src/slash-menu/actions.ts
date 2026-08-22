@@ -93,6 +93,8 @@ export interface GetInsertActionsOptions {
   editor: Editor;
   /** 有值时"图片"走本地文件选择 */
   openImagePicker?: () => void;
+  /** 有值时"链接"走自定义弹窗（否则退化 window.prompt） */
+  openLinkDialog?: () => void;
   /** 执行动作前删除 "/关键词" 文本（slash 菜单用） */
   clearSlashQuery?: boolean;
 }
@@ -105,6 +107,7 @@ export interface GetInsertActionsOptions {
 export function getInsertActions({
   editor,
   openImagePicker,
+  openLinkDialog,
   clearSlashQuery = false,
 }: GetInsertActionsOptions): InsertAction[] {
   const prepareInsert = () => {
@@ -289,6 +292,10 @@ export function getInsertActions({
         '<div style="background:#fff;border-radius:6px;padding:16px;display:flex;align-items:center;justify-content:center"><span style="display:inline-flex;align-items:center;gap:4px;background:#eff6ff;padding:4px 8px;border-radius:6px;font-size:11px;color:#2563eb;text-decoration:underline">链接文字</span></div>',
       run: () => {
         prepareInsert();
+        if (openLinkDialog) {
+          openLinkDialog();
+          return;
+        }
         const href = window.prompt("链接地址（https://…）");
         if (!href) return;
         editor.chain().focus().setLink({ href }).run();

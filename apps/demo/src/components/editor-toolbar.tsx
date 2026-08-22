@@ -9,6 +9,7 @@ import {
   FontFamilyPicker,
   FontSizePicker,
   TablePicker,
+  openLinkDialog,
 } from "@tipkit/ui";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@tipkit/components";
 import {
@@ -114,6 +115,7 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
         ? getInsertActions({
             editor,
             openImagePicker: () => fileRef.current?.click(),
+            openLinkDialog,
           })
         : [],
     [editor],
@@ -218,11 +220,7 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
             icon={Link}
             label="插入链接"
             active={editor.isActive("link")}
-            disabled={editor.state.selection.empty}
-            onClick={() => {
-              const href = window.prompt("链接地址（https://…）");
-              if (href) chain().setLink({ href }).run();
-            }}
+            onClick={() => openLinkDialog()}
           />
         </Tip>
         <Tip label="引用块">
