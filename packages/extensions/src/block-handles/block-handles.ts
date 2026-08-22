@@ -70,10 +70,14 @@ function findBlockEl(start: EventTarget | null, root: HTMLElement): HTMLElement 
 
 function getBlockNodePos(view: EditorView, el: HTMLElement): number | null {
   const pos = view.posAtDOM(el, 0);
-  if (pos == null || pos <= 0) return null;
+  if (pos == null || pos < 0) return null;
   const $pos = view.state.doc.resolve(pos);
+  // depth === 0: posAtDOM 返回的是顶层块之前的位置（atom NodeView，如
+  // KaTeX/图片等），pos 本身就是块的起始位置，不能再调 before()（根节点无前驱位置，
+  // 会抛 "There is no position before the top-level node"）。
+  if ($pos.depth === 0) return pos;
   if ($pos.parentOffset === 0 && $pos.nodeAfter && $pos.nodeAfter.isBlock) {
-    return $pos.depth === 0 ? pos : pos - 1;
+    return pos - 1;
   }
   const start = $pos.before();
   return start < 0 ? null : start;

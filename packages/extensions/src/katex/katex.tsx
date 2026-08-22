@@ -166,17 +166,6 @@ function KatexView(props: NodeViewProps) {
               + 输入数学公式
             </button>
           )}
-          {isEditable && text.trim() && (
-            <button
-              type="button"
-              title="编辑公式"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={openEditor}
-              className="tk-katex-edit"
-            >
-              编辑
-            </button>
-          )}
         </div>
       )}
     </NodeViewWrapper>

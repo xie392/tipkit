@@ -234,7 +234,9 @@
   outline-offset: 4px;
 }
 
-/* 块激活（点击拖拽手柄时）：Notion 风格淡蓝色整行背景，不选中文字 */
+/* 块激活（点击拖拽手柄时）：Notion 风格淡色整行背景，不选中文字。
+ * 背景块不再叠加 NodeSelection 外框，避免出现"背景 + 边框"双重高亮；
+ * codeBlock/callout/imageBlock 等自带背景的块在下方单独用外框表示。 */
 .tk-editor .tk-block-active {
   background: color-mix(in srgb, var(--tk-accent, #3b82f6) 12%, transparent);
   border-radius: 6px;
@@ -242,6 +244,7 @@
   margin-right: -4px;
   padding-left: 4px;
   padding-right: 4px;
+  outline: none;
   transition: background 0.12s ease;
 }
 
@@ -872,9 +875,11 @@
   border-radius: 8px;
 }
 
-.tk-katex.is-selected {
-  outline: 2px solid var(--tk-accent, currentColor);
-  outline-offset: 2px;
+/* 公式选中：用淡色背景代替外框，与块激活风格一致 */
+.tk-katex.is-selected,
+.tk-editor .ProseMirror-selectednode.tk-katex {
+  outline: none;
+  background: color-mix(in srgb, var(--tk-accent, #3b82f6) 12%, transparent);
 }
 
 .tk-katex-placeholder,
