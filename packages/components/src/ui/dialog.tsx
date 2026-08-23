@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
 import { cn } from "../lib/utils";
 
 /* 精简 shadcn dialog（Radix 封装） */
@@ -11,19 +12,23 @@ const DialogClose = DialogPrimitive.Close;
 
 const DialogContent = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+    showClose?: boolean;
+  }
+>(({ className, children, showClose = true, ...props }, ref) => (
   <DialogPrimitive.Portal>
-    <DialogPrimitive.Overlay className="tk-fixed tk-inset-0 tk-z-100 tk-bg-black-50" />
+    <DialogPrimitive.Overlay className="tk-dialog-overlay" />
     <DialogPrimitive.Content
       ref={ref}
-      className={cn(
-        "tk-fixed tk-left-half tk-top-half tk-z-100 tk-w-full tk-max-w-md tk-center-modal tk-rounded-lg tk-border tk-border-border tk-bg-background tk-p-6 tk-shadow-lg",
-        className,
-      )}
+      className={cn("tk-dialog-content", className)}
       {...props}
     >
       {children}
+      {showClose && (
+        <DialogPrimitive.Close className="tk-dialog-close" aria-label="关闭">
+          <X className="tk-icon-sm" />
+        </DialogPrimitive.Close>
+      )}
     </DialogPrimitive.Content>
   </DialogPrimitive.Portal>
 ));

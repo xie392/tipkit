@@ -1756,11 +1756,78 @@
   color: var(--muted-foreground, #888);
 }
 
+/* ---------- Dialog 弹窗（布局层；视觉由主题覆盖） ---------- */
+.tk-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgb(0 0 0 / 0.5);
+}
+
+.tk-dialog-content {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 100;
+  width: 100%;
+  max-width: 28rem;
+  transform: translate(-50%, -50%);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--background, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius, 0.5rem);
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.tk-dialog-close {
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--muted-foreground, #888);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.tk-dialog-close:hover {
+  background: var(--accent, #f3f4f6);
+  color: var(--foreground, #222);
+}
+
+.tk-dialog-close:focus-visible {
+  outline: 2px solid var(--ring, #3b82f6);
+  outline-offset: 2px;
+}
+
+.tk-dialog-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tk-dialog-title-icon {
+  color: var(--muted-foreground, #888);
+}
+
 /* 链接弹窗（布局层；颜色由 shadcn/ui CSS 变量驱动） */
 .tk-link-dialog-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  margin-top: 4px;
 }
 
 .tk-link-field {
@@ -1776,7 +1843,7 @@
 }
 
 .tk-link-dialog-footer {
-  margin-top: 20px;
+  margin-top: 22px;
   gap: 8px;
 }
 

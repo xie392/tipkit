@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { getMarkRange } from "@tiptap/core";
+import { Link } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -87,7 +88,10 @@ export function LinkDialog({ editor, open, onOpenChange }: LinkDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="tk-link-dialog tk-max-w-sm">
         <DialogHeader>
-          <DialogTitle className="tk-link-dialog-title">编辑链接</DialogTitle>
+          <DialogTitle className="tk-dialog-title-row">
+            <Link className="tk-icon-md tk-dialog-title-icon" />
+            编辑链接
+          </DialogTitle>
         </DialogHeader>
         <div className="tk-link-dialog-body">
           <div className="tk-link-field">

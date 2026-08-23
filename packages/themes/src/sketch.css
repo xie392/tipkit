@@ -409,20 +409,42 @@
   border-radius: 8px 6px 9px 5px;
 }
 
-/* ---------- 链接弹窗 ---------- */
-.tk-theme-sketch .tk-link-dialog-body {
+/* ---------- 弹窗 Dialog：手绘边框 + 阴影 ---------- */
+.tk-theme-sketch .tk-dialog-overlay {
+  background: rgb(0 0 0 / 0.45);
+}
+
+.tk-theme-sketch .tk-dialog-content {
   border: 1.5px solid var(--tk-sketch-line);
   border-radius: 14px 10px 16px 12px;
   box-shadow:
     4px 4px 0 var(--tk-sketch-shadow),
-    8px 8px 20px var(--tk-sketch-shadow-soft);
+    8px 8px 24px var(--tk-sketch-shadow-soft);
   background: var(--popover);
 }
 
-.tk-theme-sketch .tk-link-field {
+.tk-theme-sketch .tk-dialog-close:hover {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+  border-radius: 8px 6px 9px 5px;
+}
+
+.tk-theme-sketch .tk-dialog-content input {
   border: 1.5px solid var(--tk-sketch-line-soft);
   border-radius: 8px 6px 9px 5px;
   background: var(--card);
+}
+
+.tk-theme-sketch .tk-dialog-content input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.tk-theme-sketch .tk-link-label,
+.tk-theme-sketch .tk-rename-label {
+  font-family: var(--tk-font-hand-display);
+  font-size: 14px;
 }
 
 /* ---------- 表格工具栏 / 选择器 ---------- */
