@@ -1,6 +1,6 @@
 {
   "name": "@tipkit/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "TipKit 无头核心：编辑器 hook、序列化、依赖注入、共享类型（零样式）",
   "type": "module",

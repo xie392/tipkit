@@ -1,49 +1,104 @@
+<div align="center">
+
+<img src="apps/demo/public/icon.svg" width="96" alt="TipKit" />
+
 # TipKit
 
-基于 **Tiptap v3 + shadcn/ui** 的无头富文本编辑器套件。编辑器逻辑（工具栏、扩展、序列化）完全共享，**视觉风格由消费方项目决定**——通过加载不同主题 CSS 实现。
+**一套逻辑，任意风格**
+
+基于 **Tiptap v3 + shadcn/ui + React 19** 的无头富文本编辑器套件。
+编辑器逻辑与视觉彻底解耦：同一份代码，换一个主题 CSS 就是另一种风格。
+
+`Tiptap v3` · `React 19` · `TypeScript strict` · `Tailwind v4` · `pnpm + turbo`
+
+</div>
+
+---
 
 ## 特性
 
-- 🧩 **无头架构**：core / extensions 零视觉样式，只描述行为
-- 🎨 **主题系统**：内置 `devkb.css`（shadcn 默认）与 `blog.css`（手绘线框），自定义风格只需覆盖 CSS 变量
-- 🔌 **依赖注入**：图片上传、附件上传、Katex 渲染由消费方注入
-- ⚡ **Tiptap v3**：与 blog 对齐，Markdown 双向转换（`@tiptap/markdown`）
-- 🧪 **SSR 安全**：默认 `immediatelyRender: false`
-
-## Monorepo 结构
-
-```
-apps/demo/          # Next.js 演示（/devkb、/blog 双主题）
-packages/core/      # 无头核心：useTipKitEditor、序列化、EditorDeps
-packages/extensions/# 全部 Tiptap 扩展（斜杠菜单、katex、附件、分栏…）
-packages/ui/        # 无头 UI 原语（浮层定位、键盘导航、激活态）
-packages/components/# shadcn 基础组件
-packages/themes/    # 主题皮肤（devkb.css / blog.css / base.css）
-packages/editor/    # 聚合入口 <TipKitEditor>
-```
+| 能力 | 说明 |
+| --- | --- |
+| **无头架构** | `core` / `extensions` 零视觉样式，只描述行为；视觉全部收敛在主题层 |
+| **主题系统** | 内置 `default`（shadcn 标准）、`sketch`（手绘线框）、`dark`（暗色）三种皮肤，自定义只需覆盖 CSS 变量 |
+| **依赖注入** | 图片 / 附件上传、KaTeX 渲染由消费方通过 `EditorDeps` 注入，内核零外部服务依赖 |
+| **Markdown 即时转换** | 粘贴 Markdown、输入 `#` `- ` `` ` `` 即时转节点；IME 组合输入兜底转换（链接、行内代码） |
+| **斜杠菜单** | `/` 唤起可搜索分组面板，21 种内容节点开箱即用 |
+| **高级节点** | 表格、KaTeX、分栏、折叠块、目录、附件、图片块、代码块高亮 |
+| **SSR 安全** | 默认 `immediatelyRender: false`，App Router 直接可用 |
 
 ## 快速开始
 
 ```bash
-pnpm install
-pnpm dev            # 打开 http://localhost:3000，选择主题
+pnpm add @tipkit/editor @tipkit/extensions @tipkit/ui @tipkit/components @tipkit/themes
 ```
-
-消费方接入：
 
 ```tsx
 import { TipKitEditor } from "@tipkit/editor";
-import "@tipkit/themes/blog.css"; // 或 devkb.css
+import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensions";
+import "@tipkit/themes/default.css";
 
-<TipKitEditor
-  deps={{ uploadImage: myUpload }}
-  placeholder="写下点什么…"
-  onChange={(editor) => save(editor.getHTML())}
-/>
+const deps = { uploadImage: (file: File) => uploadToYourServer(file) };
+
+export default function App() {
+  return (
+    <TipKitEditor
+      deps={deps}
+      placeholder="输入 / 打开斜杠菜单…"
+      extensions={[...createBasicExtensions(), ...createAdvancedExtensions()]}
+      onChange={(editor) => save(editor.getHTML())}
+    />
+  );
+}
 ```
+
+换肤只需换一行 import：
+
+```ts
+import "@tipkit/themes/default.css"; // shadcn 标准
+import "@tipkit/themes/sketch.css";  // 手绘线框
+import "@tipkit/themes/dark.css";    // 暗色
+```
+
+完整接入文档见 [apps/demo 官网](apps/demo) —— 首页、MDX 文档、在线演示、三种主题实时切换。
+
+## Monorepo 结构
+
+```
+apps/demo/           # Next.js 官网 + 演示 + MDX 接入文档（纯静态导出）
+packages/core/       # 无头核心：useTipKitEditor、序列化、EditorDeps、共享类型
+packages/extensions/ # 全部 Tiptap 扩展（斜杠菜单、表格、KaTeX、分栏…）
+packages/ui/         # 交互原语（浮层定位、键盘导航、激活态），仅布局
+packages/components/ # shadcn 基础组件（颜色走 CSS 变量）
+packages/themes/     # 主题皮肤：base / default / sketch / dark
+packages/editor/     # 聚合入口 <TipKitEditor>
+```
+
+依赖方向单向：`editor → { core, extensions, ui }`，`extensions/ui → core`。
+
+## 开发
+
+```bash
+pnpm install                   # 安装依赖
+pnpm dev                       # 启动 demo（http://localhost:3000）
+pnpm --filter @tipkit/demo dev # 只启动 demo
+pnpm type-check                # 全仓类型检查
+pnpm test                      # 全仓测试
+pnpm build                     # 全仓构建（demo 输出纯静态 out/）
+```
+
+## 部署与发布
+
+- **官网 / 演示**：`apps/demo` 配置了 `output: "export"` 纯静态导出，`vercel.json` 已就绪，push 到 master 即可由 Vercel 自动部署
+- **npm 包**：`.github/workflows/publish.yml` 已配置，push `v*` tag 自动发布全部 `@tipkit/*` 包
 
 ## 文档
 
+- [接入文档（官网）](apps/demo/src/app/docs)
 - [PRD（需求）](docs/PRD.md)
 - [架构设计](docs/ARCHITECTURE.md)
 - [技术设计](docs/TECHNICAL-DESIGN.md)
+
+## License
+
+MIT
