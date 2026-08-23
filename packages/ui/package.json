@@ -1,7 +1,6 @@
 {
   "name": "@tipkit/ui",
-  "version": "0.1.1",
-  "private": true,
+  "version": "0.1.2",
   "description": "TipKit 无头 UI 原语：浮层定位、键盘导航、激活态计算（仅布局，无颜色/字体）",
   "type": "module",
   "main": "./src/index.ts",
