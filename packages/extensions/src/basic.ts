@@ -26,6 +26,7 @@ import { ListInputRules } from "./markdown/list-input-rules";
 import { TrailingNode } from "./basic/trailing-node";
 import { Selection } from "./basic/selection";
 import { FontSize } from "./basic/font-size";
+import { CustomHorizontalRule } from "./basic/horizontal-rule";
 
 /* TipKit 基础扩展集合（M1：基础格式 + markdown 输入规则 + 序列化）。
  * 编排方式对齐 blog use-editor.ts 的 M1 范围；高级节点（图片块/斜杠菜单/
@@ -59,6 +60,7 @@ function buildBasicExtensions(): AnyExtension[] {
       underline: false,
       trailingNode: false,
       dropcursor: false,
+      horizontalRule: false,
     }),
     // 行内 markdown 输入规则（safeMarkInputRule 规避崩溃）
     CustomBold,
@@ -76,6 +78,8 @@ function buildBasicExtensions(): AnyExtension[] {
     FontSize,
     Typography,
     TextAlign.configure({ types: ["heading", "paragraph"] }),
+    // 分隔线：可交互包裹（块手柄 / 块操作菜单可命中）
+    CustomHorizontalRule,
     // 列表 / 任务
     TaskList,
     TaskItem.configure({ nested: true }),

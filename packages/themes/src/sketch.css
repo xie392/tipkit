@@ -564,3 +564,12 @@
   border-radius: 12px 8px 14px 10px;
   box-shadow: 3px 3px 0 var(--tk-sketch-shadow);
 }
+
+/* ---------- 分隔线：手绘虚线 ---------- */
+.tk-theme-sketch .tk-hr-wrap:hover {
+  background: color-mix(in srgb, var(--tk-sketch-line) 8%, transparent);
+}
+
+.tk-theme-sketch .tk-hr-wrap hr {
+  border-top: 2px dashed var(--tk-sketch-line-soft);
+}

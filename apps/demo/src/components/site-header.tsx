@@ -18,7 +18,7 @@ export function SiteHeader() {
     <header className="site-header">
       <div className="site-header-inner">
         <Link href="/" className="site-brand">
-          <span className="site-brand-mark" />
+          <img src="/icon.svg" alt="TipKit" className="site-brand-logo" />
           <span className="site-brand-name">TipKit</span>
           <span className="site-brand-sub">无头 Tiptap 编辑器</span>
         </Link>

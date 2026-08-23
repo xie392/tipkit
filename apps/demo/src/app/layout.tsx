@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   title: "TipKit —— 无头 Tiptap 编辑器",
   description:
     "TipKit —— 基于 Tiptap v3 + shadcn 的无头富文本编辑器套件：一套逻辑，任意风格",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icon.svg" }],
+  },
 };
 
 /* 手绘主题（sketch.css）所需字体：Caveat 标题 + Patrick_Hand 正文

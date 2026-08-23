@@ -40,12 +40,12 @@ const INACTIVE_SLASH_COMMAND: SlashCommandState = {
   key: "",
 };
 
-/** 检测光标前是否为 "/关键词"（仅段落内生效） */
+/** 检测光标前是否为 "/关键词"（段落内生效，支持 blockquote / callout / listItem / column / details 等嵌套容器内的段落） */
 export function getSlashCommandState(editor: Editor): SlashCommandState {
   const { state } = editor;
   const { $anchor, empty } = state.selection;
 
-  if (!empty || $anchor.depth !== 1) return INACTIVE_SLASH_COMMAND;
+  if (!empty) return INACTIVE_SLASH_COMMAND;
 
   const node = $anchor.parent;
   if (node.type.name !== "paragraph") return INACTIVE_SLASH_COMMAND;

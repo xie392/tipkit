@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <!-- 方块微渐变：深色到更深，增加质感 -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#262626"/>
+      <stop offset="1" stop-color="#101010"/>
+    </linearGradient>
+  </defs>
+  <!-- TipKit 图标版：渐变方块 + 纯白圆润 T（品牌首字母，小尺寸清晰） -->
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <!-- T 顶部横 -->
+  <rect x="180" y="148" width="152" height="32" rx="16" fill="#fafafa"/>
+  <!-- T 竖条 -->
+  <rect x="234" y="180" width="44" height="184" rx="22" fill="#fafafa"/>
+</svg>

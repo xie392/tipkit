@@ -44,6 +44,7 @@ interface SelectedBlock {
   typeName: string;
   pos: number;
   nodeSize: number;
+  node: ProseMirrorNode;
 }
 
 function selectBlock(editor: Editor | null): SelectedBlock | null {
@@ -54,6 +55,7 @@ function selectBlock(editor: Editor | null): SelectedBlock | null {
     typeName: sel.node.type.name,
     pos: sel.from,
     nodeSize: sel.node.nodeSize,
+    node: sel.node,
   };
 }
 

@@ -6,7 +6,7 @@ export function SiteFooter() {
     <footer className="site-footer">
       <div className="site-footer-inner">
         <div className="site-footer-brand">
-          <span className="site-brand-mark" />
+          <img src="/icon.svg" alt="TipKit" className="site-brand-logo" />
           <span className="site-footer-name">TipKit</span>
           <p className="site-footer-desc">
             基于 Tiptap v3 + shadcn/ui 的无头富文本编辑器套件

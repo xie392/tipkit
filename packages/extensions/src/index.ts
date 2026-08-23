@@ -40,6 +40,7 @@ export { ListInputRules } from "./markdown/list-input-rules";
 export { TrailingNode } from "./basic/trailing-node";
 export { Selection } from "./basic/selection";
 export { FontSize } from "./basic/font-size";
+export { CustomHorizontalRule } from "./basic/horizontal-rule";
 
 // M2：斜杠菜单命令 + 图片块 + 代码块
 export {

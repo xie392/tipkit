@@ -44,6 +44,12 @@ function fileExtOf(name: string | null): string | null {
   return idx >= 0 ? name.slice(idx + 1).toLowerCase() : null;
 }
 
+function stripFileExt(name: string | null): string | null {
+  if (!name) return null;
+  const idx = name.lastIndexOf(".");
+  return idx >= 0 ? name.slice(0, idx) : name;
+}
+
 export const Attachment = Node.create({
   name: "attachment",
   content: "",
@@ -61,7 +67,7 @@ export const Attachment = Node.create({
     return {
       fileName: {
         default: null,
-        parseHTML: (el) => (el as HTMLElement).getAttribute("data-filename") ?? null,
+        parseHTML: (el) => stripFileExt((el as HTMLElement).getAttribute("data-filename")),
         renderHTML: (a) => (a.fileName ? { "data-filename": a.fileName } : {}),
       },
       fileSize: {

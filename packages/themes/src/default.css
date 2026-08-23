@@ -254,3 +254,17 @@
 .tk-theme-default .tk-image-block-img {
   border-radius: calc(var(--radius) - 2px);
 }
+
+/* ---------- 分隔线：可交互命中区域 ---------- */
+.tk-theme-default .tk-hr-wrap {
+  border-radius: var(--radius);
+  transition: background-color 0.15s ease;
+}
+
+.tk-theme-default .tk-hr-wrap:hover {
+  background: color-mix(in srgb, var(--muted) 55%, transparent);
+}
+
+.tk-theme-default .tk-hr-wrap hr {
+  border-top-color: color-mix(in srgb, var(--foreground) 14%, transparent);
+}

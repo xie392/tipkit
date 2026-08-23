@@ -22,6 +22,12 @@ import type { EditorView } from "@tiptap/pm/view";
 const ACTIVE_CLASS = "tk-block-active";
 
 function findFirstLineEl(blockEl: HTMLElement): HTMLElement | null {
+  if (blockEl.matches(".tk-hr-wrap")) {
+    const hr = blockEl.querySelector(":scope > hr");
+    if (hr instanceof HTMLElement) return hr;
+    return blockEl;
+  }
+
   const summary = blockEl.querySelector(
     ":scope > summary, :scope > .tk-details > summary"
   );
@@ -206,11 +212,15 @@ export const BlockHandles = Extension.create({
       let top: number;
       if (firstLineEl) {
         const r = firstLineEl.getBoundingClientRect();
-        const cs = getComputedStyle(firstLineEl);
-        const padTop = parseFloat(cs.paddingTop) || 0;
-        const lineH =
-          parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.6 || 24;
-        top = r.top + padTop + lineH / 2 - wrapH / 2;
+        if (firstLineEl.tagName === "HR") {
+          top = r.top + r.height / 2 - wrapH / 2;
+        } else {
+          const cs = getComputedStyle(firstLineEl);
+          const padTop = parseFloat(cs.paddingTop) || 0;
+          const lineH =
+            parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.6 || 24;
+          top = r.top + padTop + lineH / 2 - wrapH / 2;
+        }
       } else {
         const cs = getComputedStyle(blockEl);
         const padTop = parseFloat(cs.paddingTop) || 0;

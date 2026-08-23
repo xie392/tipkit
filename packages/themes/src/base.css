@@ -1921,4 +1921,19 @@
   background: var(--border, #e4e4e7);
 }
 
+/* 分隔线包裹容器：扩大 hover/选中命中区域（布局层，视觉走主题） */
+.tk-hr-wrap {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.tk-hr-wrap hr {
+  flex: 1;
+  margin: 0;
+  border: none;
+  border-top: 2px solid var(--border, #e5e5e5);
+}
+
+
 

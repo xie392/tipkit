@@ -134,13 +134,12 @@ body::after {
   color: inherit;
 }
 
-.site-brand-mark {
-  width: 11px;
-  height: 11px;
-  border-radius: 3px;
-  background: var(--primary);
-  box-shadow: 2px 2px 0 color-mix(in srgb, var(--primary) 30%, transparent);
-  transition: background-color 0.35s ease;
+.site-brand-logo {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: block;
+  border-radius: 6px;
 }
 
 .site-brand-name {
