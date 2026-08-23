@@ -105,7 +105,8 @@ body::after {
 .site-header {
   position: sticky;
   top: 0;
-  z-index: 40;
+  /* 高于演示页工具栏（70）与噪点层（60），保证主题菜单弹窗不被遮挡 */
+  z-index: 80;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   background: color-mix(in srgb, var(--background) 95%, transparent);
@@ -254,9 +255,26 @@ body::after {
   color: var(--foreground);
 }
 
+.site-footer-meta {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.site-footer-themes {
+  margin: 0;
+  font-size: 12.5px;
+  letter-spacing: 0.03em;
+  color: var(--muted-foreground);
+}
+
 .site-footer-copy {
   margin: 0;
-  width: 100%;
   font-size: 12.5px;
   color: color-mix(in srgb, var(--muted-foreground) 70%, transparent);
 }
@@ -881,16 +899,22 @@ body::after {
   margin: 0 auto;
   padding: 40px 20px 96px;
   display: flex;
-  gap: 48px;
+  gap: 20px;
   align-items: flex-start;
 }
 
-/* 侧边栏 */
+/* 侧边栏：卡片背景（sticky） */
 .docs-sidebar {
   position: sticky;
   top: 78px;
   flex-shrink: 0;
-  width: 200px;
+  width: 216px;
+  padding: 16px 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  box-shadow: 0 8px 28px -16px color-mix(in srgb, var(--foreground) 16%, transparent);
+  backdrop-filter: blur(8px);
 }
 
 .docs-sidebar-title {
@@ -971,11 +995,16 @@ body::after {
   text-decoration: underline;
 }
 
-/* 内容区 */
+/* 内容区：阅读卡片背景 */
 .docs-content {
   flex: 1;
   min-width: 0;
-  max-width: 720px;
+  max-width: 780px;
+  padding: 32px 40px 40px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--card) 95%, transparent);
+  box-shadow: 0 12px 40px -20px color-mix(in srgb, var(--foreground) 18%, transparent);
 }
 
 .docs-title {
@@ -1110,7 +1139,14 @@ body::after {
   .site-hero-inner {
     padding-top: 64px;
   }
-  .site-nav {
+  .site-header-cta {
+    display: none;
+  }
+  .site-nav-link {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+  .site-brand-sub {
     display: none;
   }
 }
@@ -1298,6 +1334,88 @@ body::after {
   margin-top: 14px;
 }
 
+/* ---------- 文档翻页（上一节 / 下一节） ---------- */
+.docs-pager {
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.docs-pager-link {
+  flex: 1;
+  max-width: 260px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--foreground);
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.docs-pager-link:hover {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px -14px color-mix(in srgb, var(--foreground) 20%, transparent);
+}
+
+.docs-pager-next {
+  margin-left: auto;
+  text-align: right;
+}
+
+.docs-pager-arrow {
+  font-size: 18px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.docs-pager-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.docs-pager-label {
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.docs-pager-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Hero 徽章：闪烁光标 */
+.site-badge-caret {
+  width: 6px;
+  height: 13px;
+  border-radius: 1px;
+  background: var(--primary);
+  animation: tk-blink 1.1s steps(2) infinite;
+}
+
+@keyframes tk-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
 /* ============================================================
  * 手绘主题：站点级手绘化
  * 参考 blog 的 graph-paper（方格纸）/ sketch-border（不规则圆角）
@@ -1456,4 +1574,20 @@ body::after {
 /* 页脚 */
 .tk-theme-sketch .site-footer {
   border-top: 1.5px solid var(--tk-line-soft);
+}
+
+/* 文档翻页：手绘化 */
+.tk-theme-sketch .docs-pager-link {
+  border: 1.5px solid var(--tk-line-soft);
+  border-radius: 14px 7px 16px 8px;
+  box-shadow: 3px 3px 0 var(--tk-shadow);
+}
+
+/* 文档侧边栏 / 内容卡片：手绘化 */
+.tk-theme-sketch .docs-sidebar,
+.tk-theme-sketch .docs-content {
+  border: 1.5px solid var(--tk-line-soft);
+  border-radius: 16px 8px 18px 9px;
+  box-shadow: 4px 4px 0 var(--tk-shadow);
+  background: var(--card);
 }

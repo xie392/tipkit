@@ -99,6 +99,7 @@ export default function Home() {
         <div className="site-hero-inner">
           <span className="site-badge tk-reveal">
             Tiptap v3 · React 19 · shadcn/ui
+            <span className="site-badge-caret" aria-hidden="true" />
           </span>
           <h1 className="site-hero-title tk-reveal" style={{ animationDelay: "0.06s" }}>
             一套逻辑
@@ -113,7 +114,7 @@ export default function Home() {
             <Link href="/docs" className="site-btn site-btn-primary">
               开始接入
             </Link>
-            <Link href="/demo" target="_blank" rel="noopener noreferrer" className="site-btn site-btn-ghost">
+            <Link href="/demo" className="site-btn site-btn-ghost">
               在线演示
             </Link>
           </div>
@@ -191,7 +192,7 @@ export default function Home() {
             <Link href="/docs" className="site-btn site-btn-primary">
               阅读文档
             </Link>
-            <Link href="/demo" target="_blank" rel="noopener noreferrer" className="site-btn site-btn-ghost">
+            <Link href="/demo" className="site-btn site-btn-ghost">
               打开演示
             </Link>
           </div>

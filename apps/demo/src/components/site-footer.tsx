@@ -13,12 +13,15 @@ export function SiteFooter() {
           </p>
         </div>
         <nav className="site-footer-links" aria-label="页脚导航">
-          <Link href="/demo" target="_blank" rel="noopener noreferrer">在线演示</Link>
+          <Link href="/demo">在线演示</Link>
           <Link href="/docs">接入文档</Link>
         </nav>
-        <p className="site-footer-copy">
-          © {new Date().getFullYear()} TipKit · 一套逻辑，任意风格
-        </p>
+        <div className="site-footer-meta">
+          <p className="site-footer-themes">内置主题：default · sketch · dark</p>
+          <p className="site-footer-copy">
+            © {new Date().getFullYear()} TipKit · 一套逻辑，任意风格
+          </p>
+        </div>
       </div>
     </footer>
   );

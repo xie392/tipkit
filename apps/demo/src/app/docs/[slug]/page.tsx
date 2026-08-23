@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { SiteHeader } from "@/components/site-header";
@@ -26,6 +27,11 @@ export default async function DocPage({
     "utf8",
   );
 
+  // 上一节 / 下一节（按侧边栏章节顺序）
+  const index = DOC_SECTIONS.findIndex((s) => s.slug === slug);
+  const prev = DOC_SECTIONS[index - 1];
+  const next = DOC_SECTIONS[index + 1];
+
   return (
     <div className="site-shell">
       <SiteHeader />
@@ -44,6 +50,32 @@ export default async function DocPage({
             components={mdxComponents}
             options={{ mdxOptions: { rehypePlugins: [rehypeShiki] } }}
           />
+
+          {/* 文档翻页 */}
+          <nav className="docs-pager" aria-label="文档导航">
+            {prev ? (
+              <Link href={`/docs/${prev.slug}`} className="docs-pager-link">
+                <span className="docs-pager-arrow">←</span>
+                <span className="docs-pager-body">
+                  <span className="docs-pager-label">上一节</span>
+                  <span className="docs-pager-title">{prev.label}</span>
+                </span>
+              </Link>
+            ) : (
+              <span />
+            )}
+            {next ? (
+              <Link href={`/docs/${next.slug}`} className="docs-pager-link docs-pager-next">
+                <span className="docs-pager-body">
+                  <span className="docs-pager-label">下一节</span>
+                  <span className="docs-pager-title">{next.label}</span>
+                </span>
+                <span className="docs-pager-arrow">→</span>
+              </Link>
+            ) : (
+              <span />
+            )}
+          </nav>
         </main>
       </div>
       <SiteFooter />

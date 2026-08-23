@@ -60,7 +60,7 @@ export function DocsSidebar({
         })}
       </nav>
       <div className="docs-sidebar-foot">
-        <Link href="/demo" target="_blank" rel="noopener noreferrer" className="docs-sidebar-foot-link">
+        <Link href="/demo" className="docs-sidebar-foot-link">
           在线演示 →
         </Link>
       </div>
