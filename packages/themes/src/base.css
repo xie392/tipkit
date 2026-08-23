@@ -1676,6 +1676,30 @@
   gap: 8px;
 }
 
+/* 重命名弹窗（布局层；颜色由 shadcn/ui CSS 变量驱动） */
+.tk-rename-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tk-rename-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tk-rename-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--foreground, #222);
+}
+
+.tk-rename-dialog-footer {
+  margin-top: 20px;
+  gap: 8px;
+}
+
 .tk-block-bubble-drag {
   display: flex;
   align-items: center;
