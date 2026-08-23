@@ -123,7 +123,7 @@
   color: var(--muted-foreground);
 }
 
-.tk-theme-default .tk-editor .tk-prosemirror ul:not([data-type="taskList"]) {
+.tk-theme-default .tk-editor .tk-prosemirror ul:not([data-type="taskList"]):not(.tk-toc-list) {
   list-style: disc;
   padding-left: 1.5em;
   margin: 0.5em 0;
@@ -135,11 +135,11 @@
   margin: 0.5em 0;
 }
 
-.tk-theme-default .tk-editor .tk-prosemirror ul:not([data-type="taskList"]) ul {
+.tk-theme-default .tk-editor .tk-prosemirror ul:not([data-type="taskList"]):not(.tk-toc-list) ul {
   list-style: circle;
 }
 
-.tk-theme-default .tk-editor .tk-prosemirror ul:not([data-type="taskList"]) ul ul {
+.tk-theme-default .tk-editor .tk-prosemirror ul:not([data-type="taskList"]):not(.tk-toc-list) ul ul {
   list-style: square;
 }
 
