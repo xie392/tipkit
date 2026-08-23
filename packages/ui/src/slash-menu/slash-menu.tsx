@@ -108,7 +108,12 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
   }, [editor, updatePosition]);
 
   useEffect(() => {
-    if (!slash.active || hiddenKey === slash.key) {
+    if (!slash.active) {
+      setHiddenKey("");
+      setPos(null);
+      return;
+    }
+    if (hiddenKey === slash.key) {
       setPos(null);
       return;
     }

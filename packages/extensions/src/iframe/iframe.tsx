@@ -106,7 +106,14 @@ export const Iframe = Node.create({
           }
           return chain()
             .focus()
-            .insertContent({ type: this.name, attrs: { url: attrs?.url ?? null } })
+            .insertContent({
+              type: this.name,
+              attrs: {
+                url: attrs?.url ?? null,
+                width: attrs?.width ?? "100%",
+                height: attrs?.height ?? 360,
+              },
+            })
             .run();
         },
     };

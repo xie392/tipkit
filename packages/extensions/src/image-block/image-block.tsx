@@ -68,7 +68,13 @@ export const ImageBlock = Image.extend({
       },
       alt: {
         default: undefined,
-        parseHTML: (el) => (el as HTMLElement).getAttribute("alt") ?? undefined,
+        parseHTML: (el) => {
+          const root = el as HTMLElement;
+          const img = root.querySelector("img");
+          return (img?.getAttribute("alt") ?? root.getAttribute("alt") ?? undefined) as
+            | string
+            | undefined;
+        },
         renderHTML: (a) => (a.alt ? { alt: a.alt } : {}),
       },
       caption: {
