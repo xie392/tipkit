@@ -35,8 +35,6 @@
 
   /* TipKit 语义变量 */
   --tk-accent: var(--primary);
-  --tk-toolbar-bg: var(--card);
-  --tk-toolbar-border: var(--border);
 
   /* 手绘描边 / 阴影（blog DESIGN.md token） */
   --tk-sketch-line: rgba(49, 48, 46, 0.75);
@@ -273,17 +271,7 @@
  * 浮层组件：全部套用 sketch 边框 + 手绘阴影
  * ============================================================ */
 
-/* ---------- 工具栏 ---------- */
-.tk-theme-sketch .tk-toolbar {
-  padding: 6px 10px;
-  border: 1.5px solid var(--tk-sketch-line-soft);
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-  box-shadow:
-    3px 3px 0 var(--tk-sketch-shadow),
-    6px 6px 16px var(--tk-sketch-shadow-soft);
-  background: var(--tk-toolbar-bg);
-}
-
+/* ---------- 工具栏按钮（顶部通栏工具栏本身无视觉样式，由消费方容器决定） ---------- */
 .tk-theme-sketch .tk-toolbar-btn {
   border-radius: 8px 6px 9px 5px;
   transition:
@@ -321,6 +309,35 @@
 .tk-theme-sketch .tk-slash-item[data-active="true"] .tk-slash-item-icon {
   background: var(--primary);
   color: var(--primary-foreground);
+}
+
+/* ---------- 插入面板（+ 按钮） ---------- */
+.tk-theme-sketch .tk-insert-panel {
+  border: 1.5px solid var(--tk-sketch-line);
+  border-radius: 14px 10px 16px 12px;
+  box-shadow:
+    3px 3px 0 var(--tk-sketch-shadow),
+    6px 6px 16px var(--tk-sketch-shadow-soft);
+  background: var(--popover);
+}
+
+.tk-theme-sketch .tk-insert-search {
+  border-bottom: 1.5px dashed var(--tk-sketch-line-soft);
+}
+
+.tk-theme-sketch .tk-insert-card:hover {
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  color: var(--accent-foreground);
+  border-radius: 8px 6px 9px 5px;
+}
+
+.tk-theme-sketch .tk-insert-card-icon {
+  border-radius: 8px 6px 9px 5px;
+}
+
+.tk-theme-sketch .tk-insert-card:hover .tk-insert-card-icon {
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+  color: var(--primary);
 }
 
 /* ---------- 气泡菜单 ---------- */
@@ -599,4 +616,155 @@
 
 .tk-theme-sketch .tk-hr-wrap hr {
   border-top: 2px dashed var(--tk-sketch-line-soft);
+}
+
+/* ---------- Attachment 附件 ---------- */
+.tk-theme-sketch .tk-attachment {
+  margin: 1.2em 0;
+}
+
+.tk-theme-sketch .tk-attachment.is-selected .tk-att-card,
+.tk-theme-sketch .tk-attachment.is-selected .tk-att-empty {
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.tk-theme-sketch .tk-att-card,
+.tk-theme-sketch .tk-att-empty,
+.tk-theme-sketch .tk-att-uploading,
+.tk-theme-sketch .tk-att-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 2px dashed var(--tk-sketch-line-soft);
+  border-radius: 10px 7px 11px 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.tk-theme-sketch a.tk-att-card {
+  text-decoration: none;
+  color: inherit;
+}
+
+.tk-theme-sketch .tk-att-card:hover,
+.tk-theme-sketch .tk-att-empty:hover {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 3%, transparent);
+}
+
+.tk-theme-sketch .tk-att-empty {
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+
+.tk-theme-sketch .tk-att-empty-icon {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+  font-family: var(--tk-font-hand-display);
+}
+
+.tk-theme-sketch .tk-att-empty-hint {
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+
+.tk-theme-sketch .tk-att-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #fff;
+  border-radius: 8px 6px 9px 5px;
+  flex-shrink: 0;
+}
+
+.tk-theme-sketch .tk-att-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.tk-theme-sketch .tk-att-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tk-theme-sketch .tk-att-size {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+
+.tk-theme-sketch .tk-att-actions {
+  flex-shrink: 0;
+}
+
+.tk-theme-sketch .tk-att-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--tk-font-hand-display);
+}
+
+.tk-theme-sketch .tk-att-btn:hover {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.tk-theme-sketch .tk-att-uploading {
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+  cursor: default;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.tk-theme-sketch .tk-att-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--tk-sketch-line-soft);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: tk-att-spin 0.8s linear infinite;
+}
+
+@keyframes tk-att-spin {
+  to { transform: rotate(360deg); }
+}
+
+.tk-theme-sketch .tk-att-error {
+  color: var(--destructive);
+  border-color: color-mix(in srgb, var(--destructive) 50%, transparent);
+  background: color-mix(in srgb, var(--destructive) 5%, transparent);
+  flex-direction: column;
+  gap: 4px;
+  align-items: stretch;
+  font-size: 12px;
+}
+
+.tk-theme-sketch .tk-att-retry {
+  color: var(--primary);
+  text-decoration: underline;
+  font-family: var(--tk-font-hand-display);
 }

@@ -82,7 +82,8 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
   useLayoutEffect(() => {
     if (!open || !anchor || !popRef.current) return;
     const w = popRef.current.offsetWidth;
-    const nextLeft = Math.round(anchor.right - w - GAP);
+    let nextLeft = Math.round(anchor.right - w - GAP);
+    if (nextLeft < 8) nextLeft = 8;
     setLeft((prev) => (prev === nextLeft ? prev : nextLeft));
   }, [open, anchor, submenu]);
 

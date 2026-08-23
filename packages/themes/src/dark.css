@@ -44,9 +44,3 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
-
-.tk-theme-dark .tk-toolbar {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}

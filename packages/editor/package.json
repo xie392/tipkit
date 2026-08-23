@@ -49,6 +49,8 @@
     "@tiptap/extension-highlight": "^3.30.1",
     "@tiptap/extension-link": "^3.30.1",
     "@tiptap/extension-table": "^3.30.1",
+    "@tiptap/extension-subscript": "^3.30.1",
+    "@tiptap/extension-superscript": "^3.30.1",
     "@tiptap/extension-text-align": "^3.30.1",
     "@tiptap/extension-underline": "^3.30.1",
     "@tiptap/react": "^3.30.1",

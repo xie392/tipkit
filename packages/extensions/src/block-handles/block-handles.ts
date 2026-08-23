@@ -197,16 +197,8 @@ export const BlockHandles = Extension.create({
       const wrapW = wrap.offsetWidth || 48;
       const wrapH = wrap.offsetHeight || 24;
 
-      let left: number;
-      const editorWrap = view.dom.closest(".tk-editor") as HTMLElement | null;
-      if (editorWrap) {
-        const editorRect = editorWrap.getBoundingClientRect();
-        left = rect.left - wrapW - 8;
-        const minLeft = editorRect.left + 8;
-        if (left < minLeft) left = minLeft;
-      } else {
-        left = rect.left - wrapW - 8;
-      }
+      let left = rect.left - wrapW - 8;
+      if (left < 8) left = 8;
 
       const firstLineEl = findFirstLineEl(blockEl);
       let top: number;

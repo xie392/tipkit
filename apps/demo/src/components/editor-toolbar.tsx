@@ -140,7 +140,7 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
               <Plus className="w-4 h-4" />
             </button>
           </PopoverTrigger>
-          <PopoverContent align="start" sideOffset={8} className="w-80 p-0">
+          <PopoverContent align="start" sideOffset={8} className="w-80">
             <InsertPanel
               actions={insertActions}
               onSelect={() => setInsertOpen(false)}

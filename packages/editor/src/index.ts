@@ -18,6 +18,8 @@ import "@tiptap/extension-highlight";
 import "@tiptap/extension-color";
 import "@tiptap/extension-link";
 import "@tiptap/extension-underline";
+import "@tiptap/extension-subscript";
+import "@tiptap/extension-superscript";
 
 export { TipKitEditor, buildToolbarGroups } from "./tiptap-editor";
 export type { TipKitEditorProps } from "./tiptap-editor";
