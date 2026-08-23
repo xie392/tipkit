@@ -5,11 +5,10 @@ import type { Editor } from "@tiptap/react";
 import { DemoEditor } from "@/components/demo-editor";
 import { EditorToolbar } from "@/components/editor-toolbar";
 
-/** 三种内置主题：default（编辑部精工）/ devkb / blog */
+/** 内置主题：default（shadcn 标准）/ sketch（手绘） */
 const THEMES = [
   { id: "default", label: "default", hint: "shadcn 标准风格" },
-  { id: "devkb", label: "devkb", hint: "shadcn 常规" },
-  { id: "blog", label: "blog", hint: "手绘线框" },
+  { id: "sketch", label: "sketch", hint: "手绘线框" },
 ] as const;
 
 type ThemeId = (typeof THEMES)[number]["id"];

@@ -337,6 +337,9 @@ importers:
       '@tipkit/core':
         specifier: workspace:*
         version: link:../core
+      '@tipkit/extensions':
+        specifier: workspace:*
+        version: link:../extensions
       '@tiptap/react':
         specifier: ^3.30.1
         version: 3.30.2(@floating-ui/dom@1.8.0)(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))(@tiptap/pm@3.30.2)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)

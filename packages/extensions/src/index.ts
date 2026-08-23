@@ -66,7 +66,7 @@ export { Iframe } from "./iframe/iframe";
 export type { IframeAttrs } from "./iframe/iframe";
 export { Attachment } from "./attachment/attachment";
 export type { AttachmentAttrs } from "./attachment/attachment";
-export { BlockHandles } from "./block-handles/block-handles";
+export { BlockHandles, blockHandlesKey, getActiveBlockPos } from "./block-handles/block-handles";
 export { FileHandler } from "./file-handler/file-handler";
 export type { FileHandlerOptions } from "./file-handler/file-handler";
 export { emojisToName } from "./emoji/emoji-data";

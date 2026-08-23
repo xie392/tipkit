@@ -20,8 +20,8 @@ flowchart TB
 
     subgraph TipKit[tipkit monorepo]
         subgraph Theme[主题层 @tipkit/themes]
-            Devkb[devkb.css]
-            Blog[blog.css]
+            Default[default.css]
+            Sketch[sketch.css]
             Base[base.css 布局]
         end
 
@@ -64,7 +64,7 @@ sequenceDiagram
     participant Theme as @tipkit/themes
     participant Editor as TipKitEditor
 
-    App->>Theme: import "@tipkit/themes/blog.css"
+    App->>Theme: import "@tipkit/themes/sketch.css"
     Theme->>App: 注入 CSS 变量（--primary 等）+ 自定义样式
     App->>Editor: <TipKitEditor deps={...}/>
     Editor-->>App: 渲染语义类名节点（tk-editor / tk-image）
@@ -73,7 +73,7 @@ sequenceDiagram
 
 - 主题切换 = 加载不同 CSS 文件，**不改变任何组件代码**
 - 自定义风格：复制一份主题 CSS 改变量（或仅覆盖 `--tk-*` 语义变量）
-- blog 手绘风格需要字体资源，由消费方引入（主题包不打包字体文件）
+- sketch 手绘风格需要字体资源，由消费方引入（主题包不打包字体文件）
 
 ## 5. 依赖注入
 
@@ -107,13 +107,13 @@ flowchart LR
 
 ```
 tipkit/
-├── apps/demo/                 # Next.js 演示（/devkb /blog 双主题页面）
+├── apps/demo/                 # Next.js 演示（devkb / sketch 多主题页面）
 ├── packages/
 │   ├── core/                  # 无头核心
 │   ├── extensions/            # 扩展集（迁移自 blog rich-text）
 │   ├── ui/                    # 无头 UI 原语
 │   ├── components/            # shadcn 组件
-│   ├── themes/                # 双主题皮肤
+│   ├── themes/                # 主题皮肤（devkb / sketch）
 │   └── editor/                # 聚合入口
 └── docs/                      # PRD / 架构 / 技术设计
 ```

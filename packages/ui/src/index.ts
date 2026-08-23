@@ -22,6 +22,7 @@ export { TextMenu } from "./bubble-menu/text-menu";
 export { LinkBubble } from "./bubble-menu/link-bubble";
 export { LinkDialog, LinkDialogHost, openLinkDialog } from "./bubble-menu/link-dialog";
 export { BlockBubbleMenu } from "./bubble-menu/block-bubble";
+export { BlockHandleMenu } from "./bubble-menu/block-handle-menu";
 export { TablePicker, TableBubbleToolbar, TableContextMenu, TableControls } from "./table-controls";
 
 // 工具栏菜单（完整版）

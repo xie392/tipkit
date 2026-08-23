@@ -4,7 +4,7 @@
  * 消费方只需要：
  * ```tsx
  * import { TipKitEditor } from "@tipkit/editor";
- * import "@tipkit/themes/devkb.css"; // 或 blog.css
+ * import "@tipkit/themes/default.css"; // 或 sketch.css
  * ```
  */
 export { TipKitEditor, buildToolbarGroups } from "./tiptap-editor";

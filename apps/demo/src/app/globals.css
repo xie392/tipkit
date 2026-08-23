@@ -1,8 +1,7 @@
 @import "tailwindcss";
 @import "@tipkit/themes/base.css";
 @import "@tipkit/themes/default.css";
-@import "@tipkit/themes/devkb.css";
-@import "@tipkit/themes/blog.css";
+@import "@tipkit/themes/sketch.css";
 
 /* 非 git 仓库时 Tailwind v4 自动检测不会扫到 workspace 包，
  * 显式纳入 ui/components/extensions 源码，使其中的 Tailwind 类（hidden、下拉菜单样式等）生效 */
@@ -11,9 +10,19 @@
 @source "../../../../packages/extensions/src";
 
 /* ============================================================
+ * 手绘主题字体注入：
+ * next/font 加载 Caveat / Patrick_Hand（layout.tsx），
+ * 覆盖 sketch.css 的字体变量，让手绘风格真正生效。
+ * ============================================================ */
+.tk-theme-sketch {
+  --tk-font-hand-display: var(--font-hand-display), "Caveat", cursive;
+  --tk-font-hand-body: var(--font-hand-body), "Patrick Hand", cursive;
+}
+
+/* ============================================================
  * Tailwind v4 → shadcn 变量映射：
  * 让 bg-background / border-border / text-muted-foreground 等
- * 类名跟随主题 CSS 变量（default / devkb / blog）联动。
+ * 类名跟随主题 CSS 变量（default / devkb / sketch）联动。
  * ============================================================ */
 @theme inline {
   --color-background: var(--background);

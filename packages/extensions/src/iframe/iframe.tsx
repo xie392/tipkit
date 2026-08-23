@@ -136,12 +136,20 @@ function IframeView(props: NodeViewProps) {
   const [draftUrl, setDraftUrl] = useState(url ?? "");
   const [editing, setEditing] = useState(!url);
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  const [dragH, setDragH] = useState<number | null>(null);
+  const dragHRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     setDraftUrl(url ?? "");
     if (url) setEditing(false);
   }, [url]);
+
+  useEffect(
+    () => () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    },
+    [],
+  );
 
   const commitUrl = () => {
     const u = draftUrl.trim();
@@ -151,32 +159,51 @@ function IframeView(props: NodeViewProps) {
   };
 
   const onResizeDown = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.PointerEvent) => {
       if (!isEditable) return;
       e.preventDefault();
       e.stopPropagation();
+      // 指针捕获：在 iframe 上方或窗口外松开时 pointerup 也能收到，避免监听器悬挂导致拖拽不结束
+      const handle = e.currentTarget as HTMLElement;
+      handle.setPointerCapture(e.pointerId);
+
       const startY = e.clientY;
       const startH = height;
 
-      const onMove = (ev: MouseEvent) => {
+      const onMove = (ev: PointerEvent) => {
         const next = Math.max(120, Math.min(1200, startH + (ev.clientY - startY)));
-        setDragH(next);
+        dragHRef.current = next;
+        // rAF 合帧：mousemove 高频触发，每帧只改一次 DOM，减少 reflow 卡顿
+        if (rafRef.current === null) {
+          rafRef.current = requestAnimationFrame(() => {
+            rafRef.current = null;
+            if (dragHRef.current !== null && wrapRef.current) {
+              wrapRef.current.style.height = `${dragHRef.current}px`;
+            }
+          });
+        }
       };
-      const onUp = () => {
-        document.removeEventListener("mousemove", onMove);
-        document.removeEventListener("mouseup", onUp);
-        setDragH((finalH) => {
-          if (finalH !== null) updateAttributes({ height: finalH });
-          return null;
-        });
+
+      const finish = (commit: boolean) => {
+        handle.removeEventListener("pointermove", onMove);
+        handle.removeEventListener("pointerup", onUp);
+        handle.removeEventListener("pointercancel", onCancel);
+        if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+        const finalH = dragHRef.current;
+        dragHRef.current = null;
+        // 拖拽期直接改 DOM 不触发重渲染，松手时一次性提交到节点属性
+        if (commit && finalH !== null) updateAttributes({ height: finalH });
       };
-      document.addEventListener("mousemove", onMove);
-      document.addEventListener("mouseup", onUp);
+      const onUp = () => finish(true);
+      const onCancel = () => finish(false);
+
+      handle.addEventListener("pointermove", onMove);
+      handle.addEventListener("pointerup", onUp);
+      handle.addEventListener("pointercancel", onCancel);
     },
     [height, isEditable, updateAttributes],
   );
-
-  const effectiveH = dragH ?? height;
 
   return (
     <NodeViewWrapper
@@ -184,7 +211,7 @@ function IframeView(props: NodeViewProps) {
       data-has-url={url ? "true" : "false"}
     >
       {url && !editing ? (
-        <div ref={wrapRef} className="tk-iframe-inner" style={{ width, height: effectiveH }}>
+        <div ref={wrapRef} className="tk-iframe-inner" style={{ width, height }}>
           <iframe
             src={url}
             className="tk-iframe-frame"
@@ -236,7 +263,8 @@ function IframeView(props: NodeViewProps) {
             role="button"
             aria-label="拖拽调整高度"
             title="拖拽调整高度"
-            onMouseDown={onResizeDown}
+            onPointerDown={onResizeDown}
+            style={{ touchAction: "none" }}
             className="tk-iframe-handle"
           />
           <button

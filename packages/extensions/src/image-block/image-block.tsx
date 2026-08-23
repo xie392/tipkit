@@ -181,6 +181,8 @@ function ImageBlockView(props: NodeViewProps) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const captionRef = useRef<HTMLDivElement | null>(null);
   const [dragWidth, setDragWidth] = useState<number | null>(null);
+  const dragWidthRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
   const [editingCaption, setEditingCaption] = useState(false);
   const [preview, setPreview] = useState(false);
 
@@ -195,6 +197,13 @@ function ImageBlockView(props: NodeViewProps) {
     }
   }, [editingCaption, caption]);
 
+  useEffect(
+    () => () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    },
+    [],
+  );
+
   const commitCaption = () => {
     setEditingCaption(false);
     const text = captionRef.current?.textContent ?? "";
@@ -202,33 +211,50 @@ function ImageBlockView(props: NodeViewProps) {
   };
 
   const startResize = useCallback(
-    (side: "left" | "right") => (e: React.MouseEvent) => {
+    (side: "left" | "right") => (e: React.PointerEvent) => {
       if (!editor.isEditable) return;
       e.preventDefault();
       e.stopPropagation();
+      // 指针捕获：窗口外松开时 pointerup 也能收到，避免监听器悬挂导致拖拽不结束
+      const handle = e.currentTarget as HTMLElement;
+      handle.setPointerCapture(e.pointerId);
       const startX = e.clientX;
       const wrapEl = wrapRef.current;
       const startW = wrapEl?.getBoundingClientRect().width ?? 0;
       const containerW = wrapEl?.parentElement?.getBoundingClientRect().width ?? startW;
       const startPercent = (startW / containerW) * 100 || Number(width) || 100;
 
-      const onMove = (ev: MouseEvent) => {
+      const onMove = (ev: PointerEvent) => {
         const dx = ev.clientX - startX;
         const delta = (dx / containerW) * 100;
-        const next =
-          side === "right" ? startPercent + delta : startPercent - delta;
-        setDragWidth(Math.max(15, Math.min(100, Math.round(next))));
+        const next = side === "right" ? startPercent + delta : startPercent - delta;
+        dragWidthRef.current = Math.max(15, Math.min(100, Math.round(next)));
+        // rAF 合帧：宽度标签与布局每帧至多更新一次
+        if (rafRef.current === null) {
+          rafRef.current = requestAnimationFrame(() => {
+            rafRef.current = null;
+            setDragWidth(dragWidthRef.current);
+          });
+        }
       };
-      const onUp = () => {
-        document.removeEventListener("mousemove", onMove);
-        document.removeEventListener("mouseup", onUp);
-        setDragWidth((finalW) => {
-          if (finalW !== null) updateAttributes({ width: `${finalW}%` });
-          return null;
-        });
+
+      const finish = (commit: boolean) => {
+        handle.removeEventListener("pointermove", onMove);
+        handle.removeEventListener("pointerup", onUp);
+        handle.removeEventListener("pointercancel", onCancel);
+        if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+        const finalW = dragWidthRef.current;
+        dragWidthRef.current = null;
+        setDragWidth(null);
+        if (commit && finalW !== null) updateAttributes({ width: `${finalW}%` });
       };
-      document.addEventListener("mousemove", onMove);
-      document.addEventListener("mouseup", onUp);
+      const onUp = () => finish(true);
+      const onCancel = () => finish(false);
+
+      handle.addEventListener("pointermove", onMove);
+      handle.addEventListener("pointerup", onUp);
+      handle.addEventListener("pointercancel", onCancel);
     },
     [editor.isEditable, width, updateAttributes],
   );
@@ -270,7 +296,8 @@ function ImageBlockView(props: NodeViewProps) {
               aria-label="左上角拖拽调整大小"
               title="拖拽调整大小"
               tabIndex={-1}
-              onMouseDown={startResize("left")}
+              onPointerDown={startResize("left")}
+              style={{ touchAction: "none" }}
               className="tk-image-block-handle is-tl"
             />
             <span
@@ -278,7 +305,8 @@ function ImageBlockView(props: NodeViewProps) {
               aria-label="右上角拖拽调整大小"
               title="拖拽调整大小"
               tabIndex={-1}
-              onMouseDown={startResize("right")}
+              onPointerDown={startResize("right")}
+              style={{ touchAction: "none" }}
               className="tk-image-block-handle is-tr"
             />
             <span
@@ -286,7 +314,8 @@ function ImageBlockView(props: NodeViewProps) {
               aria-label="左下角拖拽调整大小"
               title="拖拽调整大小"
               tabIndex={-1}
-              onMouseDown={startResize("left")}
+              onPointerDown={startResize("left")}
+              style={{ touchAction: "none" }}
               className="tk-image-block-handle is-bl"
             />
             <span
@@ -294,7 +323,8 @@ function ImageBlockView(props: NodeViewProps) {
               aria-label="右下角拖拽调整大小"
               title="拖拽调整大小"
               tabIndex={-1}
-              onMouseDown={startResize("right")}
+              onPointerDown={startResize("right")}
+              style={{ touchAction: "none" }}
               className="tk-image-block-handle is-br"
             />
           </>

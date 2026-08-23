@@ -20,6 +20,7 @@
   "dependencies": {
     "@tipkit/components": "workspace:*",
     "@tipkit/core": "workspace:*",
+    "@tipkit/extensions": "workspace:*",
     "@tiptap/react": "^3.30.1",
     "lucide-react": "^0.469.0",
     "tippy.js": "^6.3.7"

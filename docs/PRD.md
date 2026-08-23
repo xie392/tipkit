@@ -67,7 +67,7 @@
 
 ### 3.2 主题系统（P0）
 
-- [x] 内置两套主题：`devkb.css`（shadcn 默认变量）、`blog.css`（手绘线框：方格纸、手写字体、sketch 边框）
+- [x] 内置两套主题：`default.css`（shadcn 默认变量）、`sketch.css`（手绘风格：方格纸、手写字体、sketch 边框）
 - [x] 主题 = CSS 变量 + 自定义 CSS，消费方可通过覆盖变量自定义风格
 - [x] core/extensions/ui 不允许出现视觉样式（颜色/字体/阴影）
 

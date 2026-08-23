@@ -4,7 +4,7 @@ import type { Editor } from "@tiptap/react";
 import { TipKitEditor } from "@tipkit/editor";
 import type { EditorDeps, IconRef } from "@tipkit/editor";
 import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensions";
-import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockBubbleMenu, TableControls } from "@tipkit/ui";
+import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockBubbleMenu, BlockHandleMenu, TableControls } from "@tipkit/ui";
 import { TooltipProvider } from "@tipkit/components";
 import {
   Bold,
@@ -45,7 +45,7 @@ import {
  * 工具栏渲染由页面级 EditorToolbar（editor-toolbar.tsx）完成，
  * 它挂在页面 header 下方 sticky 工具条内；编辑器实例通过
  * onEditorReady 回传给页面。
- * 视觉样式由页面加载的主题 CSS（tk-theme-devkb / tk-theme-blog）决定，
+ * 视觉样式由页面加载的主题 CSS（tk-theme-default / tk-theme-sketch）决定，
  * 组件本身只携带语义类名（tk-toolbar / tk-toolbar-btn）。
  */
 
@@ -102,15 +102,15 @@ const DEMO_CONTENT = `
 <h2>任务列表</h2>
 <ul data-type="taskList">
   <li data-type="taskItem" data-checked="true"><label><input type="checkbox" checked><span></span></label><div><p>无头编辑器内核完成</p></div></li>
-  <li data-type="taskItem" data-checked="true"><label><input type="checkbox" checked><span></span></label><div><p>三套主题皮肤就位</p></div></li>
+  <li data-type="taskItem" data-checked="true"><label><input type="checkbox" checked><span></span></label><div><p>主题皮肤就位</p></div></li>
   <li data-type="taskItem" data-checked="false"><label><input type="checkbox"><span></span></label><div><p>接入真实项目</p></div></li>
 </ul>
 <h2>代码块</h2>
 <pre data-theme="light"><code class="language-typescript">import { TipKitEditor } from "@tipkit/editor";
 
 export default function App() {
-  // 同一套逻辑，三种皮肤，切换零成本
-  return &lt;TipKitEditor className="tk-theme-blog" /&gt;;
+  // 同一套逻辑，多种皮肤，切换零成本
+  return &lt;TipKitEditor className="tk-theme-sketch" /&gt;;
 }</code></pre>
 <h2>表格</h2>
 <table><tbody><tr><th>能力</th><th>入口</th><th>说明</th></tr><tr><td>斜杠菜单</td><td><code>/</code></td><td>21 种内容节点</td></tr><tr><td>Markdown</td><td>直接粘贴</td><td>即时转换</td></tr><tr><td>Emoji</td><td><code>:smile</code></td><td>方向键浏览</td></tr></tbody></table>
@@ -171,6 +171,7 @@ export function DemoEditor({
             <LinkBubble editor={editor} />
             <LinkDialogHost editor={editor} />
             <BlockBubbleMenu editor={editor} />
+            <BlockHandleMenu editor={editor} />
             <TableControls editor={editor} />
           </TooltipProvider>
         ) : null

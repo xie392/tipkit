@@ -161,3 +161,49 @@ export function IconZoomIn(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function IconTrash(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" {...base} strokeWidth="1.3" {...props}>
+      <path d="M3 4.5h10M6.5 4.5v-1a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1" />
+      <path d="M4.5 4.5l.7 8a1 1 0 0 0 1 .9h3.6a1 1 0 0 0 1-.9l.7-8" />
+      <path d="M6.5 7v4M9.5 7v4" />
+    </svg>
+  );
+}
+
+export function IconScissors(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" {...base} strokeWidth="1.3" {...props}>
+      <circle cx="4.5" cy="5" r="1.8" />
+      <circle cx="4.5" cy="11" r="1.8" />
+      <path d="M6 6l8 6M6 10l8-6M3 3l3.5 5" />
+    </svg>
+  );
+}
+
+export function IconTransform(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" {...base} strokeWidth="1.3" {...props}>
+      <path d="M3.5 8A4.5 4.5 0 0 1 8 3.5h4" />
+      <path d="M12.5 8A4.5 4.5 0 0 1 8 12.5H4" />
+      <path d="M10 1.5l2 2-2 2M6 14.5l-2-2 2-2" />
+    </svg>
+  );
+}
+
+export function IconPlusBelow(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" {...base} strokeWidth="1.3" {...props}>
+      <path d="M8 3v10M3 8h10" />
+    </svg>
+  );
+}
+
+export function IconIndent(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" {...base} strokeWidth="1.3" {...props}>
+      <path d="M3 4h10M3 8h6M3 12h10M12 6l2 2-2 2" />
+    </svg>
+  );
+}

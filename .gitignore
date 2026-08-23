@@ -29,5 +29,5 @@ pnpm-debug.log*
 coverage/
 test-results/
 
-# omc runtime state
-.omc/state/
+# omc runtime state (sessions/project memory are machine-local)
+.omc

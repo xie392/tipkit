@@ -147,7 +147,7 @@ packages/extensions/src/
 
 ### M4 接入
 
-1. blog：`rich-text/` 替换为 `@tipkit/editor`，样式迁移到 `blog.css`（从 `editor.css` 抽取变量）
+1. blog：`rich-text/` 替换为 `@tipkit/editor`，样式迁移到 `sketch.css`（从 `editor.css` 抽取变量）
 2. devkb：`@devkb/editor` 升级 Tiptap v3，改用 `@tipkit/editor`
 
 ## 8. 测试策略
