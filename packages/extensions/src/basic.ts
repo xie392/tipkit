@@ -21,6 +21,8 @@ import { Markdown } from "@tiptap/markdown";
 
 import { CustomBold, CustomItalic, CustomStrike, CustomCode } from "./markdown/marks";
 import { MarkdownLink } from "./markdown/link";
+import { LinkBackfillConvert } from "./markdown/link-backfill-convert";
+import { CodeBackfillConvert } from "./markdown/code-backfill-convert";
 import { MarkdownPaste } from "./markdown/paste";
 import { ListInputRules } from "./markdown/list-input-rules";
 import { TrailingNode } from "./basic/trailing-node";
@@ -90,6 +92,10 @@ function buildBasicExtensions(): AnyExtension[] {
     TableCell,
     // 链接（markdown 输入规则 + 自动链接）
     MarkdownLink,
+    // 链接回填转换：IME 组合输入等场景下 [文字](url) 兜底转链接
+    LinkBackfillConvert,
+    // 行内代码回填转换：`code` 在空格/回车时兜底转 code mark
+    CodeBackfillConvert,
     // markdown 粘贴 / 序列化
     Markdown,
     MarkdownPaste,

@@ -35,6 +35,8 @@ export { createAdvancedExtensions } from "./advanced";
 export { safeMarkInputRule } from "./markdown/safe-mark-input-rule";
 export { CustomBold, CustomItalic, CustomStrike, CustomCode } from "./markdown/marks";
 export { MarkdownLink } from "./markdown/link";
+export { LinkBackfillConvert } from "./markdown/link-backfill-convert";
+export { CodeBackfillConvert } from "./markdown/code-backfill-convert";
 export { MarkdownPaste } from "./markdown/paste";
 export { ListInputRules } from "./markdown/list-input-rules";
 export { TrailingNode } from "./basic/trailing-node";
