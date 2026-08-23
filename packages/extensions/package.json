@@ -1,6 +1,6 @@
 {
   "name": "@tipkit/extensions",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "TipKit 扩展集：全部 Tiptap 扩展（纯逻辑 + 语义类名，带少量可覆盖默认样式）",
   "type": "module",

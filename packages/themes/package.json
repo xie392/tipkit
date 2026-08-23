@@ -1,6 +1,6 @@
 {
   "name": "@tipkit/themes",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "TipKit 内置主题皮肤：default 标准风格 + sketch 手绘风格，纯 CSS 变量 + 自定义 CSS",
   "type": "module",

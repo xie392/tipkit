@@ -1,6 +1,6 @@
 {
   "name": "@tipkit/editor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "TipKit 聚合入口：core + extensions + ui 组装，对外暴露 <TipKitEditor> / useTipKitEditor",
   "type": "module",

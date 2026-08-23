@@ -1,6 +1,6 @@
 {
   "name": "@tipkit/components",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "TipKit 基础组件：shadcn/ui 风格（Radix + cva + Tailwind），颜色走 CSS 变量",
   "type": "module",
