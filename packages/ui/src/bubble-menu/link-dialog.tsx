@@ -85,7 +85,7 @@ export function LinkDialog({ editor, open, onOpenChange }: LinkDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="tk-link-dialog max-w-sm">
+      <DialogContent className="tk-link-dialog tk-max-w-sm">
         <DialogHeader>
           <DialogTitle className="tk-link-dialog-title">编辑链接</DialogTitle>
         </DialogHeader>

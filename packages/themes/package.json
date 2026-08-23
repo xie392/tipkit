@@ -1,6 +1,6 @@
 {
   "name": "@tipkit/themes",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "author": "xie392",
   "license": "MIT",
   "repository": {
@@ -22,27 +22,28 @@
     "access": "public"
   },
   "files": [
-    "src",
+    "dist",
     "README.md"
   ],
   "sideEffects": true,
   "description": "TipKit 内置主题皮肤：default 标准风格 + sketch 手绘风格，纯 CSS 变量 + 自定义 CSS",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
-    "./base.css": "./src/base.css",
-    "./default.css": "./src/default.css",
-    "./sketch.css": "./src/sketch.css",
-    "./dark.css": "./src/dark.css"
+    "./base.css": "./dist/base.css",
+    "./default.css": "./dist/default.css",
+    "./sketch.css": "./dist/sketch.css",
+    "./dark.css": "./dist/dark.css"
   },
   "scripts": {
     "lint": "eslint src/",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json && node -e \"require('node:fs').cpSync('src','dist',{recursive:true,filter:f=>require('node:fs').statSync(f).isDirectory()||f.endsWith('.css')})\""
   },
   "devDependencies": {
     "typescript": "^5.7.2"

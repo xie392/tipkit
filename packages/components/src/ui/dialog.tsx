@@ -14,11 +14,11 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <DialogPrimitive.Portal>
-    <DialogPrimitive.Overlay className="fixed inset-0 z-[100] bg-black/50" />
+    <DialogPrimitive.Overlay className="tk-fixed tk-inset-0 tk-z-100 tk-bg-black-50" />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-1/2 top-1/2 z-[100] w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-background p-6 shadow-lg",
+        "tk-fixed tk-left-half tk-top-half tk-z-100 tk-w-full tk-max-w-md tk-center-modal tk-rounded-lg tk-border tk-border-border tk-bg-background tk-p-6 tk-shadow-lg",
         className,
       )}
       {...props}
@@ -30,7 +30,7 @@ const DialogContent = React.forwardRef<
 DialogContent.displayName = "DialogContent";
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("mb-4 flex flex-col gap-1.5", className)} {...props} />
+  <div className={cn("tk-mb-4 tk-flex tk-flex-col tk-gap-1-5", className)} {...props} />
 );
 
 const DialogTitle = React.forwardRef<
@@ -39,7 +39,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold leading-none", className)}
+    className={cn("tk-text-lg tk-font-semibold tk-leading-none", className)}
     {...props}
   />
 ));
@@ -51,7 +51,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("tk-text-sm tk-text-muted-fg", className)}
     {...props}
   />
 ));
@@ -59,7 +59,7 @@ DialogDescription.displayName = "DialogDescription";
 
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}
+    className={cn("tk-flex tk-flex-col-reverse tk-gap-2 tk-sm-flex-row tk-sm-justify-end", className)}
     {...props}
   />
 );

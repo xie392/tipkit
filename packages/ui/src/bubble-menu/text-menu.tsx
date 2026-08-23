@@ -107,27 +107,27 @@ export function TextMenu({ editor }: { editor: Editor | null }) {
     >
       <div className="tk-bubble-menu">
         <MenuBtn title="加粗 ⌘B" active={states.isBold} onClick={() => chain().toggleBold().run()}>
-          <Bold className="h-4 w-4" />
+          <Bold className="tk-icon-md" />
         </MenuBtn>
         <MenuBtn title="斜体 ⌘I" active={states.isItalic} onClick={() => chain().toggleItalic().run()}>
-          <Italic className="h-4 w-4" />
+          <Italic className="tk-icon-md" />
         </MenuBtn>
         <MenuBtn
           title="下划线 ⌘U"
           active={states.isUnderline}
           onClick={() => chain().toggleUnderline().run()}
         >
-          <Underline className="h-4 w-4" />
+          <Underline className="tk-icon-md" />
         </MenuBtn>
         <MenuBtn
           title="删除线"
           active={states.isStrike}
           onClick={() => chain().toggleStrike().run()}
         >
-          <Strikethrough className="h-4 w-4" />
+          <Strikethrough className="tk-icon-md" />
         </MenuBtn>
         <MenuBtn title="行内代码" active={states.isCode} onClick={() => chain().toggleCode().run()}>
-          <Code className="h-4 w-4" />
+          <Code className="tk-icon-md" />
         </MenuBtn>
 
         <span className="tk-bubble-divider" />
@@ -140,7 +140,7 @@ export function TextMenu({ editor }: { editor: Editor | null }) {
             if (href) chain().setLink({ href }).run();
           }}
         >
-          <Link className="h-4 w-4" />
+          <Link className="tk-icon-md" />
         </MenuBtn>
       </div>
     </BubbleMenu>

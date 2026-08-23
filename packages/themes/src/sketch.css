@@ -1,3 +1,5 @@
+@import "./base.css";
+
 /* ============================================================
  * @tipkit/themes —— sketch.css
  * 手绘风格：方格纸背景、手写字体（Caveat / Patrick_Hand）、
@@ -95,7 +97,11 @@
 
 /* ---------- 编辑器容器 ---------- */
 .tk-theme-sketch .tk-editor {
+  min-height: 300px;
   background-color: var(--card);
+  border: none;
+  border-radius: 0;
+  padding: 24px 72px;
 }
 
 .tk-theme-sketch .tk-editor .tk-prosemirror {
@@ -269,6 +275,7 @@
 
 /* ---------- 工具栏 ---------- */
 .tk-theme-sketch .tk-toolbar {
+  padding: 6px 10px;
   border: 1.5px solid var(--tk-sketch-line-soft);
   border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
   box-shadow:

@@ -46,20 +46,20 @@ export function FontFamilyPicker({ editor }: { editor: Editor }) {
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <ToolbarBtn title="字体" className="w-fit px-2">
-              <span className="flex items-center gap-1 text-[12px]">
-                <Type className="h-4 w-4" />
-                <span className="max-w-[60px] truncate">
+            <ToolbarBtn title="字体" className="tk-w-fit tk-px-2">
+              <span className="tk-flex tk-items-center tk-gap-1 tk-text-12px">
+                <Type className="tk-icon-md" />
+                <span className="tk-max-w-60px tk-truncate">
                   {FONT_FAMILIES.find((f) => f.value === current)?.label ?? "字体"}
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+                <ChevronDown className="tk-icon-sm tk-opacity-60" />
               </span>
             </ToolbarBtn>
           </DropdownMenuTrigger>
         </TooltipTrigger>
         <TooltipContent side="bottom">字体</TooltipContent>
       </Tooltip>
-      <DropdownMenuContent align="start" className="w-44">
+      <DropdownMenuContent align="start" className="tk-w-44">
         {FONT_FAMILIES.map((opt) => (
           <DropdownMenuItem
             key={opt.label}
@@ -72,7 +72,7 @@ export function FontFamilyPicker({ editor }: { editor: Editor }) {
               setOpen(false);
             }}
             style={{ fontFamily: opt.value || undefined }}
-            className={current === opt.value ? "bg-primary/10 text-primary" : ""}
+            className={current === opt.value ? "tk-bg-primary-10 tk-text-primary" : ""}
           >
             {opt.label}
           </DropdownMenuItem>
@@ -91,17 +91,17 @@ export function FontSizePicker({ editor }: { editor: Editor }) {
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <ToolbarBtn title="字号" className="w-fit px-2">
-              <span className="flex items-center gap-1 text-[12px]">
-                <span className="max-w-[40px] truncate">{current || "字号"}</span>
-                <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+            <ToolbarBtn title="字号" className="tk-w-fit tk-px-2">
+              <span className="tk-flex tk-items-center tk-gap-1 tk-text-12px">
+                <span className="tk-max-w-40px tk-truncate">{current || "字号"}</span>
+                <ChevronDown className="tk-icon-sm tk-opacity-60" />
               </span>
             </ToolbarBtn>
           </DropdownMenuTrigger>
         </TooltipTrigger>
         <TooltipContent side="bottom">字号</TooltipContent>
       </Tooltip>
-      <DropdownMenuContent align="start" className="w-32">
+      <DropdownMenuContent align="start" className="tk-w-32">
         {FONT_SIZES.map((opt) => (
           <DropdownMenuItem
             key={opt.label}
@@ -113,7 +113,7 @@ export function FontSizePicker({ editor }: { editor: Editor }) {
               }
               setOpen(false);
             }}
-            className={current === opt.value ? "bg-primary/10 text-primary" : ""}
+            className={current === opt.value ? "tk-bg-primary-10 tk-text-primary" : ""}
           >
             {opt.label}
           </DropdownMenuItem>

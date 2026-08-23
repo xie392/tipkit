@@ -138,7 +138,7 @@ export function TablePicker({
             type="button"
             disabled={disabled}
             data-active={open || undefined}
-            className="tk-toolbar-btn inline-flex items-center justify-center w-8 h-8 rounded"
+            className="tk-toolbar-btn tk-inline-flex tk-items-center tk-justify-center tk-w-8 tk-h-8 tk-rounded"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
               if (disabled) return;

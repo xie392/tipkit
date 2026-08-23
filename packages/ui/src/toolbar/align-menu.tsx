@@ -24,13 +24,13 @@ export function AlignMenu({ editor }: { editor: Editor }) {
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
             <ToolbarBtn title="对齐方式" active={open}>
-              <ActiveIcon className="h-4 w-4" />
+              <ActiveIcon className="tk-icon-md" />
             </ToolbarBtn>
           </DropdownMenuTrigger>
         </TooltipTrigger>
         <TooltipContent side="bottom">对齐方式</TooltipContent>
       </Tooltip>
-      <DropdownMenuContent align="start" className="w-36 p-1">
+      <DropdownMenuContent align="start" className="tk-w-36 tk-p-1">
         {OPTIONS.map((o) => {
           const Icon = o.icon;
           return (
@@ -41,9 +41,9 @@ export function AlignMenu({ editor }: { editor: Editor }) {
                 editor.chain().focus().setTextAlign(o.key).run();
                 setOpen(false);
               }}
-              className={active.key === o.key ? "bg-primary/10 text-primary" : ""}
+              className={active.key === o.key ? "tk-bg-primary-10 tk-text-primary" : ""}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="tk-icon-md" />
               {o.label}
             </DropdownMenuItem>
           );

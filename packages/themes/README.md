@@ -15,7 +15,7 @@ pnpm add @tipkit/themes
 | default | `@tipkit/themes/default.css` | shadcn 标准风格：白底深字、干净排印 |
 | sketch | `@tipkit/themes/sketch.css` | 手绘线框：方格纸、手写字体、不规则圆角 |
 | dark | `@tipkit/themes/dark.css` | 暗色：深灰背景、浅色正文 |
-| base | `@tipkit/themes/base.css` | 布局层（所有主题共享，一般无需单独引入） |
+| base | `@tipkit/themes/base.css` | 布局层（所有主题自动引入，无需手动 import） |
 
 ## 快速使用
 

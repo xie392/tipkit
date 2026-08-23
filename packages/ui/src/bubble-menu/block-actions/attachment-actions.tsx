@@ -76,7 +76,7 @@ export function AttachmentActions({ node, updateAttributes }: BlockActionProps) 
       <ActionButton icon={<IconDownload />} label="下载" onClick={download} />
       <ActionButton icon={<IconEdit />} label="重命名" onClick={openRename} />
       <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
-        <DialogContent className="tk-rename-dialog max-w-sm">
+        <DialogContent className="tk-rename-dialog tk-max-w-sm">
           <DialogHeader>
             <DialogTitle>重命名</DialogTitle>
           </DialogHeader>

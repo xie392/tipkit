@@ -6,14 +6,10 @@
  * ============================================================ */
 
 /* 编辑器容器（TipKitEditor 包裹 EditorContent）：
- * 少量可覆盖的默认样式，颜色/边框走 CSS 变量，主题可整体覆盖 */
+ * 仅保留定位上下文，供浮层（bubble menu / slash menu / block handle）绝对定位。
+ * 尺寸、内边距、边框、背景等全部由主题或消费方决定。 */
 .tk-editor {
   position: relative;
-  min-height: 300px;
-  padding: 24px 24px 24px 72px;
-  border: 1px solid var(--border, #e5e5e5);
-  border-radius: 8px;
-  background: var(--background, #fff);
 }
 
 /* ProseMirror 内容区基础排版（语义结构，不含视觉） */
@@ -1957,6 +1953,201 @@
   margin: 0;
   border: none;
   border-top: 2px solid var(--border, #e5e5e5);
+}
+
+/* ============================================================
+ * tk-* 工具类（布局/尺寸/间距/排版/颜色/边框/交互）
+ * 替代 Tailwind 工具类，使消费方无需 @source 扫描 node_modules
+ * ============================================================ */
+
+/* ---------- display ---------- */
+.tk-hidden { display: none !important; }
+.tk-block { display: block; }
+.tk-flex { display: flex; }
+.tk-inline-flex { display: inline-flex; }
+.tk-flex-col { flex-direction: column; }
+.tk-flex-col-reverse { flex-direction: column-reverse; }
+.tk-flex-wrap { flex-wrap: wrap; }
+.tk-items-center { align-items: center; }
+.tk-justify-center { justify-content: center; }
+.tk-justify-end { justify-content: flex-end; }
+.tk-shrink-0 { flex-shrink: 0; }
+.tk-flex-1 { flex: 1 1 0%; }
+.tk-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- position ---------- */
+.tk-relative { position: relative; }
+.tk-fixed { position: fixed; }
+.tk-inset-0 { inset: 0; }
+.tk-left-half { left: 50%; }
+.tk-top-half { top: 50%; }
+.tk-center-modal { transform: translate(-50%, -50%); }
+
+/* ---------- sizing ---------- */
+.tk-w-full { width: 100%; }
+.tk-h-auto { height: auto; }
+.tk-w-fit { width: fit-content; }
+.tk-w-8 { width: 2rem; }
+.tk-h-8 { height: 2rem; }
+.tk-h-9 { height: 2.25rem; }
+.tk-w-32 { width: 8rem; }
+.tk-w-36 { width: 9rem; }
+.tk-w-44 { width: 11rem; }
+.tk-w-56 { width: 14rem; }
+.tk-min-w-36 { min-width: 9rem; }
+.tk-max-w-sm { max-width: 24rem; }
+.tk-max-w-md { max-width: 28rem; }
+.tk-max-w-40px { max-width: 40px; }
+.tk-max-w-60px { max-width: 60px; }
+.tk-h-px { height: 1px; }
+
+/* ---------- icon sizing ---------- */
+.tk-icon-xs { width: 0.75rem; height: 0.75rem; }
+.tk-icon-sm { width: 0.875rem; height: 0.875rem; }
+.tk-icon-md { width: 1rem; height: 1rem; }
+.tk-icon-lg { width: 1.25rem; height: 1.25rem; }
+
+/* ---------- spacing ---------- */
+.tk-p-1 { padding: 0.25rem; }
+.tk-p-2 { padding: 0.5rem; }
+.tk-p-4 { padding: 1rem; }
+.tk-p-6 { padding: 1.5rem; }
+.tk-px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+.tk-px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+.tk-px-4 { padding-left: 1rem; padding-right: 1rem; }
+.tk-px-1-5 { padding-left: 0.375rem; padding-right: 0.375rem; }
+.tk-px-2-5 { padding-left: 0.625rem; padding-right: 0.625rem; }
+.tk-py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+.tk-py-1-5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+.tk-py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.tk-pt-2 { padding-top: 0.5rem; }
+.tk-gap-0-5 { gap: 0.125rem; }
+.tk-gap-1 { gap: 0.25rem; }
+.tk-gap-1-5 { gap: 0.375rem; }
+.tk-gap-2 { gap: 0.5rem; }
+.tk-mb-1 { margin-bottom: 0.25rem; }
+.tk-mb-2 { margin-bottom: 0.5rem; }
+.tk-mb-4 { margin-bottom: 1rem; }
+.tk-mt-2 { margin-top: 0.5rem; }
+.tk-mr-2 { margin-right: 0.5rem; }
+.tk--mx-1 { margin-left: -0.25rem; margin-right: -0.25rem; }
+.tk-my-1 { margin-top: 0.25rem; margin-bottom: 0.25rem; }
+
+/* ---------- typography ---------- */
+.tk-text-xs { font-size: 0.75rem; line-height: 1rem; }
+.tk-text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.tk-text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+.tk-text-11px { font-size: 11px; }
+.tk-text-12px { font-size: 12px; }
+.tk-font-medium { font-weight: 500; }
+.tk-font-semibold { font-weight: 600; }
+.tk-leading-none { line-height: 1; }
+.tk-whitespace-nowrap { white-space: nowrap; }
+.tk-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tk-opacity-50 { opacity: 0.5; }
+.tk-opacity-60 { opacity: 0.6; }
+.tk-opacity-70 { opacity: 0.7; }
+
+/* ---------- colors ---------- */
+.tk-bg-primary { background-color: var(--primary, #1f2937); }
+.tk-text-primary-fg { color: var(--primary-foreground, #f9fafb); }
+.tk-text-primary { color: var(--primary, #2563eb); }
+.tk-bg-primary-10 { background-color: color-mix(in srgb, var(--primary, #2563eb) 10%, transparent); }
+.tk-bg-primary-90 { background-color: color-mix(in srgb, var(--primary, #1f2937) 90%, transparent); }
+.tk-hover-bg-primary-90:hover { background-color: color-mix(in srgb, var(--primary, #1f2937) 90%, transparent); }
+.tk-bg-background { background-color: var(--background, #fff); }
+.tk-bg-secondary { background-color: var(--secondary, #f3f4f6); }
+.tk-text-secondary-fg { color: var(--secondary-foreground, #1f2937); }
+.tk-hover-bg-secondary-80:hover { background-color: color-mix(in srgb, var(--secondary, #f3f4f6) 80%, transparent); }
+.tk-bg-popover { background-color: var(--popover, #fff); }
+.tk-text-popover-fg { color: var(--popover-foreground, #1f2937); }
+.tk-bg-accent { background-color: var(--accent, #f3f4f6); }
+.tk-text-accent-fg { color: var(--accent-foreground, #1f2937); }
+.tk-hover-bg-accent:hover { background-color: var(--accent, #f3f4f6); }
+.tk-hover-text-accent-fg:hover { color: var(--accent-foreground, #1f2937); }
+.tk-focus-bg-accent:focus { background-color: var(--accent, #f3f4f6); }
+.tk-focus-text-accent-fg:focus { color: var(--accent-foreground, #1f2937); }
+.tk-bg-black-50 { background-color: rgb(0 0 0 / 0.5); }
+.tk-bg-neutral-900 { background-color: #171717; }
+.tk-fill-neutral-900 { fill: #171717; }
+.tk-text-white { color: #fff; }
+.tk-text-muted-fg { color: var(--muted-foreground, #6b7280); }
+.tk-placeholder-muted-fg::placeholder { color: var(--muted-foreground, #6b7280); }
+.tk-border-border { border-color: var(--border, #e5e7eb); }
+.tk-border-fg-50 { border-color: color-mix(in srgb, var(--foreground, #1f2937) 50%, transparent); }
+.tk-focus-border-fg-50:focus-visible { border-color: color-mix(in srgb, var(--foreground, #1f2937) 50%, transparent); }
+.tk-bg-border { background-color: var(--border, #e5e7eb); }
+
+/* ---------- border / radius / shadow ---------- */
+.tk-border { border-width: 1px; border-style: solid; }
+.tk-border-t { border-top-width: 1px; border-top-style: solid; }
+.tk-rounded { border-radius: 0.25rem; }
+.tk-rounded-sm { border-radius: 0.125rem; }
+.tk-rounded-md { border-radius: calc(var(--radius, 0.5rem) - 2px); }
+.tk-rounded-lg { border-radius: var(--radius, 0.5rem); }
+.tk-rounded-full { border-radius: 9999px; }
+.tk-rounded-3px { border-radius: 3px; }
+.tk-shadow-xs { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+.tk-shadow-md { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
+.tk-shadow-lg { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+.tk-ring-2 { box-shadow: 0 0 0 2px var(--ring, #3b82f6); }
+.tk-swatch-active {
+  box-shadow: 0 0 0 1px var(--background, #fff), 0 0 0 3px var(--primary, #2563eb);
+}
+
+/* ---------- interaction / states ---------- */
+.tk-cursor-pointer { cursor: pointer; }
+.tk-select-none { user-select: none; }
+.tk-outline-none { outline: 2px solid transparent; outline-offset: 2px; }
+.tk-focus-outline-none:focus-visible { outline: none; }
+.tk-transition-colors { transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+.tk-transition-transform { transition: transform 0.15s ease; }
+.tk-hover-scale-110:hover { transform: scale(1.1); }
+.tk-pointer-events-none { pointer-events: none; }
+.tk-disabled-pointer-none:disabled { pointer-events: none; }
+.tk-disabled-opacity-50:disabled { opacity: 0.5; }
+.tk-disabled-cursor-na:disabled { cursor: not-allowed; }
+.tk-data-disabled-pointer-none[data-disabled] { pointer-events: none; }
+.tk-data-disabled-opacity-50[data-disabled] { opacity: 0.5; }
+.tk-overflow-hidden { overflow: hidden; }
+
+/* ---------- z-index ---------- */
+.tk-z-50 { z-index: 50; }
+.tk-z-100 { z-index: 100; }
+
+/* ---------- responsive ---------- */
+@media (min-width: 640px) {
+  .tk-sm-flex-row { flex-direction: row; }
+  .tk-sm-justify-end { justify-content: flex-end; }
+}
+
+/* ---------- alignment helpers (image-block) ---------- */
+.tk-align-left { margin-left: 0; margin-right: auto; }
+.tk-align-right { margin-left: auto; margin-right: 0; }
+.tk-align-center { margin-left: auto; margin-right: auto; }
+
+/* ---------- group (code-block toolbar hover) ---------- */
+.tk-group { position: relative; }
+
+/* ---------- button SVG helper ---------- */
+.tk-btn-svg svg {
+  pointer-events: none;
+  width: 1rem;
+  height: 1rem;
 }
 
 

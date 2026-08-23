@@ -179,9 +179,30 @@ importers:
       '@tipkit/ui':
         specifier: workspace:*
         version: link:../ui
+      '@tiptap/extension-color':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/extension-text-style@3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2)))
+      '@tiptap/extension-highlight':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))
+      '@tiptap/extension-link':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))(@tiptap/pm@3.30.2)
+      '@tiptap/extension-table':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))(@tiptap/pm@3.30.2)
+      '@tiptap/extension-text-align':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))
+      '@tiptap/extension-underline':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))
       '@tiptap/react':
         specifier: ^3.30.1
         version: 3.30.2(@floating-ui/dom@1.8.0)(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))(@tiptap/pm@3.30.2)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@tiptap/starter-kit':
+        specifier: ^3.30.1
+        version: 3.30.2
       react:
         specifier: ^19.0.0
         version: 19.2.8
@@ -355,9 +376,45 @@ importers:
       '@tipkit/extensions':
         specifier: workspace:*
         version: link:../extensions
+      '@tiptap/extension-color':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/extension-text-style@3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2)))
+      '@tiptap/extension-font-family':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/extension-text-style@3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2)))
+      '@tiptap/extension-highlight':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))
+      '@tiptap/extension-link':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))(@tiptap/pm@3.30.2)
+      '@tiptap/extension-table':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))(@tiptap/pm@3.30.2)
+      '@tiptap/extension-table-cell':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/extension-table@3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))(@tiptap/pm@3.30.2))
+      '@tiptap/extension-table-header':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/extension-table@3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))(@tiptap/pm@3.30.2))
+      '@tiptap/extension-table-row':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/extension-table@3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))(@tiptap/pm@3.30.2))
+      '@tiptap/extension-text-align':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))
+      '@tiptap/extension-text-style':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))
+      '@tiptap/extension-underline':
+        specifier: ^3.30.1
+        version: 3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))
       '@tiptap/react':
         specifier: ^3.30.1
         version: 3.30.2(@floating-ui/dom@1.8.0)(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))(@tiptap/pm@3.30.2)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@tiptap/starter-kit':
+        specifier: ^3.30.1
+        version: 3.30.2
       lucide-react:
         specifier: ^0.469.0
         version: 0.469.0(react@19.2.8)

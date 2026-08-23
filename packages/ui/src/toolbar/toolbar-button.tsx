@@ -28,7 +28,7 @@ export function ToolbarBtn({
       aria-label={title}
       disabled={disabled}
       data-active={active || undefined}
-      className={cn("tk-toolbar-btn inline-flex items-center justify-center", className)}
+      className={cn("tk-toolbar-btn tk-inline-flex tk-items-center tk-justify-center", className)}
       {...rest}
     >
       {children}

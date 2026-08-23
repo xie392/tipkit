@@ -69,7 +69,7 @@ function Swatch({ color, active, onClick, title }: { color: string; active?: boo
       type="button"
       title={title ?? color}
       aria-label={title ?? color}
-      className="flex h-5 w-5 items-center justify-center rounded-sm transition-transform hover:scale-110"
+      className="tk-flex tk-icon-lg tk-items-center tk-justify-center tk-rounded-sm tk-transition-transform tk-hover-scale-110"
       onMouseDown={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -80,7 +80,7 @@ function Swatch({ color, active, onClick, title }: { color: string; active?: boo
       }}
     >
       <span
-        className={`block h-4 w-4 rounded-[3px] border border-border${active ? " ring-2 ring-primary ring-offset-1" : ""}`}
+        className={`tk-block tk-icon-md tk-rounded-3px tk-border tk-border-border${active ? " tk-swatch-active" : ""}`}
         style={{ backgroundColor: color }}
       />
     </button>
@@ -127,15 +127,15 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
             <ToolbarBtn active={open}>
-              {isText ? <Palette className="h-4 w-4" /> : <Highlighter className="h-4 w-4" />}
+              {isText ? <Palette className="tk-icon-md" /> : <Highlighter className="tk-icon-md" />}
             </ToolbarBtn>
           </DropdownMenuTrigger>
         </TooltipTrigger>
         <TooltipContent side="bottom">{isText ? "文字颜色" : "高亮颜色"}</TooltipContent>
       </Tooltip>
-      <DropdownMenuContent align="start" className="w-56 p-2">
+      <DropdownMenuContent align="start" className="tk-w-56 tk-p-2">
         {/* 灰阶 */}
-        <div className="mb-2 flex flex-wrap gap-0.5">
+        <div className="tk-mb-2 tk-flex tk-flex-wrap tk-gap-0-5">
           {GRAY_SCALE.map((color) => (
             <Swatch
               key={color}
@@ -147,9 +147,9 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
         </div>
 
         {/* 色相网格 */}
-        <div className="flex flex-col gap-1">
+        <div className="tk-flex tk-flex-col tk-gap-1">
           {palette.map((row, rowIdx) => (
-            <div key={rowIdx} className="flex gap-1">
+            <div key={rowIdx} className="tk-flex tk-gap-1">
               {row.map((color) => (
                 <Swatch
                   key={color}
@@ -164,9 +164,9 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
 
         {/* 最近使用 */}
         {recent.length > 0 && (
-          <div className="mt-2 border-t border-border pt-2">
-            <div className="mb-1 text-[11px] opacity-50">最近使用</div>
-            <div className="flex flex-wrap gap-0.5">
+          <div className="tk-mt-2 tk-border-t tk-border-border tk-pt-2">
+            <div className="tk-mb-1 tk-text-11px tk-opacity-50">最近使用</div>
+            <div className="tk-flex tk-flex-wrap tk-gap-0-5">
               {recent.map((color) => (
                 <Swatch
                   key={color}
@@ -180,10 +180,10 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
         )}
 
         {/* 自定义颜色 + 清除 */}
-        <div className="mt-2 flex items-center gap-1 border-t border-border pt-2">
+        <div className="tk-mt-2 tk-flex tk-items-center tk-gap-1 tk-border-t tk-border-border tk-pt-2">
           <button
             type="button"
-            className="flex flex-1 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs opacity-70 transition-colors hover:bg-accent"
+            className="tk-flex tk-flex-1 tk-items-center tk-gap-1-5 tk-rounded-md tk-px-1-5 tk-py-1 tk-text-xs tk-opacity-70 tk-transition-colors tk-hover-bg-accent"
             onMouseDown={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -194,7 +194,7 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
             }}
           >
             <span
-              className="h-3.5 w-3.5 rounded-full border border-border"
+              className="tk-icon-sm tk-rounded-full tk-border tk-border-border"
               style={{ background: "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)" }}
             />
             更多颜色
@@ -202,7 +202,7 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
           {activeColor && (
             <button
               type="button"
-              className="rounded-md px-1.5 py-1 text-xs opacity-70 transition-colors hover:bg-accent"
+              className="tk-rounded-md tk-px-1-5 tk-py-1 tk-text-xs tk-opacity-70 tk-transition-colors tk-hover-bg-accent"
               onClick={clear}
             >
               清除{isText ? "颜色" : "高亮"}
@@ -213,7 +213,7 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
         <input
           ref={fileInputRef}
           type="color"
-          className="sr-only"
+          className="tk-sr-only"
           onChange={(e) => applyColor(e.target.value)}
           value={activeColor ?? "#000000"}
         />

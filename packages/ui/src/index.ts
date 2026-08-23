@@ -15,6 +15,24 @@
  * 视觉组件（Button/Popover/DropdownMenu 等）在 @tipkit/components；
  * 主题皮肤在 @tipkit/themes。
  */
+
+/* 命令类型增强：本包通过 editor.chain() 调用表格/对齐/高亮/颜色/链接等命令，
+ * 其类型声明（declare module "@tiptap/core"）来自各扩展包。这里必须用副作用导入
+ * （而非 import type），因为空 type-only 导入会被 tsc 从产出的 .d.ts 中删除，
+ * 导致消费方拿不到 Commands 类型增强。 */
+import "@tiptap/starter-kit";
+import "@tiptap/extension-table";
+import "@tiptap/extension-table-row";
+import "@tiptap/extension-table-cell";
+import "@tiptap/extension-table-header";
+import "@tiptap/extension-text-align";
+import "@tiptap/extension-highlight";
+import "@tiptap/extension-color";
+import "@tiptap/extension-font-family";
+import "@tiptap/extension-text-style";
+import "@tiptap/extension-link";
+import "@tiptap/extension-underline";
+
 export { SlashMenu } from "./slash-menu/slash-menu";
 export type { SlashMenuProps } from "./slash-menu/slash-menu";
 export { EmojiSuggestion, getEmojiSuggestionState } from "./emoji/emoji-suggestion";

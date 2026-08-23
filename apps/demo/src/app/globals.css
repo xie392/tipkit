@@ -1,14 +1,7 @@
 @import "tailwindcss";
-@import "@tipkit/themes/base.css";
 @import "@tipkit/themes/default.css";
 @import "@tipkit/themes/sketch.css";
 @import "@tipkit/themes/dark.css";
-
-/* 非 git 仓库时 Tailwind v4 自动检测不会扫到 workspace 包，
- * 显式纳入 ui/components/extensions 源码，使其中的 Tailwind 类（hidden、下拉菜单样式等）生效 */
-@source "../../../../packages/ui/src";
-@source "../../../../packages/components/src";
-@source "../../../../packages/extensions/src";
 
 /* ============================================================
  * 手绘主题字体注入：

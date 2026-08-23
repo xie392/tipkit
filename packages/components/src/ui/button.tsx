@@ -5,20 +5,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 shrink-0",
+  "tk-inline-flex tk-items-center tk-justify-center tk-gap-2 tk-whitespace-nowrap tk-rounded-md tk-text-sm tk-font-medium tk-transition-colors tk-focus-outline-none tk-disabled-pointer-none tk-disabled-opacity-50 tk-btn-svg tk-shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+        default: "tk-bg-primary tk-text-primary-fg tk-shadow-xs tk-hover-bg-primary-90",
+        ghost: "tk-hover-bg-accent tk-hover-text-accent-fg",
         outline:
-          "border border-border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+          "tk-border tk-border-border tk-bg-background tk-shadow-xs tk-hover-bg-accent tk-hover-text-accent-fg",
+        secondary: "tk-bg-secondary tk-text-secondary-fg tk-shadow-xs tk-hover-bg-secondary-80",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3",
-        icon: "h-8 w-8",
+        default: "tk-h-9 tk-px-4 tk-py-2",
+        sm: "tk-h-8 tk-rounded-md tk-px-3",
+        icon: "tk-h-8 tk-w-8",
       },
     },
     defaultVariants: { variant: "default", size: "default" },

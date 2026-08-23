@@ -267,7 +267,7 @@ function ImageBlockView(props: NodeViewProps) {
 
   const effectiveWidth = dragWidth ?? (Number(String(width).replace("%", "")) || 100);
   const wrapperAlign =
-    align === "left" ? "ml-0 mr-auto" : align === "right" ? "ml-auto mr-0" : "mx-auto";
+    align === "left" ? "tk-align-left" : align === "right" ? "tk-align-right" : "tk-align-center";
   const showHandles = selected && editor.isEditable;
 
   const onImageClick = (e: React.MouseEvent) => {
@@ -291,7 +291,7 @@ function ImageBlockView(props: NodeViewProps) {
         <img
           src={src}
           alt={alt ?? ""}
-          className="tk-image-block-img block w-full h-auto"
+          className="tk-image-block-img tk-block tk-w-full tk-h-auto"
           draggable={false}
           onClick={onImageClick}
         />

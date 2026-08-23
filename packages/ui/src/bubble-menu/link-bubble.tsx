@@ -55,7 +55,7 @@ export function LinkBubble({ editor }: { editor: Editor | null }) {
       <span className="tk-bubble-href">{href}</span>
       <span className="tk-bubble-divider" />
       <BubbleBtn title="编辑链接" onClick={() => openLinkDialog()}>
-        <Pencil className="h-3.5 w-3.5" />
+        <Pencil className="tk-icon-sm" />
       </BubbleBtn>
       <BubbleBtn
         title="打开链接"
@@ -63,13 +63,13 @@ export function LinkBubble({ editor }: { editor: Editor | null }) {
           if (href) window.open(href, "_blank", "noopener,noreferrer");
         }}
       >
-        <ExternalLink className="h-3.5 w-3.5" />
+        <ExternalLink className="tk-icon-sm" />
       </BubbleBtn>
       <BubbleBtn
         title="取消链接"
         onClick={() => editor.chain().focus().extendMarkRange("link").unsetLink().run()}
       >
-        <Unlink className="h-3.5 w-3.5" />
+        <Unlink className="tk-icon-sm" />
       </BubbleBtn>
     </BubbleMenu>
   );

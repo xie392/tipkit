@@ -269,7 +269,7 @@ function AttachmentView(props: NodeViewProps) {
       data-has-url={url ? "true" : "false"}
     >
       {content}
-      <input ref={inputRef} type="file" className="hidden" onChange={handleFile} />
+      <input ref={inputRef} type="file" className="tk-hidden" onChange={handleFile} />
     </NodeViewWrapper>
   );
 }

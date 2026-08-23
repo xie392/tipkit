@@ -273,7 +273,7 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
 
   return (
     <>
-      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+      <input ref={fileRef} type="file" accept="image/*" className="tk-hidden" onChange={handleFile} />
       {typeof document !== "undefined" && menu ? createPortal(menu, document.body) : null}
       {typeof document !== "undefined" && preview ? createPortal(preview, document.body) : null}
     </>

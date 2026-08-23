@@ -1,3 +1,5 @@
+@import "./base.css";
+
 /* ============================================================
  * @tipkit/themes —— default.css
  * shadcn 标准风格（默认主题）：
@@ -35,6 +37,8 @@
 
 /* ---------- 编辑器容器 ---------- */
 .tk-theme-default .tk-editor {
+  min-height: 300px;
+  padding: 24px 72px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);

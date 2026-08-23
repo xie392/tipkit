@@ -1,3 +1,5 @@
+@import "./base.css";
+
 /* ============================================================
  * @tipkit/themes —— dark.css
  * 暗色主题：深灰背景 + 浅色正文，shadcn dark 变量体系。
@@ -36,6 +38,8 @@
 
 /* 编辑器容器：暗色下边框/背景跟随变量 */
 .tk-theme-dark .tk-editor {
+  min-height: 300px;
+  padding: 24px 72px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);

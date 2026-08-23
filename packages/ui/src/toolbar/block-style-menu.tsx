@@ -39,23 +39,23 @@ export function BlockStyleMenu({ editor }: { editor: Editor }) {
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <ToolbarBtn title="块样式" className="w-fit px-2">
-              <span className="flex items-center gap-1 text-[12px]">
-                <ActiveIcon className="h-4 w-4" />
-                <span className="truncate">{activeStyle.label}</span>
-                <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+            <ToolbarBtn title="块样式" className="tk-w-fit tk-px-2">
+              <span className="tk-flex tk-items-center tk-gap-1 tk-text-12px">
+                <ActiveIcon className="tk-icon-md" />
+                <span className="tk-truncate">{activeStyle.label}</span>
+                <ChevronDown className="tk-icon-sm tk-opacity-60" />
               </span>
             </ToolbarBtn>
           </DropdownMenuTrigger>
         </TooltipTrigger>
         <TooltipContent side="bottom">块样式</TooltipContent>
       </Tooltip>
-      <DropdownMenuContent align="start" className="w-36">
+      <DropdownMenuContent align="start" className="tk-w-36">
         {BLOCK_STYLES.map((item) => {
           const Icon = item.icon;
           return (
             <DropdownMenuItem key={item.label} onClick={() => item.run(editor)}>
-              <Icon className="mr-2 h-4 w-4 opacity-60" />
+              <Icon className="tk-mr-2 tk-icon-md tk-opacity-60" />
               {item.label}
             </DropdownMenuItem>
           );
