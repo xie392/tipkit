@@ -65,25 +65,25 @@
 .tk-theme-default .tk-editor .tk-prosemirror h1 {
   font-size: 28px;
   font-weight: 700;
-  margin: 1.4em 0 0.6em;
+  margin: 1.6em 0 0.8em;
 }
 
 .tk-theme-default .tk-editor .tk-prosemirror h2 {
   font-size: 22px;
   font-weight: 600;
-  margin: 1.3em 0 0.5em;
+  margin: 1.5em 0 0.7em;
 }
 
 .tk-theme-default .tk-editor .tk-prosemirror h3 {
   font-size: 18px;
   font-weight: 600;
-  margin: 1.2em 0 0.4em;
+  margin: 1.4em 0 0.6em;
 }
 
 .tk-theme-default .tk-editor .tk-prosemirror h4 {
   font-size: 16px;
   font-weight: 600;
-  margin: 1em 0 0.3em;
+  margin: 1.2em 0 0.5em;
 }
 
 /* ---------- 行内元素 ---------- */

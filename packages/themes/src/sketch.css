@@ -36,14 +36,12 @@
   --tk-toolbar-bg: var(--card);
   --tk-toolbar-border: var(--border);
 
-  /* 手绘描边 / 阴影 / 方格纸网格（blog DESIGN.md token） */
+  /* 手绘描边 / 阴影（blog DESIGN.md token） */
   --tk-sketch-line: rgba(49, 48, 46, 0.75);
   --tk-sketch-line-soft: rgba(49, 48, 46, 0.45);
   --tk-sketch-line-hair: rgba(49, 48, 46, 0.6);
   --tk-sketch-shadow: rgba(49, 48, 46, 0.12);
   --tk-sketch-shadow-soft: rgba(49, 48, 46, 0.1);
-  --tk-graph-grid-strong: rgba(96, 93, 89, 0.07);
-  --tk-graph-grid: rgba(96, 93, 89, 0.04);
 
   /* 手写字体（需消费方引入：Caveat → display，Patrick_Hand → body） */
   --tk-font-hand-display: "Caveat", "Comic Sans MS", cursive;
@@ -76,8 +74,6 @@
   --tk-sketch-line-hair: rgba(230, 227, 221, 0.55);
   --tk-sketch-shadow: rgba(0, 0, 0, 0.55);
   --tk-sketch-shadow-soft: rgba(0, 0, 0, 0.4);
-  --tk-graph-grid-strong: rgba(255, 255, 255, 0.06);
-  --tk-graph-grid: rgba(255, 255, 255, 0.03);
 }
 
 /* ---------- 手绘边框 / 阴影工具（blog sketch-border / sketch-shadow） ---------- */
@@ -97,19 +93,9 @@
     6px 6px 16px var(--tk-sketch-shadow-soft);
 }
 
-/* ---------- 编辑器容器：方格纸背景 ---------- */
+/* ---------- 编辑器容器 ---------- */
 .tk-theme-sketch .tk-editor {
   background-color: var(--card);
-  background-image:
-    linear-gradient(var(--tk-graph-grid-strong) 1px, transparent 1px),
-    linear-gradient(90deg, var(--tk-graph-grid-strong) 1px, transparent 1px),
-    linear-gradient(var(--tk-graph-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--tk-graph-grid) 1px, transparent 1px);
-  background-size:
-    80px 80px,
-    80px 80px,
-    16px 16px,
-    16px 16px;
 }
 
 .tk-theme-sketch .tk-editor .tk-prosemirror {
@@ -134,13 +120,13 @@
 .tk-theme-sketch .tk-editor .tk-prosemirror h1 {
   font-size: 28px;
   font-weight: 700;
-  margin: 1.8em 0 0.5em;
+  margin: 1.8em 0 0.8em;
 }
 
 .tk-theme-sketch .tk-editor .tk-prosemirror h2 {
   font-size: 24px;
   font-weight: 700;
-  margin: 1.6em 0 0.4em;
+  margin: 1.6em 0 0.7em;
   padding-bottom: 0.15em;
   border-bottom: 2px solid var(--tk-sketch-line-soft);
 }
@@ -148,13 +134,13 @@
 .tk-theme-sketch .tk-editor .tk-prosemirror h3 {
   font-size: 19px;
   font-weight: 600;
-  margin: 1.4em 0 0.35em;
+  margin: 1.4em 0 0.6em;
 }
 
 .tk-theme-sketch .tk-editor .tk-prosemirror h4 {
   font-size: 16px;
   font-weight: 600;
-  margin: 1.2em 0 0.3em;
+  margin: 1.2em 0 0.5em;
 }
 
 .tk-theme-sketch .tk-editor .tk-prosemirror p {
