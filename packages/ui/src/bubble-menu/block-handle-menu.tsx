@@ -21,10 +21,12 @@ interface ActiveBlock {
   typeName: string;
 }
 
-interface Pos {
-  left: number;
+interface Anchor {
+  right: number;
   top: number;
 }
+
+const GAP = 8;
 
 const TURN_INTO_TARGETS = [
   { id: "p", label: "正文" },
@@ -66,7 +68,8 @@ function readActive(editor: Editor | null): ActiveBlock | null {
 
 export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
   const [open, setOpen] = useState(false);
-  const [coords, setCoords] = useState<Pos>({ left: 0, top: 0 });
+  const [anchor, setAnchor] = useState<Anchor | null>(null);
+  const [left, setLeft] = useState(0);
   const [submenu, setSubmenu] = useState<string | null>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const openRef = useRef(false);
@@ -76,13 +79,20 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
     openRef.current = open;
   }, [open]);
 
-  const computeCoords = useCallback(
-    (pos: number): Pos | null => {
+  useLayoutEffect(() => {
+    if (!open || !anchor || !popRef.current) return;
+    const w = popRef.current.offsetWidth;
+    const nextLeft = Math.round(anchor.right - w - GAP);
+    setLeft((prev) => (prev === nextLeft ? prev : nextLeft));
+  }, [open, anchor, submenu]);
+
+  const computeAnchor = useCallback(
+    (pos: number): Anchor | null => {
       if (!editor) return null;
       const handleWrap = document.querySelector<HTMLElement>(".tk-block-handles:not(.is-hidden)");
       if (handleWrap) {
         const r = handleWrap.getBoundingClientRect();
-        return { left: r.right + 4, top: r.top };
+        return { right: r.left, top: r.top };
       }
       const activeEl = editor.view.dom.querySelector<HTMLElement>(".tk-block-active");
       let el: HTMLElement | null = activeEl;
@@ -92,7 +102,7 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
       }
       if (!el) return null;
       const rect = el.getBoundingClientRect();
-      return { left: rect.left + 8, top: rect.top };
+      return { right: rect.left, top: rect.top };
     },
     [editor],
   );
@@ -109,11 +119,12 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
         const node = editor.state.doc.resolve(pos).nodeAfter;
         if (!node || !node.isBlock) return;
         const place = () => {
-          const next = computeCoords(pos);
+          const next = computeAnchor(pos);
           if (next) {
-            setCoords(next);
-            setOpen(true);
+            setLeft(0);
+            setAnchor(next);
             setSubmenu(null);
+            setOpen(true);
           }
         };
         requestAnimationFrame(place);
@@ -121,8 +132,8 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
         setOpen(false);
         setSubmenu(null);
       } else if (pos != null && openRef.current) {
-        const next = computeCoords(pos);
-        if (next) setCoords(next);
+        const next = computeAnchor(pos);
+        if (next) setAnchor(next);
       }
     };
 
@@ -130,8 +141,8 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
       if (!openRef.current) return;
       const pos = getActiveBlockPos(editor.state);
       if (pos == null) return;
-      const next = computeCoords(pos);
-      if (next) setCoords(next);
+      const next = computeAnchor(pos);
+      if (next) setAnchor(next);
     };
 
     editor.on("transaction", onTransaction);
@@ -143,7 +154,7 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
       window.removeEventListener("scroll", onScrollResize, true);
       window.removeEventListener("resize", onScrollResize);
     };
-  }, [editor, computeCoords]);
+  }, [editor, computeAnchor]);
 
   if (!editor || !open) return null;
 
@@ -248,7 +259,7 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
       ref={popRef}
       className="tk-block-popover"
       contentEditable={false}
-      style={{ position: "fixed", left: coords.left, top: coords.top, zIndex: 60 }}
+      style={{ position: "fixed", left, top: anchor?.top ?? 0, zIndex: 60 }}
       onMouseDown={(e) => e.preventDefault()}
       onMouseOver={(e) => {
         const t = e.target as HTMLElement;

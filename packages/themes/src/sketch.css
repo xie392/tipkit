@@ -469,6 +469,38 @@
   border-radius: 6px 4px 7px 4px;
 }
 
+/* ---------- 提示框 Callout：flex 布局保证 emoji 与首行文字对齐 ---------- */
+.tk-theme-sketch .tk-callout {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 12px 8px 14px 10px;
+}
+
+.tk-theme-sketch .tk-callout-head {
+  position: relative; /* 保持定位上下文，emoji 面板仍相对 head 定位 */
+  left: auto;
+  top: auto;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  line-height: 1;
+}
+
+.tk-theme-sketch .tk-callout-emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.tk-theme-sketch .tk-callout-content {
+  flex: 1;
+  min-width: 0;
+}
+
 /* ---------- 斜杠菜单预览 ---------- */
 .tk-theme-sketch .tk-slash-preview {
   border: 1.5px solid var(--tk-sketch-line-soft);

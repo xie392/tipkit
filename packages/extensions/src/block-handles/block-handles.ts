@@ -120,6 +120,9 @@ export const BlockHandles = Extension.create({
     };
 
     const scheduleHide = () => {
+      // 块处于激活态（块菜单可能正打开）时保持手柄可见，避免鼠标移入
+      // portal 到 body 的弹层导致编辑器 mouseleave 而隐藏手柄。
+      if (activePos != null) return;
       if (hideTimer) clearTimeout(hideTimer);
       hideTimer = setTimeout(() => wrap?.classList.add("is-hidden"), 280);
     };
