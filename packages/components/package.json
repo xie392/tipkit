@@ -1,6 +1,30 @@
 {
   "name": "@tipkit/components",
   "version": "0.1.2",
+  "author": "xie392",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xie392/tipkit.git"
+  },
+  "homepage": "https://github.com/xie392/tipkit",
+  "bugs": {
+    "url": "https://github.com/xie392/tipkit/issues"
+  },
+  "keywords": [
+    "ui",
+    "shadcn",
+    "radix",
+    "react",
+    "components"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
   "description": "TipKit 基础组件：shadcn/ui 风格（Radix + cva + Tailwind），颜色走 CSS 变量",
   "type": "module",
   "main": "./src/index.ts",

@@ -1,6 +1,31 @@
 {
   "name": "@tipkit/themes",
   "version": "0.1.2",
+  "author": "xie392",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xie392/tipkit.git"
+  },
+  "homepage": "https://github.com/xie392/tipkit",
+  "bugs": {
+    "url": "https://github.com/xie392/tipkit/issues"
+  },
+  "keywords": [
+    "css",
+    "theme",
+    "tiptap",
+    "editor",
+    "shadcn"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "sideEffects": true,
   "description": "TipKit 内置主题皮肤：default 标准风格 + sketch 手绘风格，纯 CSS 变量 + 自定义 CSS",
   "type": "module",
   "main": "./src/index.ts",

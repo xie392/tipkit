@@ -1,6 +1,30 @@
 {
   "name": "@tipkit/editor",
   "version": "0.1.2",
+  "author": "xie392",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xie392/tipkit.git"
+  },
+  "homepage": "https://github.com/xie392/tipkit",
+  "bugs": {
+    "url": "https://github.com/xie392/tipkit/issues"
+  },
+  "keywords": [
+    "tiptap",
+    "editor",
+    "react",
+    "headless",
+    "rich-text"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
   "description": "TipKit 聚合入口：core + extensions + ui 组装，对外暴露 <TipKitEditor> / useTipKitEditor",
   "type": "module",
   "main": "./src/index.ts",

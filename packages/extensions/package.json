@@ -1,6 +1,30 @@
 {
   "name": "@tipkit/extensions",
   "version": "0.1.2",
+  "author": "xie392",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xie392/tipkit.git"
+  },
+  "homepage": "https://github.com/xie392/tipkit",
+  "bugs": {
+    "url": "https://github.com/xie392/tipkit/issues"
+  },
+  "keywords": [
+    "tiptap",
+    "extension",
+    "editor",
+    "markdown",
+    "rich-text"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
   "description": "TipKit 扩展集：全部 Tiptap 扩展（纯逻辑 + 语义类名，带少量可覆盖默认样式）",
   "type": "module",
   "main": "./src/index.ts",
