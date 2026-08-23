@@ -1241,6 +1241,7 @@
 .tk-iframe {
   margin: 0.75em 0;
   position: relative;
+  overflow-anchor: none;
 }
 
 .tk-iframe-inner {

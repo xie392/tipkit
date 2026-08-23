@@ -1,0 +1,48 @@
+<h2 id="concepts">核心概念</h2>
+
+<h3 id="headless">无头架构</h3>
+
+TipKit 的包依赖方向是单向的：
+
+```text
+editor → { core, extensions, ui }
+extensions / ui → core
+（禁止反向依赖）
+```
+
+- `@tipkit/core`：编辑器 hook、序列化、依赖注入、共享类型，零样式；
+- `@tipkit/extensions`：全部 Tiptap 扩展，只携带 `tk-*` 语义类名；
+- `@tipkit/ui`：交互原语（浮层定位、键盘导航、激活态），仅布局；
+- `@tipkit/components`：shadcn 基础组件，颜色走 CSS 变量；
+- `@tipkit/themes`：一切视觉样式都在这一层。
+
+<h3 id="deps">依赖注入 EditorDeps</h3>
+
+上传、KaTeX 渲染等「项目特定能力」不允许在扩展内部直接调用，统一通过 `EditorDeps` 注入：
+
+```ts
+export interface EditorDeps {
+  /** 图片上传：返回可用于 <img src> 的 URL */
+  uploadImage?: (file: File, editor: Editor) => Promise<string>;
+  /** 附件上传：返回附件元数据 */
+  uploadAttachment?: (file: File, editor: Editor) => Promise<AttachmentMeta>;
+  /** Katex 渲染：返回渲染后的 HTML */
+  renderKatex?: (tex: string, displayMode: boolean) => Promise<string>;
+}
+```
+
+扩展内部通过 `useEditorDeps()` 读取依赖，因此内核不依赖任何具体上传服务，天然可测试、可替换。
+
+<h3 id="themes">主题系统</h3>
+
+主题 = CSS 变量 + 自定义 CSS。加载任一主题即可获得完整视觉：
+
+```ts
+import "@tipkit/themes/default.css"; // shadcn 标准风格
+// 或
+import "@tipkit/themes/sketch.css";  // 手绘风格（需引入手写字体）
+```
+
+- 通过 `tk-theme-*` 类名切换主题，例如 `<div className="tk-theme-sketch">`；
+- 自定义风格：复制一个主题 CSS 覆盖变量即可，不需要改任何组件代码；
+- sketch 主题需要 Caveat / Patrick Hand 字体，由消费方通过 `next/font` 等方案加载（参见 demo 的 `layout.tsx`）。

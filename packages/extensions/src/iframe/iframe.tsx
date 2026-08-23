@@ -127,6 +127,20 @@ export const Iframe = Node.create({
   },
 });
 
+function disableScrollAnchoring(): () => void {
+  const STYLE_ID = "tk-iframe-no-anchor";
+  let style = document.getElementById(STYLE_ID) as HTMLStyleElement | null;
+  if (!style) {
+    style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = "* { overflow-anchor: none !important; }";
+    document.head.appendChild(style);
+  }
+  return () => {
+    style?.remove();
+  };
+}
+
 function IframeView(props: NodeViewProps) {
   const { editor, node, updateAttributes, selected } = props;
   const attrs = node.attrs as IframeAttrs;
@@ -163,17 +177,17 @@ function IframeView(props: NodeViewProps) {
       if (!isEditable) return;
       e.preventDefault();
       e.stopPropagation();
-      // 指针捕获：在 iframe 上方或窗口外松开时 pointerup 也能收到，避免监听器悬挂导致拖拽不结束
       const handle = e.currentTarget as HTMLElement;
       handle.setPointerCapture(e.pointerId);
 
       const startY = e.clientY;
       const startH = height;
 
+      const restoreAnchoring = disableScrollAnchoring();
+
       const onMove = (ev: PointerEvent) => {
         const next = Math.max(120, Math.min(1200, startH + (ev.clientY - startY)));
         dragHRef.current = next;
-        // rAF 合帧：mousemove 高频触发，每帧只改一次 DOM，减少 reflow 卡顿
         if (rafRef.current === null) {
           rafRef.current = requestAnimationFrame(() => {
             rafRef.current = null;
@@ -192,7 +206,7 @@ function IframeView(props: NodeViewProps) {
         rafRef.current = null;
         const finalH = dragHRef.current;
         dragHRef.current = null;
-        // 拖拽期直接改 DOM 不触发重渲染，松手时一次性提交到节点属性
+        restoreAnchoring();
         if (commit && finalH !== null) updateAttributes({ height: finalH });
       };
       const onUp = () => finish(true);

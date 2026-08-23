@@ -13,7 +13,8 @@
     },
     "./base.css": "./src/base.css",
     "./default.css": "./src/default.css",
-    "./sketch.css": "./src/sketch.css"
+    "./sketch.css": "./src/sketch.css",
+    "./dark.css": "./src/dark.css"
   },
   "scripts": {
     "lint": "eslint src/",

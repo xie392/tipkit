@@ -7,6 +7,8 @@
  * import "@tipkit/themes/default.css";  // shadcn 默认风格
  * // 或
  * import "@tipkit/themes/sketch.css";   // 手绘风格（方格纸 + 手写字体）
+ * // 或
+ * import "@tipkit/themes/dark.css";     // 暗色风格
  * ```
  *
  * 自定义风格：复制一个主题 CSS 并覆盖变量即可，不需要改任何组件代码。
@@ -35,5 +37,11 @@ export const themes: TipKitTheme[] = [
     description: "手绘风格：方格纸背景、手写字体、sketch 边框/阴影",
     cssEntry: "@tipkit/themes/sketch.css",
     requiresFonts: true,
+  },
+  {
+    id: "dark",
+    name: "dark",
+    description: "暗色风格：深灰背景、浅色正文，shadcn dark 变量体系",
+    cssEntry: "@tipkit/themes/dark.css",
   },
 ];

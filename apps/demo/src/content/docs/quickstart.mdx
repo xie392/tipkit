@@ -1,0 +1,68 @@
+<h2 id="quickstart">快速开始</h2>
+
+### 最小示例
+
+一个组件 + 一个主题，即可得到可编辑的富文本区域：
+
+```tsx
+"use client";
+
+import { TipKitEditor } from "@tipkit/editor";
+import { createBasicExtensions } from "@tipkit/extensions";
+import "@tipkit/themes/default.css";
+
+export default function Editor() {
+  return <TipKitEditor deps={{}} extensions={createBasicExtensions()} />;
+}
+```
+
+<div className="docs-callout docs-callout-info">
+注意 <code>deps</code> 是必填 prop，用于注入项目特定能力；不需要时可传空对象 <code>{"{}"}</code>，详见「[依赖注入](/docs/deps)」。
+</div>
+
+### 完整示例
+
+接入高级扩展与全部交互浮层（斜杠菜单、文字工具条、链接气泡、块手柄、表格控件等），与 `apps/demo` 中的演示一致：
+
+```tsx
+"use client";
+
+import { TipKitEditor, type EditorDeps } from "@tipkit/editor";
+import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensions";
+import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockBubbleMenu, BlockHandleMenu, TableControls } from "@tipkit/ui";
+import { TooltipProvider } from "@tipkit/components";
+import "@tipkit/themes/default.css";
+
+/** 图片上传：消费方替换为真实上传服务 */
+const uploadImage = async (file: File) => URL.createObjectURL(file);
+
+const deps: EditorDeps = { uploadImage };
+
+export default function App() {
+  return (
+    <TipKitEditor
+      deps={deps}
+      placeholder="输入 / 打开斜杠菜单…"
+      extensions={[...createBasicExtensions(), ...createAdvancedExtensions()]}
+      onChange={(editor) => console.log(editor.getHTML())}
+    >
+      {(editor) =>
+        editor ? (
+          <TooltipProvider delayDuration={300}>
+            <SlashMenu editor={editor} />
+            <EmojiSuggestion editor={editor} />
+            <TextMenu editor={editor} />
+            <LinkBubble editor={editor} />
+            <LinkDialogHost editor={editor} />
+            <BlockBubbleMenu editor={editor} />
+            <BlockHandleMenu editor={editor} />
+            <TableControls editor={editor} />
+          </TooltipProvider>
+        ) : null
+      }
+    </TipKitEditor>
+  );
+}
+```
+
+浮层不是 TipKitEditor 的内部实现，而是通过 render prop 由消费方挂载——这正是「无头」的体现：交互能力与视觉完全由你控制。

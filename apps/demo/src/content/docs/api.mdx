@@ -1,0 +1,37 @@
+<h2 id="api">API 参考</h2>
+
+<h3 id="props">TipKitEditor Props</h3>
+
+<div className="docs-table-wrap">
+<table className="docs-table">
+<thead>
+<tr><th>Prop</th><th>类型</th><th>必填</th><th>说明</th></tr>
+</thead>
+<tbody>
+<tr><td><code>deps</code></td><td><code>EditorDeps</code></td><td>是</td><td>项目特定能力注入（上传 / KaTeX 等）</td></tr>
+<tr><td><code>extensions</code></td><td><code>Extension[]</code></td><td>否</td><td>追加扩展；默认使用基础扩展集合</td></tr>
+<tr><td><code>content</code></td><td><code>string | Record&lt;string, unknown&gt;</code></td><td>否</td><td>初始内容（HTML 或 JSON）</td></tr>
+<tr><td><code>placeholder</code></td><td><code>string</code></td><td>否</td><td>空状态占位文案</td></tr>
+<tr><td><code>onChange</code></td><td><code>(editor: Editor) =&gt; void</code></td><td>否</td><td>内容更新回调（可通过 getHTML / getJSON 取序列化结果）</td></tr>
+<tr><td><code>onCreate</code></td><td><code>(editor: Editor) =&gt; void</code></td><td>否</td><td>编辑器就绪回调，可在此拿到实例</td></tr>
+<tr><td><code>immediatelyRender</code></td><td><code>boolean</code></td><td>否</td><td>SSR 场景传 false（默认 false），避免 hydration 不匹配</td></tr>
+<tr><td><code>className</code></td><td><code>string</code></td><td>否</td><td>容器类名</td></tr>
+<tr><td><code>children</code></td><td><code>ReactNode | (editor) =&gt; ReactNode</code></td><td>否</td><td>渲染插槽；传函数可在编辑器就绪后挂载浮层 / 工具栏</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="deps-api">EditorDeps</h3>
+
+<div className="docs-table-wrap">
+<table className="docs-table">
+<thead>
+<tr><th>字段</th><th>签名</th><th>说明</th></tr>
+</thead>
+<tbody>
+<tr><td><code>uploadImage</code></td><td><code>(file, editor) =&gt; Promise&lt;string&gt;</code></td><td>图片上传，返回 <code>img src</code> URL</td></tr>
+<tr><td><code>uploadAttachment</code></td><td><code>(file, editor) =&gt; Promise&lt;AttachmentMeta&gt;</code></td><td>附件上传，返回元数据（url / name / size / mimeType）</td></tr>
+<tr><td><code>renderKatex</code></td><td><code>(tex, displayMode) =&gt; Promise&lt;string&gt;</code></td><td>数学公式渲染，返回 HTML；服务端 / 客户端均可</td></tr>
+</tbody>
+</table>
+</div>
