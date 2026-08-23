@@ -135,9 +135,17 @@ export const BlockHandles = Extension.create({
       if (nodePos == null) return;
       const { paragraph } = view.state.schema.nodes;
       const tr = view.state.tr;
-      tr.insert(nodePos, paragraph.create());
-      tr.insertText("/", nodePos + 1, nodePos + 1);
-      tr.setSelection(TextSelection.create(tr.doc, nodePos + 2));
+      const targetNode = tr.doc.nodeAt(nodePos);
+      // 目标块本身就是空段落时直接复用，避免在已有空段落前再插一个段落产生多余空行
+      if (targetNode && targetNode.type === paragraph && targetNode.content.size === 0) {
+        const contentPos = nodePos + 1;
+        tr.insertText("/", contentPos, contentPos);
+        tr.setSelection(TextSelection.create(tr.doc, contentPos + 1));
+      } else {
+        tr.insert(nodePos, paragraph.create());
+        tr.insertText("/", nodePos + 1, nodePos + 1);
+        tr.setSelection(TextSelection.create(tr.doc, nodePos + 2));
+      }
       view.dispatch(tr.scrollIntoView());
       view.focus();
       wrap?.classList.add("is-hidden");

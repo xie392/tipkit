@@ -1,4 +1,5 @@
 import type { Editor } from "@tiptap/react";
+import { NodeSelection } from "@tiptap/pm/state";
 import type { IconRef } from "@tipkit/core";
 
 /* 斜杠菜单命令列表（迁移自 blog rich-text/insert-actions.tsx）。
@@ -59,11 +60,22 @@ export function getSlashCommandState(editor: Editor): SlashCommandState {
   return { active: true, query, from, to, key: `${from}:${to}:${query}` };
 }
 
-/** 执行动作前删除 "/关键词" 文本（slash 菜单用） */
+/** 执行动作前删除 "/关键词" 文本（slash 菜单用）。
+ *  删除后若当前段落为空，将选区设为 NodeSelection 选中该空段落，
+ *  这样后续 insertContent 会替换整块而非在空段落后追加，避免多一行。 */
 export function replaceSlashWithEmpty(editor: Editor) {
   const slash = getSlashCommandState(editor);
   if (!slash.active) return;
-  editor.chain().focus().deleteRange({ from: slash.from, to: slash.to }).run();
+  const { state, view } = editor;
+  const tr = state.tr.deleteRange(slash.from, slash.to);
+  const $from = tr.doc.resolve(slash.from);
+  if ($from.parent.type.name === "paragraph" && $from.parent.content.size === 0) {
+    const nodePos = $from.before($from.depth);
+    if (nodePos >= 0) {
+      tr.setSelection(NodeSelection.create(tr.doc, nodePos));
+    }
+  }
+  view.dispatch(tr.scrollIntoView());
 }
 
 export function filterInsertActions(actions: InsertAction[], query: string) {
