@@ -53,7 +53,7 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
             clearSlashQuery: true,
           })
         : [],
-    [editor, onUploadImage],
+    [editor, onUploadImage, slash.key, slash.active],
   );
   const actions = useMemo(
     () => filterInsertActions(allActions, slash.query),

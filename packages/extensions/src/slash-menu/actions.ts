@@ -126,6 +126,8 @@ export function getInsertActions({
     if (clearSlashQuery) replaceSlashWithEmpty(editor);
   };
 
+  const inTable = editor.isActive("table");
+
   const heading = (level: 1 | 2 | 3 | 4): InsertAction => {
     const size = level === 1 ? 18 : level === 2 ? 15 : level === 3 ? 13 : 12;
     const titleMap = { 1: "大型章节标题", 2: "中型版块标题", 3: "小节标题", 4: "次级标题" } as const;
@@ -257,10 +259,10 @@ export function getInsertActions({
       id: "table",
       group: "结构",
       label: "表格",
-      description: "插入 3×3 表格",
+      description: inTable ? "表格内不可插入表格" : "插入 3×3 表格",
       aliases: ["biaoge", "table"],
       icon: "Table2",
-      available: true,
+      available: !inTable,
       previewTitle: "表格",
       preview:
         '<div style="background:#fff;border-radius:6px;padding:8px"><table style="border-collapse:collapse;width:100%;font-size:9px"><tr><th style="border:1px solid #e5e7eb;padding:4px 6px;background:#f9fafb;text-align:left;color:#6b7280">列 A</th><th style="border:1px solid #e5e7eb;padding:4px 6px;background:#f9fafb;text-align:left;color:#6b7280">列 B</th><th style="border:1px solid #e5e7eb;padding:4px 6px;background:#f9fafb;text-align:left;color:#6b7280">列 C</th></tr><tr><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据1</td><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据2</td><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据3</td></tr><tr><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据4</td><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据5</td><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据6</td></tr></table></div>',

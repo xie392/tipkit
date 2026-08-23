@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { SiteHeader } from "@/components/site-header";
@@ -12,6 +13,21 @@ import { DOC_SECTIONS, DOC_SLUGS, isValidDocSlug } from "@/lib/docs-sections";
 
 export function generateStaticParams() {
   return DOC_SLUGS.map((slug) => ({ slug }));
+}
+
+export function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  return params.then(({ slug }) => {
+    const section = DOC_SECTIONS.find((s) => s.slug === slug);
+    return {
+      title: section ? `${section.label} —— 接入文档` : "接入文档",
+      description: `TipKit 接入文档：${section?.label ?? ""}`,
+      alternates: { canonical: `/docs/${slug}` },
+    };
+  });
 }
 
 export default async function DocPage({

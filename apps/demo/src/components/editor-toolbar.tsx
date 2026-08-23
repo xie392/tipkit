@@ -118,7 +118,7 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
             openLinkDialog,
           })
         : [],
-    [editor],
+    [editor, insertOpen],
   );
 
   if (!editor) return null;

@@ -70,21 +70,54 @@ export function TablePicker({
   editor: Editor;
   onInsert?: () => void;
 }) {
+  const [, force] = useState(0);
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState<{ cols: number; rows: number }>({ cols: 0, rows: 0 });
-  const wrapRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const refresh = () => force((n) => n + 1);
+    editor.on("selectionUpdate", refresh);
+    editor.on("update", refresh);
+    return () => {
+      editor.off("selectionUpdate", refresh);
+      editor.off("update", refresh);
+    };
+  }, [editor]);
+
+  const disabled = editor.isActive("table");
+
+  const updatePosition = () => {
+    if (!btnRef.current) return;
+    const rect = btnRef.current.getBoundingClientRect();
+    setPos({ x: rect.left + rect.width / 2, y: rect.bottom + 6 });
+  };
 
   useEffect(() => {
     if (!open) return;
+    updatePosition();
     const onDown = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (
+        popRef.current && !popRef.current.contains(target) &&
+        btnRef.current && !btnRef.current.contains(target)
+      ) {
+        setOpen(false);
+      }
     };
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const onScroll = () => setOpen(false);
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onScroll);
     return () => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onScroll);
     };
   }, [open]);
 
@@ -97,23 +130,41 @@ export function TablePicker({
   };
 
   return (
-    <div ref={wrapRef} className="relative">
+    <>
       <Tooltip>
         <TooltipTrigger asChild>
           <button
+            ref={btnRef}
             type="button"
+            disabled={disabled}
             data-active={open || undefined}
             className="tk-toolbar-btn inline-flex items-center justify-center w-8 h-8 rounded"
             onMouseDown={(e) => e.preventDefault()}
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => {
+              if (disabled) return;
+              updatePosition();
+              setOpen((v) => !v);
+            }}
           >
             <IconTableGrid />
           </button>
         </TooltipTrigger>
-        <TooltipContent side="bottom">插入表格</TooltipContent>
+        <TooltipContent side="bottom">
+          {disabled ? "表格内不可插入表格" : "插入表格"}
+        </TooltipContent>
       </Tooltip>
-      {open && (
-        <div className="tk-table-picker" onMouseLeave={() => setHover({ cols: 0, rows: 0 })}>
+      {open && createPortal(
+        <div
+          ref={popRef}
+          className="tk-table-picker"
+          style={{
+            position: "fixed",
+            left: pos.x,
+            top: pos.y,
+            transform: "translateX(-50%)",
+          }}
+          onMouseLeave={() => setHover({ cols: 0, rows: 0 })}
+        >
           <div
             className="tk-table-picker-grid"
             style={{ gridTemplateColumns: `repeat(${PICKER_COLS}, 18px)` }}
@@ -136,9 +187,10 @@ export function TablePicker({
           <div className="tk-table-picker-label">
             {hover.cols > 0 ? `${hover.cols} × ${hover.rows}` : "拖动选择行列"}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
-    </div>
+    </>
   );
 }
 
