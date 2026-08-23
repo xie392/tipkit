@@ -11,6 +11,15 @@ import { Attachment } from "./attachment/attachment";
 import { BlockHandles } from "./block-handles/block-handles";
 import { FileHandler } from "./file-handler/file-handler";
 
+export interface AdvancedExtensionsOptions {
+  /**
+   * 目录（TOC）点击跳转时，距离滚动容器顶部的像素偏移。
+   * 用于避开 sticky header / 工具栏等遮挡元素。
+   * @default 0
+   */
+  tocScrollOffset?: number;
+}
+
 /**
  * TipKit 高级扩展集合（M2+M3 全量：图片块/代码块/公式/提示框/分栏/
  * 折叠/目录/嵌入/附件/块句柄/文件拖拽）。
@@ -18,7 +27,10 @@ import { FileHandler } from "./file-handler/file-handler";
  * 与 createBasicExtensions() 叠加使用：
  * ```ts
  * useTipKitEditor({
- *   extensions: [...createBasicExtensions(), ...createAdvancedExtensions()],
+ *   extensions: [
+ *     ...createBasicExtensions(),
+ *     ...createAdvancedExtensions({ tocScrollOffset: 80 }),
+ *   ],
  * })
  * ```
  *
@@ -27,9 +39,13 @@ import { FileHandler } from "./file-handler/file-handler";
  *   FileHandler.configure({ onUpload }) 覆盖。
  * - EmojiSuggestion（浮层 UI）在 @tipkit/ui，消费方按需渲染。
  */
-export function createAdvancedExtensions(): AnyExtension[] {
-  if (cachedAdvanced) return cachedAdvanced;
-  cachedAdvanced = [
+export function createAdvancedExtensions(options: AdvancedExtensionsOptions = {}): AnyExtension[] {
+  const toc =
+    options.tocScrollOffset != null
+      ? TableOfContentsNode.configure({ scrollOffset: options.tocScrollOffset })
+      : TableOfContentsNode;
+
+  return [
     ImageBlock,
     CustomCodeBlock,
     Katex,
@@ -39,13 +55,10 @@ export function createAdvancedExtensions(): AnyExtension[] {
     Details,
     DetailsSummary,
     DetailsContent,
-    TableOfContentsNode,
+    toc,
     Iframe,
     Attachment,
     BlockHandles,
     FileHandler,
   ];
-  return cachedAdvanced;
 }
-
-let cachedAdvanced: AnyExtension[] | null = null;

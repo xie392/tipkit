@@ -39,7 +39,8 @@ function collectHeadings(doc: NodeViewProps["editor"]["state"]["doc"]): HeadingI
 }
 
 function TocView(props: NodeViewProps) {
-  const { editor } = props;
+  const { editor, extension } = props;
+  const scrollOffset = (extension.options.scrollOffset ?? 0) as number;
   const [items, setItems] = useState<HeadingInfo[]>([]);
 
   useEffect(() => {
@@ -52,13 +53,13 @@ function TocView(props: NodeViewProps) {
   }, [editor]);
 
   const jump = (pos: number) => {
-    editor.commands.setNodeSelection(pos);
-    editor.commands.focus();
+    editor.commands.setTextSelection(pos + 1);
+    editor.commands.focus(undefined, { scrollIntoView: false });
     requestAnimationFrame(() => {
-      const res = editor.view.domAtPos(pos);
-      const node = res.node as unknown;
-      if (node instanceof Element) {
-        node.scrollIntoView({ behavior: "smooth", block: "start" });
+      const dom = editor.view.nodeDOM(pos);
+      if (dom instanceof HTMLElement) {
+        const top = dom.getBoundingClientRect().top + window.scrollY - scrollOffset;
+        window.scrollTo({ top, behavior: "smooth" });
       }
     });
   };
@@ -101,6 +102,17 @@ export const TableOfContentsNode = Node.create({
   draggable: true,
 
   inline: false,
+
+  addOptions() {
+    return {
+      /**
+       * 点击目录项滚动到标题时，距离视口顶部的偏移量（像素）。
+       * 用于避开固定定位的 header / 工具栏等遮挡元素。
+       * @default 0
+       */
+      scrollOffset: 0,
+    };
+  },
 
   parseHTML() {
     return [{ tag: "div[data-type='table-of-content']" }];

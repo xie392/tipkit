@@ -147,6 +147,12 @@
   margin: 0.25em 0;
 }
 
+.tk-theme-default .tk-editor .tk-prosemirror ul.tk-toc-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
 /* ---------- 表格 ---------- */
 .tk-theme-default .tk-editor .tk-prosemirror table {
   border-collapse: collapse;

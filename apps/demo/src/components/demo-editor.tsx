@@ -157,7 +157,7 @@ export function DemoEditor({
       onCreate={(editor) => onEditorReady?.(editor)}
       extensions={[
         ...createBasicExtensions(),
-        ...createAdvancedExtensions(),
+        ...createAdvancedExtensions({ tocScrollOffset: 120 }),
       ]}
       placeholder={placeholder}
       className="max-w-4xl mx-auto"
