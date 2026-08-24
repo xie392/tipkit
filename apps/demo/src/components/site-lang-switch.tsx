@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Check, Languages } from "lucide-react";
+import { useDemoLang } from "@/components/use-demo-lang";
+import { SITE_COPY } from "@/lib/site-i18n";
 
 /** 支持的语言（与 @tipkit/core 内置词典对齐） */
 const LANGS = [
@@ -27,13 +30,13 @@ export function readDemoLang(): DemoLang {
  * 通知监听者（DemoEditor）切换编辑器 i18n 词典。
  */
 export function SiteLangSwitch() {
-  const [lang, setLang] = useState<DemoLang>("zh");
+  const router = useRouter();
+  const pathname = usePathname();
+  // 展示语言跟随 useDemoLang（/en 路径下即英文），仅 apply 内部另用 localStorage
+  const { lang } = useDemoLang();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setLang(readDemoLang());
-  }, []);
+  const c = SITE_COPY[lang].langMenu;
 
   useEffect(() => {
     if (!open) return;
@@ -54,10 +57,19 @@ export function SiteLangSwitch() {
   }, [open]);
 
   const apply = (next: DemoLang) => {
-    setLang(next);
+    setOpen(false);
+
+    // 文档页按路径切换（/docs/x ↔ /zh/docs/x ↔ /en/docs/x），导航到已预渲染页面，无重挂载闪烁
+    const stripped = pathname!.replace(/^\/(zh|en)(?=\/)/, "");
+    if (stripped.startsWith("/docs")) {
+      router.push(`/${next}${stripped}`);
+      window.localStorage.setItem(STORAGE_KEY, next);
+      return;
+    }
+
+    // 其余页面（首页 / 演示）：客户端切换
     window.localStorage.setItem(STORAGE_KEY, next);
     window.dispatchEvent(new CustomEvent(DEMO_LANG_EVENT, { detail: next }));
-    setOpen(false);
   };
 
   const current = LANGS.find((l) => l.id === lang) ?? LANGS[0];
@@ -67,10 +79,10 @@ export function SiteLangSwitch() {
       <button
         type="button"
         className="site-theme-switch-trigger"
-        aria-label="切换语言"
+        aria-label={c.triggerLabel}
         aria-haspopup="menu"
         aria-expanded={open}
-        title={`当前语言：${current.label}`}
+        title={`${c.current}：${current.label}`}
         onClick={() => setOpen((v) => !v)}
       >
         <Languages className="w-4 h-4" />
@@ -95,9 +107,7 @@ export function SiteLangSwitch() {
                 </span>
                 <span className="site-theme-menu-text">
                   <span className="site-theme-menu-label">{l.label}</span>
-                  <span className="site-theme-menu-desc">
-                    {l.id === "zh" ? "默认中文词典" : "Built-in English"}
-                  </span>
+                  <span className="site-theme-menu-desc">{c.items[l.id].desc}</span>
                 </span>
                 {active && <Check className="site-theme-menu-check" />}
               </button>

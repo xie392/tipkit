@@ -1,0 +1,48 @@
+## Core Concepts
+
+### Headless architecture
+
+TipKit's package dependencies flow one way only:
+
+```text
+editor → { core, extensions, ui }
+extensions / ui → core
+(reverse dependencies are forbidden)
+```
+
+- `@tipkit/core`: editor hook, serialization, dependency injection, shared types — zero styling;
+- `@tipkit/extensions`: all Tiptap extensions, carrying only `tk-*` semantic class names;
+- `@tipkit/ui`: interaction primitives (floating-layer positioning, keyboard navigation, active states) — layout only;
+- `@tipkit/components`: shadcn base components, colors via CSS variables;
+- `@tipkit/themes`: every visual style lives in this layer.
+
+### Dependency injection with EditorDeps
+
+"Project-specific capabilities" such as uploads and KaTeX rendering are never called directly inside extensions — they are injected uniformly via `EditorDeps`:
+
+```ts
+export interface EditorDeps {
+  /** Image upload: return a URL usable as <img src> */
+  uploadImage?: (file: File, editor: Editor) => Promise<string>;
+  /** Attachment upload: return attachment metadata */
+  uploadAttachment?: (file: File, editor: Editor) => Promise<AttachmentMeta>;
+  /** KaTeX rendering: return rendered HTML */
+  renderKatex?: (tex: string, displayMode: boolean) => Promise<string>;
+}
+```
+
+Extensions read dependencies via `useEditorDeps()`, so the kernel never depends on any concrete upload service — naturally testable and replaceable.
+
+### Theme system
+
+A theme = CSS variables + custom CSS. Importing a theme CSS only registers the styles; you must also activate the scope class to get the full visual (the default theme's class is `tk-theme-default`, added to any ancestor of the editor):
+
+```ts
+import "@tipkit/themes/default.css"; // shadcn standard style
+// or
+import "@tipkit/themes/sketch.css";  // hand-drawn style (requires handwriting fonts)
+```
+
+- Switch themes via the `tk-theme-*` class, e.g. `<div className="tk-theme-sketch">`;
+- Custom styles: copy a theme CSS and override the variables — no component code changes needed;
+- The sketch theme needs the Caveat / Patrick Hand fonts, loaded by the consumer via `next/font` or similar (see demo's `layout.tsx`).

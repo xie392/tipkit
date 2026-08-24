@@ -34,6 +34,8 @@
   /* TipKit 语义变量 */
   --tk-accent: var(--primary);
   --tk-font-body: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --tk-scrollbar-thumb: rgb(255 255 255 / 0.25);
+  --tk-scrollbar-thumb-hover: rgb(255 255 255 / 0.42);
 }
 
 /* 编辑器容器：暗色下边框/背景跟随变量 */
@@ -81,4 +83,36 @@
   color: var(--callout-note-text, #d4d4d8);
   border-color: var(--callout-note-border, #3f3f46);
   background: var(--callout-note-bg, #1a1a1d);
+}
+
+/* ---------- 工具栏 ---------- */
+.tk-theme-dark .tk-toolbar {
+  background: transparent;
+}
+
+.tk-theme-dark .tk-toolbar-btn {
+  color: var(--muted-foreground);
+  border-radius: 6px;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    transform 0.1s;
+}
+
+.tk-theme-dark .tk-toolbar-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.tk-theme-dark .tk-toolbar-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.tk-theme-dark .tk-toolbar-btn[data-active="true"] {
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary);
+}
+
+.tk-theme-dark .tk-toolbar-divider {
+  background: var(--border);
 }

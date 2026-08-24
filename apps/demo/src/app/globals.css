@@ -43,8 +43,11 @@
 /* ============================================================
  * 页面基础
  * ============================================================ */
-html {
+:root {
   color-scheme: light;
+}
+.tk-theme-dark {
+  color-scheme: dark;
 }
 
 body {
@@ -377,7 +380,9 @@ body::after {
   position: sticky;
   top: 58px;
   z-index: 70;
-  background: #fff;
+  background: color-mix(in srgb, var(--background) 95%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
   transition:
     background-color 0.35s ease,
@@ -885,6 +890,25 @@ body::after {
   box-shadow: 0 12px 40px -20px color-mix(in srgb, var(--foreground) 18%, transparent);
 }
 
+/* 只读编辑器渲染的文档页：去掉编辑器卡片外观，融入文档版式 */
+.docs-editor-view .tk-editor {
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* 只读编辑器渲染的文档页：去掉编辑器卡片外观，融入文档版式；
+ * 排版（标题/段落/列表/表格）完全由主题包自带样式接管，不额外声明 */
+.docs-editor-view .tk-editor {
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
 .docs-title {
   margin: 0;
   font-size: 36px;
@@ -899,47 +923,8 @@ body::after {
   color: var(--muted-foreground);
 }
 
-.docs-content h2 {
-  margin: 56px 0 20px;
-  scroll-margin-top: 84px;
-  font-size: 24px;
-  font-weight: 700;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-.docs-content h2:first-of-type {
-  margin-top: 0;
-}
-
-.docs-content h3 {
-  margin: 32px 0 12px;
-  scroll-margin-top: 84px;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.docs-content p {
-  margin: 12px 0;
-  font-size: 15px;
-  line-height: 1.85;
-  color: color-mix(in srgb, var(--foreground) 88%, transparent);
-}
-
-.docs-content ul {
-  margin: 12px 0;
-  padding-left: 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 14.5px;
-  line-height: 1.8;
-  color: color-mix(in srgb, var(--foreground) 88%, transparent);
-}
-
-.docs-content li::marker {
-  color: var(--primary);
-}
+/* 文档正文排版已由 TipKit 主题包接管（.tk-prosemirror 规则），
+ * 此处不再声明 MDX 版式，避免与编辑器样式互相污染 */
 
 .docs-inline-code {
   padding: 2px 6px;

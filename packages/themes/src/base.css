@@ -1303,6 +1303,14 @@
   box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
 }
 
+.tk-callout-emoji-panel.tk-portal-panel {
+  position: fixed;
+  top: auto;
+  left: auto;
+  right: auto;
+  bottom: auto;
+}
+
 .tk-callout-emoji-search {
   width: 100%;
   border: 1px solid var(--border, #ddd);
@@ -1332,16 +1340,28 @@
 
 .tk-callout-switcher {
   position: absolute;
-  right: 10px;
-  bottom: 8px;
+  right: 8px;
+  bottom: 6px;
 }
 
 .tk-callout-switcher-btn {
+  display: inline-flex;
+  align-items: center;
   font-size: 11px;
-  border: none;
-  background: transparent;
+  line-height: 1;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  color: currentColor;
   cursor: pointer;
-  opacity: 0.7;
+  opacity: 0.75;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.tk-callout-switcher-btn:hover {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 15%, transparent);
 }
 
 .tk-callout-variant-panel {
@@ -1356,6 +1376,15 @@
   padding: 6px;
   box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
   z-index: 30;
+}
+
+.tk-callout-variant-panel.tk-portal-panel {
+  position: fixed;
+  top: auto;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  width: max-content;
 }
 
 .tk-callout-variant-cell {
@@ -2510,3 +2539,75 @@
 
 
 
+
+/* ---------- unified scrollbars（颜色由主题变量驱动，结构统一） ----------
+ * 适用于编辑器内所有滚动容器；portal 到 body 的浮层（语言下拉/表情网格）同样命中。
+ * 主题通过 --tk-scrollbar-thumb / --tk-scrollbar-thumb-hover 定义配色。
+ */
+.tk-prosemirror,
+.tk-table-wrap,
+.tk-editor .tableWrapper,
+.tk-code-block-pre,
+.tk-slash-menu-list,
+.tk-insert-body,
+.tk-emoji-grid,
+.tk-callout-emoji-grid,
+.tk-code-block-lang-dropdown,
+.tk-context-menu {
+  scrollbar-width: thin;
+  scrollbar-color: var(--tk-scrollbar-thumb, rgb(0 0 0 / 0.25)) transparent;
+}
+
+.tk-prosemirror::-webkit-scrollbar,
+.tk-table-wrap::-webkit-scrollbar,
+.tk-editor .tableWrapper::-webkit-scrollbar,
+.tk-code-block-pre::-webkit-scrollbar,
+.tk-slash-menu-list::-webkit-scrollbar,
+.tk-insert-body::-webkit-scrollbar,
+.tk-emoji-grid::-webkit-scrollbar,
+.tk-callout-emoji-grid::-webkit-scrollbar,
+.tk-code-block-lang-dropdown::-webkit-scrollbar,
+.tk-context-menu::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.tk-prosemirror::-webkit-scrollbar-track,
+.tk-table-wrap::-webkit-scrollbar-track,
+.tk-editor .tableWrapper::-webkit-scrollbar-track,
+.tk-code-block-pre::-webkit-scrollbar-track,
+.tk-slash-menu-list::-webkit-scrollbar-track,
+.tk-insert-body::-webkit-scrollbar-track,
+.tk-emoji-grid::-webkit-scrollbar-track,
+.tk-callout-emoji-grid::-webkit-scrollbar-track,
+.tk-code-block-lang-dropdown::-webkit-scrollbar-track,
+.tk-context-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tk-prosemirror::-webkit-scrollbar-thumb,
+.tk-table-wrap::-webkit-scrollbar-thumb,
+.tk-editor .tableWrapper::-webkit-scrollbar-thumb,
+.tk-code-block-pre::-webkit-scrollbar-thumb,
+.tk-slash-menu-list::-webkit-scrollbar-thumb,
+.tk-insert-body::-webkit-scrollbar-thumb,
+.tk-emoji-grid::-webkit-scrollbar-thumb,
+.tk-callout-emoji-grid::-webkit-scrollbar-thumb,
+.tk-code-block-lang-dropdown::-webkit-scrollbar-thumb,
+.tk-context-menu::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--tk-scrollbar-thumb, rgb(0 0 0 / 0.25));
+}
+
+.tk-prosemirror::-webkit-scrollbar-thumb:hover,
+.tk-table-wrap::-webkit-scrollbar-thumb:hover,
+.tk-editor .tableWrapper::-webkit-scrollbar-thumb:hover,
+.tk-code-block-pre::-webkit-scrollbar-thumb:hover,
+.tk-slash-menu-list::-webkit-scrollbar-thumb:hover,
+.tk-insert-body::-webkit-scrollbar-thumb:hover,
+.tk-emoji-grid::-webkit-scrollbar-thumb:hover,
+.tk-callout-emoji-grid::-webkit-scrollbar-thumb:hover,
+.tk-code-block-lang-dropdown::-webkit-scrollbar-thumb:hover,
+.tk-context-menu::-webkit-scrollbar-thumb:hover {
+  background: var(--tk-scrollbar-thumb-hover, rgb(0 0 0 / 0.4));
+}

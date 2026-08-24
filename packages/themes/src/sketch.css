@@ -35,6 +35,8 @@
 
   /* TipKit 语义变量 */
   --tk-accent: var(--primary);
+  --tk-scrollbar-thumb: rgba(49, 48, 46, 0.35);
+  --tk-scrollbar-thumb-hover: rgba(49, 48, 46, 0.55);
 
   /* 手绘描边 / 阴影（blog DESIGN.md token） */
   --tk-sketch-line: rgba(49, 48, 46, 0.75);
@@ -487,10 +489,22 @@
   color: #9d9d9d;
 }
 
-.tk-theme-sketch .tk-code-block-dark .tk-code-block-lang-dropdown {
+.tk-theme-sketch .tk-code-block-dark .tk-code-block-lang-dropdown,
+.tk-theme-sketch .tk-code-block-dark-dropdown {
   background: #161b22;
-  border-color: rgb(255 255 255 / 0.1);
+  border: 1.5px solid rgb(255 255 255 / 0.12);
   color: #e6edf3;
+  border-radius: 8px 6px 9px 5px;
+  box-shadow: 2px 2px 0 var(--tk-sketch-shadow);
+}
+
+.tk-theme-sketch .tk-code-block-dark-dropdown .tk-code-block-lang-option:hover {
+  background: rgb(255 255 255 / 0.1);
+}
+
+.tk-theme-sketch .tk-code-block-dark-dropdown .tk-code-block-lang-option.is-active {
+  color: #e6a700;
+  font-weight: 600;
 }
 
 .tk-theme-sketch .tk-code-block-pre {
@@ -499,11 +513,22 @@
   box-shadow: 3px 3px 0 var(--tk-sketch-shadow);
 }
 
-.tk-theme-sketch .tk-code-block-lang-dropdown {
+.tk-theme-sketch .tk-code-block-lang-dropdown,
+.tk-theme-sketch .tk-code-block-light-dropdown {
   border: 1.5px solid var(--tk-sketch-line-soft);
   border-radius: 8px 6px 9px 5px;
   box-shadow: 2px 2px 0 var(--tk-sketch-shadow);
   background: var(--popover);
+  color: var(--popover-foreground);
+}
+
+.tk-theme-sketch .tk-code-block-light-dropdown .tk-code-block-lang-option:hover {
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.tk-theme-sketch .tk-code-block-light-dropdown .tk-code-block-lang-option.is-active {
+  color: var(--primary);
+  font-weight: 600;
 }
 
 /* ---------- Emoji 选择器 ---------- */
@@ -586,6 +611,44 @@
 .tk-theme-sketch .tk-callout-content {
   flex: 1;
   min-width: 1em;
+}
+
+.tk-theme-sketch .tk-callout-switcher {
+  right: 6px;
+  bottom: 6px;
+}
+
+.tk-theme-sketch .tk-callout-switcher-btn {
+  font-family: var(--tk-font-hand-body);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--tk-sketch-line-soft);
+  background: var(--card);
+  color: var(--foreground);
+  opacity: 0.7;
+  box-shadow: 1px 1px 0 var(--tk-sketch-shadow);
+}
+
+.tk-theme-sketch .tk-callout-switcher-btn:hover {
+  opacity: 1;
+  background: var(--card);
+}
+
+.tk-theme-sketch .tk-callout-variant-panel {
+  border: 1.5px solid var(--tk-sketch-line-soft);
+  border-radius: 10px;
+  box-shadow: 2px 2px 0 var(--tk-sketch-shadow);
+  padding: 6px;
+}
+
+.tk-theme-sketch .tk-callout-variant-cell {
+  font-family: var(--tk-font-hand-body);
+  font-size: 12px;
+  border: 1.5px solid var(--tk-sketch-line-soft);
+  border-radius: 8px;
+  padding: 5px 12px;
+  gap: 6px;
 }
 
 /* ---------- 斜杠菜单预览 ---------- */

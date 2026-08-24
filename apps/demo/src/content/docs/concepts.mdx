@@ -1,6 +1,6 @@
-<h2 id="concepts">核心概念</h2>
+## 核心概念
 
-<h3 id="headless">无头架构</h3>
+### 无头架构
 
 TipKit 的包依赖方向是单向的：
 
@@ -16,7 +16,7 @@ extensions / ui → core
 - `@tipkit/components`：shadcn 基础组件，颜色走 CSS 变量；
 - `@tipkit/themes`：一切视觉样式都在这一层。
 
-<h3 id="deps">依赖注入 EditorDeps</h3>
+### 依赖注入 EditorDeps
 
 上传、KaTeX 渲染等「项目特定能力」不允许在扩展内部直接调用，统一通过 `EditorDeps` 注入：
 
@@ -33,7 +33,7 @@ export interface EditorDeps {
 
 扩展内部通过 `useEditorDeps()` 读取依赖，因此内核不依赖任何具体上传服务，天然可测试、可替换。
 
-<h3 id="themes">主题系统</h3>
+### 主题系统
 
 主题 = CSS 变量 + 自定义 CSS。import 主题 CSS 只是注册了样式，还须激活作用域类才能获得完整视觉（默认主题为 `tk-theme-default`，加在编辑器任意祖先元素上）：
 

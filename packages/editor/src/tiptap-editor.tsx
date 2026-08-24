@@ -28,6 +28,10 @@ export interface TipKitEditorProps {
   onCreate?: (editor: Editor) => void;
   /** SSR 场景传 false（默认 false） */
   immediatelyRender?: boolean;
+  /** 只读渲染（文档/预览场景） */
+  editable?: boolean;
+  /** 初始 content 的格式；"markdown" 时 content 传 md 字符串 */
+  contentType?: "html" | "markdown" | "json";
   className?: string;
   children?: React.ReactNode | ((editor: Editor | null) => React.ReactNode);
 }
@@ -36,20 +40,24 @@ export function TipKitEditor({
   deps,
   extensions,
   content,
+  contentType,
   placeholder,
   onChange,
   onCreate,
   immediatelyRender,
+  editable,
   className,
   children,
 }: TipKitEditorProps) {
   const editor = useTipKitEditor({
     extensions: extensions === undefined ? createBasicExtensions() : extensions,
     content,
+    contentType,
     placeholder,
     onUpdate: onChange,
     onCreate,
     immediatelyRender,
+    editable,
   });
 
   return (

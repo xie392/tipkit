@@ -1,0 +1,34 @@
+## Advanced
+
+### Extension mechanism
+
+Extension sets come in two layers: `createBasicExtensions()` (paragraph, headings, bold, italic, lists, blockquote, code blocks and other basics) and `createAdvancedExtensions()` (tables, KaTeX, columns, collapsible blocks, TOC, attachments, image blocks, slash menu and other advanced nodes). Both can be omitted entirely, or you can append your own Tiptap extensions on top of the returned array:
+
+```tsx
+import { createBasicExtensions } from "@tipkit/extensions";
+import { Underline } from "@tiptap/extension-underline";
+
+<TipKitEditor
+  deps={deps}
+  extensions={[...createBasicExtensions(), Underline]}
+/>
+```
+
+Toolbar logic can be generated as data via `buildToolbarGroups(editor)`, with visual rendering left to your UI layer. The demo also ships ready-made toolbars built on `@tipkit/ui` (`BlockStyleMenu / FontFamilyPicker / FontSizePicker`, etc.) — see `apps/demo/src/components/editor-toolbar.tsx`.
+
+### SSR and hydration
+
+- All editor components are client components with `immediatelyRender: false` by default;
+- Works out of the box in the Next.js App Router, no extra configuration needed;
+- If you need initial content during server rendering, pass an HTML string via `content`.
+
+### Common commands
+
+```bash
+pnpm install                      # install dependencies
+pnpm dev                          # start the demo
+pnpm --filter @tipkit/demo dev    # start only the demo
+pnpm type-check                   # type-check the whole repo
+pnpm test                         # run all tests
+pnpm build                        # build the whole repo
+```

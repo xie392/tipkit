@@ -316,7 +316,11 @@ function CalloutView(props: NodeViewProps) {
   };
 
   return (
-    <NodeViewWrapper ref={wrapRef} className={`tk-callout tk-callout-${variant}`}>
+    <NodeViewWrapper
+      ref={wrapRef}
+      className={`tk-callout tk-callout-${variant}`}
+      style={{ color: style.textColor, borderColor: style.borderColor, background: style.backgroundColor }}
+    >
       <div className="tk-callout-head">
         <button
           ref={emojiBtnRef}
@@ -376,11 +380,17 @@ function CalloutView(props: NodeViewProps) {
             ref={variantBtnRef}
             type="button"
             onMouseDown={(e) => e.preventDefault()}
-            onClick={() => setVariantOpen((v) => !v)}
+            onClick={() => {
+              setVariantOpen((v) => !v);
+              setEmojiOpen(false);
+            }}
             className="tk-callout-switcher-btn"
-            title="切换风格"
+            title={t("callout.switchStyle")}
           >
-            {style.label} ▾
+            {t(`callout.${variant}`)}
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ marginLeft: 2 }}>
+              <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
           {variantOpen &&
             typeof document !== "undefined" &&

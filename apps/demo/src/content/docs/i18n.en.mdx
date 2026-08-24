@@ -1,0 +1,157 @@
+## Internationalization (i18n)
+
+TipKit ships with lightweight built-in i18n: Chinese by default, ready out of the box. Consumers can switch languages, override copy, or add new languages by injecting a translate function via `EditorDeps.t`. Every user-visible string inside the editor (toolbar, slash menu, overlays, KaTeX, table controls, code blocks, attachments, callouts, etc.) goes through `t()` — no hardcoding.
+
+### Design overview
+
+- **Zero dependencies**: no i18next / react-intl — just one `createT(messages)` utility + a `Record<string, string>` dictionary.
+- **Dependency injection**: the translate function is injected via `EditorDeps.t`; extensions inside the editor read it via `useT()` and **never** touch global variables.
+- **Sensible fallback**: without a `t` injection, the built-in Chinese dictionary (`zh`) is returned — works out of the box without errors.
+- **Type safety**: `Messages = Record<string, string>`; use `Partial<Messages>` to describe partial overrides.
+
+### Default behavior (no configuration)
+
+Without `t`, the editor uses the built-in Chinese:
+
+```tsx
+import { TipKitEditor } from "@tipkit/editor";
+
+<TipKitEditor deps={{ uploadImage }} />
+```
+
+### Switch built-in languages (Chinese / English)
+
+`@tipkit/core` exports both the `zh` and `en` dictionaries; wrap one with `createT` into a `Translate` function and inject it:
+
+```tsx
+import { useMemo, useState } from "react";
+import { TipKitEditor } from "@tipkit/editor";
+import type { EditorDeps } from "@tipkit/editor";
+import { createT, en, zh, type Translate } from "@tipkit/core";
+
+function App() {
+  const [lang, setLang] = useState<"zh" | "en">("zh");
+  const t = useMemo<Translate>(
+    () => createT(lang === "en" ? en : zh),
+    [lang],
+  );
+  const deps = useMemo<EditorDeps>(() => ({ t }), [t]);
+
+  return (
+    <>
+      <button onClick={() => setLang("zh")}>中文</button>
+      <button onClick={() => setLang("en")}>English</button>
+      <TipKitEditor deps={deps} />
+    </>
+  );
+}
+```
+
+After switching `lang`, the `deps.t` reference changes → `EditorProvider` re-merges deps → every `useT()` consumer (slash menu, overlays, NodeViews, etc.) re-renders automatically, while the editor instance and its content stay intact.
+
+### Override selected messages
+
+Merge the built-in dictionary with object spread and change only the keys you need:
+
+```tsx
+import { createT, zh } from "@tipkit/core";
+
+const myZh = {
+  ...zh,
+  "toolbar.undo": "撤销操作",
+  "slash.searchPlaceholder": "搜索内容…",
+};
+
+const deps = { t: createT(myZh) };
+```
+
+### Add a new language
+
+Base your dictionary on the built-in `zh` to avoid missing keys:
+
+```tsx
+import { createT, zh, type Messages } from "@tipkit/core";
+
+const ja: Messages = {
+  ...zh, // fallback: untranslated keys fall back to Chinese (or switch to en)
+  "toolbar.undo": "元に戻す",
+  "toolbar.redo": "やり直し",
+  "toolbar.bold": "太字",
+  // … translate remaining keys as needed
+};
+
+const deps = { t: createT(ja) };
+```
+
+> **Tip**: when a key is missing, `t()` returns the key itself (e.g. a missing `t("toolbar.image")` returns `"toolbar.image"`) — it never throws. Before going live, check against `packages/core/src/i18n/zh.ts` to fill the gaps.
+
+### Toolbar integration
+
+`buildToolbarGroups(editor, t)` accepts an optional `t`; when provided, all labels / prompts in the toolbar group data are localized. Inside the EditorProvider you can use `useT()` directly:
+
+```tsx
+import { useT } from "@tipkit/core";
+import { TipKitEditor, buildToolbarGroups } from "@tipkit/editor";
+
+<TipKitEditor deps={deps}>
+  {(editor) => {
+    // children run inside EditorProvider, so hooks work here
+    return <ToolbarInner groups={buildToolbarGroups(editor, useT())} />;
+  }}
+</TipKitEditor>
+```
+
+If the toolbar renders outside the EditorProvider (e.g. a page-level sticky bar), maintain `lang` externally yourself and pass `t` to `buildToolbarGroups`. The demo's `apps/demo/src/components/editor-toolbar.tsx` follows this pattern (watching language switches via `useDemoLang()`).
+
+### Using useT() inside extensions
+
+Custom extensions can call `useT()` directly in their React NodeViews (provided the component tree sits inside `EditorProvider`, which `EditorContent` satisfies by default):
+
+```tsx
+import { useT } from "@tipkit/core";
+
+function MyNodeView() {
+  const t = useT();
+  return <button>{t("myExtension.action")}</button>;
+}
+```
+
+### API reference
+
+| Export | Source | Description |
+| --- | --- | --- |
+| `createT(messages)` | `@tipkit/core` | Build a `Translate` function from a dictionary; missing keys return the key itself |
+| `zh` | `@tipkit/core` | Built-in Chinese dictionary (default) |
+| `en` | `@tipkit/core` | Built-in English dictionary |
+| `type Messages` | `@tipkit/core` | `Record<string, string>`, the dictionary type |
+| `type Translate` | `@tipkit/core` | `(key: string) => string`, the translate function type |
+| `EditorDeps.t?` | `@tipkit/editor` | Inject the translate function; defaults to Chinese when omitted |
+| `useT()` | `@tipkit/core` | Read the current `t` (React hook, must be inside the Provider) |
+
+### Dictionary key conventions
+
+Keys are segmented by module and dot-separated for easy lookup and overriding:
+
+- `toolbar.*` — top toolbar (undo/redo/bold/lists/alignment…)
+- `slash.*` — slash menu (command label/description/previewTitle, group titles, search placeholder)
+- `link.*` / `text.*` / `block.*` / `blockHandle.*` — overlays and the block handle menu
+- `image.*` / `imagePreview.*` — image block actions and image preview
+- `iframe.*` / `iframeView.*` — embedded web pages
+- `katex.*` — math formulas
+- `attachment.*` / `attachmentView.*` — attachments
+- `columns.*` / `details.*` / `callout.*` / `codeBlock.*` / `toc.*` / `table.*` — advanced nodes
+- `placeholder.default` — default editor placeholder
+
+The complete key list lives in `packages/core/src/i18n/zh.ts` (the built-in Chinese dictionary, the nominal source of truth for key names).
+
+### Live demo
+
+The demo site (`/docs` → live demo) has a language switch in the top-right navigation bar (next to the theme switch). Click it to toggle between 中文 / English with immediate effect on:
+
+- Slash menu command names / group titles / search placeholder
+- Toolbar button tooltips and aria-labels
+- Text bubble, block handle menu, link dialog
+- KaTeX editor, table controls, code blocks, attachments, callouts
+- Editor placeholder
+
+The choice persists to `localStorage` across reloads. See `apps/demo/src/components/site-lang-switch.tsx` and `apps/demo/src/components/use-demo-lang.ts` for the implementation.

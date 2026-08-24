@@ -1,0 +1,25 @@
+## API Reference
+
+### TipKitEditor Props
+
+| Prop | Type | Required | Description |
+| --- | --- | --- | --- |
+| `deps` | `EditorDeps` | Yes | Project-specific capability injection (uploads / KaTeX etc.) |
+| `extensions` | `Extension[]` | No | Extra extensions; the basic set is used by default |
+| `content` | `string \| Record<string, unknown>` | No | Initial content (HTML or JSON) |
+| `contentType` | `"html" \| "markdown" \| "json"` | No | Initial content format; pass a md string when `"markdown"` |
+| `placeholder` | `string` | No | Empty-state placeholder text |
+| `editable` | `boolean` | No | Read-only rendering (docs / preview scenarios) |
+| `onChange` | `(editor: Editor) => void` | No | Content update callback (get serialized results via getHTML / getJSON) |
+| `onCreate` | `(editor: Editor) => void` | No | Editor-ready callback; grab the instance here |
+| `immediatelyRender` | `boolean` | No | Pass false for SSR (default false) to avoid hydration mismatch |
+| `className` | `string` | No | Container class name |
+| `children` | `ReactNode \| (editor) => ReactNode` | No | Render slot; pass a function to mount overlays / toolbars once the editor is ready |
+
+### EditorDeps
+
+| Field | Signature | Description |
+| --- | --- | --- |
+| `uploadImage` | `(file, editor) => Promise<string>` | Image upload, returns the `img src` URL |
+| `uploadAttachment` | `(file, editor) => Promise<AttachmentMeta>` | Attachment upload, returns metadata (url / name / size / mimeType) |
+| `renderKatex` | `(tex, displayMode) => Promise<string>` | Math rendering, returns HTML; server or client side both work |

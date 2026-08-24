@@ -18,6 +18,8 @@ import { Placeholder } from "@tiptap/extension-placeholder";
 export interface UseTipKitEditorOptions {
   extensions?: EditorOptions["extensions"];
   content?: string | Record<string, unknown>;
+  /** 初始内容类型；"markdown" 需已注入 @tiptap/markdown 扩展（类型由该包增强，core 侧只能收窄为字符串透传） */
+  contentType?: "html" | "markdown" | "json";
   /** 单条占位符。多条随机提示语为 blog 自定义逻辑，M1 迁移时通过扩展实现 */
   placeholder?: string;
   onUpdate?: (editor: Editor) => void;
@@ -29,6 +31,11 @@ export interface UseTipKitEditorOptions {
 }
 
 export function useTipKitEditor(options: UseTipKitEditorOptions) {
+  // contentType 由 @tiptap/markdown 的模块增强声明，core 不直接依赖该包，故用独立类型片段透传（展开可绕过多余属性检查）
+  const contentTypeOption = options.contentType
+    ? { contentType: options.contentType }
+    : {};
+
   const editor = useEditor({
     extensions: [
       Placeholder.configure({
@@ -37,8 +44,7 @@ export function useTipKitEditor(options: UseTipKitEditorOptions) {
       ...(options.extensions ?? []),
     ],
     content: options.content,
-    // 注意：tiptap 的 mergeDeep 会用 undefined 覆盖默认值（editable 默认 true），
-    // 必须兜底为 true，否则编辑器会变成只读（TaskItem 勾选等交互失效）
+    ...contentTypeOption,
     editable: options.editable ?? true,
     immediatelyRender: options.immediatelyRender ?? false,
     editorProps: {

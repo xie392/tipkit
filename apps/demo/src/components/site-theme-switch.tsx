@@ -2,32 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, Moon, PenLine, Sun } from "lucide-react";
+import { useDemoLang } from "@/components/use-demo-lang";
+import { SITE_COPY } from "@/lib/site-i18n";
 
 const THEMES = [
-  {
-    id: "default",
-    label: "默认",
-    desc: "shadcn 标准风格",
-    icon: Sun,
-    swatch: "#ffffff",
-    swatchColor: "#111111",
-  },
-  {
-    id: "sketch",
-    label: "手绘",
-    desc: "暖纸线稿风格",
-    icon: PenLine,
-    swatch: "#f6f5f4",
-    swatchColor: "#31302e",
-  },
-  {
-    id: "dark",
-    label: "暗色",
-    desc: "深色界面",
-    icon: Moon,
-    swatch: "#1c1b19",
-    swatchColor: "#e6e3dd",
-  },
+  { id: "default", icon: Sun, swatch: "#ffffff", swatchColor: "#111111" },
+  { id: "sketch", icon: PenLine, swatch: "#f6f5f4", swatchColor: "#31302e" },
+  { id: "dark", icon: Moon, swatch: "#1c1b19", swatchColor: "#e6e3dd" },
 ] as const;
 
 type ThemeId = (typeof THEMES)[number]["id"];
@@ -40,6 +21,8 @@ const THEME_CLASSES = THEMES.map((t) => `tk-theme-${t.id}`);
  * 通过给 <html> 添加 tk-theme-* 类切换主题，选择持久化到 localStorage。
  */
 export function SiteThemeSwitch() {
+  const { lang } = useDemoLang();
+  const c = SITE_COPY[lang].themeMenu;
   const [theme, setTheme] = useState<ThemeId>("default");
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -89,17 +72,17 @@ export function SiteThemeSwitch() {
       <button
         type="button"
         className="site-theme-switch-trigger"
-        aria-label="切换主题"
+        aria-label={c.triggerLabel}
         aria-haspopup="menu"
         aria-expanded={open}
-        title={`当前主题：${THEMES.find((t) => t.id === theme)?.label}`}
+        title={`${c.current}：${c.items[theme].label}`}
         onClick={() => setOpen((v) => !v)}
       >
         <CurrentIcon className="w-4 h-4" />
       </button>
 
       {open && (
-        <div className="site-theme-menu" role="menu" aria-label="主题选项">
+        <div className="site-theme-menu" role="menu" aria-label={c.menuLabel}>
           {THEMES.map((t) => {
             const Icon = t.icon;
             const active = theme === t.id;
@@ -120,8 +103,8 @@ export function SiteThemeSwitch() {
                   <Icon className="w-3.5 h-3.5" />
                 </span>
                 <span className="site-theme-menu-text">
-                  <span className="site-theme-menu-label">{t.label}</span>
-                  <span className="site-theme-menu-desc">{t.desc}</span>
+                  <span className="site-theme-menu-label">{c.items[t.id].label}</span>
+                  <span className="site-theme-menu-desc">{c.items[t.id].desc}</span>
                 </span>
                 {active && <Check className="site-theme-menu-check" />}
               </button>

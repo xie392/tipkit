@@ -1,8 +1,8 @@
-## 快速开始
+## Quickstart
 
-### 最小示例
+### Minimal example
 
-一个组件 + 一个主题，即可得到可编辑的富文本区域：
+One component plus one theme gives you an editable rich-text area:
 
 ```tsx
 "use client";
@@ -20,11 +20,11 @@ export default function Editor() {
 }
 ```
 
-> 主题 CSS 的视觉样式全部作用域在 `tk-theme-default` 类下——**只 import CSS 不会生效**，必须把该类加到编辑器的任意祖先元素（通常是包裹 div 或 `<html>`）上。切换主题同理：换成 `tk-theme-sketch` / `tk-theme-dark` 即可，也可直接用 `<TipKitEditor className="tk-theme-sketch">`。
+> All visual rules in the theme CSS are scoped under the `tk-theme-default` class — **importing the CSS alone does nothing**. Add the class to any ancestor of the editor (usually a wrapping div or `<html>`). Switching themes works the same way: use `tk-theme-sketch` / `tk-theme-dark`, or simply `<TipKitEditor className="tk-theme-sketch">`.
 
-### 完整示例
+### Full example
 
-接入高级扩展与全部交互浮层（斜杠菜单、文字工具条、链接气泡、块手柄、表格控件等），与 `apps/demo` 中的演示一致：
+Wire up advanced extensions and every interactive overlay (slash menu, text bubble, link bubble, block handles, table controls, etc.), matching the demo in `apps/demo`:
 
 ```tsx
 "use client";
@@ -35,7 +35,7 @@ import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, Block
 import { TooltipProvider } from "@tipkit/components";
 import "@tipkit/themes/default.css";
 
-/** 图片上传：消费方替换为真实上传服务 */
+/** Image upload: replace with your real upload service */
 const uploadImage = async (file: File) => URL.createObjectURL(file);
 
 const deps: EditorDeps = { uploadImage };
@@ -45,7 +45,7 @@ export default function App() {
     <TipKitEditor
       deps={deps}
       className="tk-theme-default"
-      placeholder="输入 / 打开斜杠菜单…"
+      placeholder="Type / to open the slash menu…"
       extensions={[...createBasicExtensions(), ...createAdvancedExtensions()]}
       onChange={(editor) => console.log(editor.getHTML())}
     >
@@ -68,4 +68,4 @@ export default function App() {
 }
 ```
 
-浮层不是 TipKitEditor 的内部实现，而是通过 render prop 由消费方挂载——这正是「无头」的体现：交互能力与视觉完全由你控制。
+Overlays are not baked into TipKitEditor — they are mounted by the consumer via a render prop. That is what "headless" means: interaction and visuals are entirely under your control.

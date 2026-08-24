@@ -4,16 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SiteThemeSwitch } from "@/components/site-theme-switch";
 import { SiteLangSwitch } from "@/components/site-lang-switch";
+import { useDemoLang, useDocsPathPrefix } from "@/components/use-demo-lang";
+import { SITE_COPY } from "@/lib/site-i18n";
 
-const NAV_LINKS = [
-  { href: "/", label: "首页" },
-  { href: "/demo", label: "在线演示" },
-  { href: "/docs", label: "文档" },
-] as const;
-
-/** 全站导航：TipKit 字标 + 首页 / 演示 / 文档（当前页高亮） */
+/** 全站导航：TipKit 字标 + 首页 / 演示 / 文档（当前页高亮，文案跟随站点语言） */
 export function SiteHeader() {
   const pathname = usePathname();
+  const { lang } = useDemoLang();
+  const c = SITE_COPY[lang].header;
+  const docsPrefix = useDocsPathPrefix();
+  const navLinks = [
+    { href: "/", label: c.nav.home },
+    { href: "/demo", label: c.nav.demo },
+    { href: `${docsPrefix}/docs`, label: c.nav.docs },
+  ];
 
   return (
     <header className="site-header">
@@ -21,10 +25,10 @@ export function SiteHeader() {
         <Link href="/" className="site-brand">
           <img src="/icon.svg" alt="TipKit" className="site-brand-logo" />
           <span className="site-brand-name">TipKit</span>
-          <span className="site-brand-sub">无头 Tiptap 编辑器</span>
+          <span className="site-brand-sub">{c.brandSub}</span>
         </Link>
-        <nav className="site-nav" aria-label="主导航">
-          {NAV_LINKS.map((link) => {
+        <nav className="site-nav" aria-label={c.navLabel}>
+          {navLinks.map((link) => {
             const active = pathname === link.href;
             return (
               <Link
@@ -41,8 +45,8 @@ export function SiteHeader() {
         </nav>
         <SiteThemeSwitch />
         <SiteLangSwitch />
-        <Link href="/docs" className="site-header-cta">
-          快速接入
+        <Link href={`${docsPrefix}/docs`} className="site-header-cta">
+          {c.cta}
         </Link>
       </div>
     </header>

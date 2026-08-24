@@ -280,6 +280,7 @@ function CodeBlockView(props: NodeViewProps) {
   }, [langOpen, calcPosition]);
 
   useEffect(() => {
+    if (!editor.isEditable) return;
     if (language || autoDetected || userSelectedAuto) return;
     const detected = detectLanguage(node.textContent);
     if (detected) {
@@ -287,7 +288,7 @@ function CodeBlockView(props: NodeViewProps) {
       setAutoDetected(true);
     }
     prevContentRef.current = node.textContent;
-  }, [node.textContent, language, autoDetected, userSelectedAuto, updateAttributes]);
+  }, [node.textContent, language, autoDetected, userSelectedAuto, updateAttributes, editor.isEditable]);
 
   const copyCode = async () => {
     try {
@@ -312,6 +313,7 @@ function CodeBlockView(props: NodeViewProps) {
         contentEditable={false}
         onMouseDown={(e) => e.preventDefault()}
       >
+        {editor.isEditable && (
         <div className="tk-code-block-lang-wrap">
           <button
             ref={langBtnRef}
@@ -360,8 +362,10 @@ function CodeBlockView(props: NodeViewProps) {
               document.body
             )}
         </div>
+        )}
 
         <div className="tk-code-block-actions">
+          {editor.isEditable && (
           <button
             type="button"
             className="tk-code-block-action-btn"
@@ -370,6 +374,7 @@ function CodeBlockView(props: NodeViewProps) {
           >
             {dark ? <IconSun /> : <IconMoon />}
           </button>
+          )}
           <button
             type="button"
             className="tk-code-block-action-btn"

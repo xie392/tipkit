@@ -1,25 +1,30 @@
-import Link from "next/link";
+"use client";
 
-/** 全站页脚：项目定位 + 快速链接 */
+import Link from "next/link";
+import { useDemoLang } from "@/components/use-demo-lang";
+import { SITE_COPY } from "@/lib/site-i18n";
+
+/** 全站页脚：项目定位 + 快速链接（文案跟随站点语言） */
 export function SiteFooter() {
+  const { lang } = useDemoLang();
+  const c = SITE_COPY[lang].footer;
+
   return (
     <footer className="site-footer">
       <div className="site-footer-inner">
         <div className="site-footer-brand">
           <img src="/icon.svg" alt="TipKit" className="site-brand-logo" />
           <span className="site-footer-name">TipKit</span>
-          <p className="site-footer-desc">
-            基于 Tiptap v3 + shadcn/ui 的无头富文本编辑器套件
-          </p>
+          <p className="site-footer-desc">{c.desc}</p>
         </div>
-        <nav className="site-footer-links" aria-label="页脚导航">
-          <Link href="/demo">在线演示</Link>
-          <Link href="/docs">接入文档</Link>
+        <nav className="site-footer-links" aria-label={c.navLabel}>
+          <Link href="/demo">{c.demo}</Link>
+          <Link href="/docs">{c.docs}</Link>
         </nav>
         <div className="site-footer-meta">
-          <p className="site-footer-themes">内置主题：default · sketch · dark</p>
+          <p className="site-footer-themes">{c.themes}</p>
           <p className="site-footer-copy">
-            © {new Date().getFullYear()} TipKit · 一套逻辑，任意风格
+            © {new Date().getFullYear()} TipKit · {c.copy}
           </p>
         </div>
       </div>

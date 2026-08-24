@@ -33,6 +33,8 @@
   /* TipKit 语义变量 */
   --tk-accent: var(--primary);
   --tk-font-body: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --tk-scrollbar-thumb: rgb(0 0 0 / 0.22);
+  --tk-scrollbar-thumb-hover: rgb(0 0 0 / 0.38);
 }
 
 /* ---------- 编辑器容器 ---------- */
