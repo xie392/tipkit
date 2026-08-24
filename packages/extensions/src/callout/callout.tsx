@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { mergeAttributes, Node as TiptapNode, wrappingInputRule } from "@tiptap/core";
+import { NodeSelection } from "@tiptap/pm/state";
 import {
   ReactNodeViewRenderer,
   NodeViewWrapper,
@@ -77,8 +79,8 @@ export const Callout = TiptapNode.create({
   content: "paragraph+",
   group: "block",
   defining: true,
-  selectable: true,
   draggable: true,
+  selectable: false,
 
   addOptions() {
     return { HTMLAttributes: { class: "tk-callout" } };
@@ -125,7 +127,12 @@ export const Callout = TiptapNode.create({
         () =>
         ({ commands, state }) => {
           const { selection } = state;
-          if (selection.empty) {
+          const isEmptyParagraphNodeSelection =
+            selection instanceof NodeSelection &&
+            selection.node.type.name === "paragraph" &&
+            selection.node.content.size === 0;
+
+          if (selection.empty || isEmptyParagraphNodeSelection) {
             return commands.insertContent({
               type: "callout",
               attrs: { variant: "info" },
@@ -161,23 +168,117 @@ export const Callout = TiptapNode.create({
 });
 
 function CalloutView(props: NodeViewProps) {
-  const { editor, node, updateAttributes } = props;
+  const { editor, node, updateAttributes, selected } = props;
   const t = useT();
   const attrs = node.attrs as { variant: CalloutVariant; emoji: string | null };
   const variant = attrs.variant ?? "info";
   const style = CALLOUT_VARIANTS[variant] ?? CALLOUT_VARIANTS.info;
   const emoji = attrs.emoji ?? style.emoji;
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  const clearInnerSelectedNodes = useCallback(() => {
+    if (!wrapRef.current) return;
+    wrapRef.current
+      .querySelectorAll(".ProseMirror-selectednode")
+      .forEach((el) => {
+        el.classList.remove("ProseMirror-selectednode");
+        el.removeAttribute("draggable");
+      });
+  }, []);
+
+  useEffect(() => {
+    const run = () => {
+      clearInnerSelectedNodes();
+      requestAnimationFrame(clearInnerSelectedNodes);
+    };
+    requestAnimationFrame(run);
+  }, [clearInnerSelectedNodes]);
+
+  useEffect(() => {
+    if (!selected) return;
+    const run = () => {
+      clearInnerSelectedNodes();
+      requestAnimationFrame(clearInnerSelectedNodes);
+    };
+    requestAnimationFrame(run);
+  }, [selected, clearInnerSelectedNodes]);
 
   const [variantOpen, setVariantOpen] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [emojiQuery, setEmojiQuery] = useState("");
+  const [panelStyle, setPanelStyle] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const emojiInputRef = useRef<HTMLInputElement>(null);
-  const wrapRef = useRef<HTMLDivElement>(null);
+  const emojiBtnRef = useRef<HTMLButtonElement>(null);
+  const variantBtnRef = useRef<HTMLButtonElement>(null);
+  const emojiPanelRef = useRef<HTMLDivElement>(null);
+  const variantPanelRef = useRef<HTMLDivElement>(null);
+
+  const PANEL_GAP = 4;
+  const VIEWPORT_MARGIN = 8;
+
+  const calcPanelPosition = useCallback((btn: HTMLElement, panel: HTMLElement, placement: "bottom-start" | "top-end") => {
+    const br = btn.getBoundingClientRect();
+    const pr = panel.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    let top: number;
+    let left: number;
+
+    if (placement === "bottom-start") {
+      top = br.bottom + PANEL_GAP;
+      left = br.left;
+      if (top + pr.height > vh - VIEWPORT_MARGIN) {
+        top = br.top - PANEL_GAP - pr.height;
+      }
+    } else {
+      top = br.top - PANEL_GAP - pr.height;
+      left = br.right - pr.width;
+      if (top < VIEWPORT_MARGIN) {
+        top = br.bottom + PANEL_GAP;
+      }
+    }
+
+    if (left + pr.width > vw - VIEWPORT_MARGIN) left = vw - pr.width - VIEWPORT_MARGIN;
+    if (left < VIEWPORT_MARGIN) left = VIEWPORT_MARGIN;
+
+    return { top, left };
+  }, [PANEL_GAP, VIEWPORT_MARGIN]);
+
+  const reflowPanels = useCallback((open: { emoji: boolean; variant: boolean }) => {
+    setPanelStyle((prev) => {
+      let nextTop = prev.top;
+      let nextLeft = prev.left;
+      if (open.emoji && emojiBtnRef.current && emojiPanelRef.current) {
+        const pos = calcPanelPosition(emojiBtnRef.current, emojiPanelRef.current, "bottom-start");
+        nextTop = pos.top;
+        nextLeft = pos.left;
+      } else if (open.variant && variantBtnRef.current && variantPanelRef.current) {
+        const pos = calcPanelPosition(variantBtnRef.current, variantPanelRef.current, "top-end");
+        nextTop = pos.top;
+        nextLeft = pos.left;
+      }
+      return nextTop === prev.top && nextLeft === prev.left ? prev : { top: nextTop, left: nextLeft };
+    });
+  }, [calcPanelPosition]);
+
+  useLayoutEffect(() => {
+    if (emojiOpen) reflowPanels({ emoji: true, variant: false });
+  }, [emojiOpen, emojiQuery, reflowPanels]);
+
+  useLayoutEffect(() => {
+    if (variantOpen) reflowPanels({ emoji: false, variant: true });
+  }, [variantOpen, reflowPanels]);
 
   useEffect(() => {
     if (!variantOpen && !emojiOpen) return;
     const onDown = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        !wrapRef.current?.contains(target) &&
+        !emojiPanelRef.current?.contains(target) &&
+        !variantPanelRef.current?.contains(target)
+      ) {
         setVariantOpen(false);
         setEmojiOpen(false);
       }
@@ -188,13 +289,20 @@ function CalloutView(props: NodeViewProps) {
         setEmojiOpen(false);
       }
     };
+    const onReposition = () => {
+      reflowPanels({ emoji: emojiOpen, variant: variantOpen });
+    };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onReposition, true);
+    window.addEventListener("resize", onReposition);
     return () => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onReposition, true);
+      window.removeEventListener("resize", onReposition);
     };
-  }, [variantOpen, emojiOpen]);
+  }, [variantOpen, emojiOpen, reflowPanels]);
 
   const filteredEmojis = useMemo(() => {
     const q = emojiQuery.trim().toLowerCase();
@@ -211,6 +319,7 @@ function CalloutView(props: NodeViewProps) {
     <NodeViewWrapper ref={wrapRef} className={`tk-callout tk-callout-${variant}`}>
       <div className="tk-callout-head">
         <button
+          ref={emojiBtnRef}
           type="button"
           className="tk-callout-emoji"
           title={t("callout.changeIcon")}
@@ -222,8 +331,16 @@ function CalloutView(props: NodeViewProps) {
         >
           {emoji}
         </button>
-        {emojiOpen && (
-          <div className="tk-callout-emoji-panel" contentEditable={false}>
+      </div>
+      {emojiOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={emojiPanelRef}
+            className="tk-callout-emoji-panel tk-portal-panel"
+            contentEditable={false}
+            style={{ position: "fixed", top: panelStyle.top, left: panelStyle.left }}
+          >
             <input
               ref={emojiInputRef}
               autoFocus
@@ -249,13 +366,14 @@ function CalloutView(props: NodeViewProps) {
                 ))
               )}
             </div>
-          </div>
+          </div>,
+          document.body
         )}
-      </div>
       <NodeViewContent className="tk-callout-content" />
       {editor.isEditable && (
         <div className="tk-callout-switcher">
           <button
+            ref={variantBtnRef}
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => setVariantOpen((v) => !v)}
@@ -264,33 +382,40 @@ function CalloutView(props: NodeViewProps) {
           >
             {style.label} ▾
           </button>
-          {variantOpen && (
-            <div className="tk-callout-variant-panel">
-              {(Object.keys(CALLOUT_VARIANTS) as CalloutVariant[]).map((v) => {
-                const s = CALLOUT_VARIANTS[v];
-                return (
-                  <button
-                    key={v}
-                    type="button"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      updateAttributes({ variant: v });
-                      setVariantOpen(false);
-                    }}
-                    className={`tk-callout-variant-cell${v === variant ? " is-active" : ""}`}
-                    style={{
-                      color: s.textColor,
-                      borderColor: s.borderColor,
-                      background: s.backgroundColor,
-                    }}
-                  >
-                    <span>{s.emoji}</span>
-                    <span>{t(`callout.${v}`)}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          {variantOpen &&
+            typeof document !== "undefined" &&
+            createPortal(
+              <div
+                ref={variantPanelRef}
+                className="tk-callout-variant-panel tk-portal-panel"
+                style={{ position: "fixed", top: panelStyle.top, left: panelStyle.left }}
+              >
+                {(Object.keys(CALLOUT_VARIANTS) as CalloutVariant[]).map((v) => {
+                  const s = CALLOUT_VARIANTS[v];
+                  return (
+                    <button
+                      key={v}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        updateAttributes({ variant: v });
+                        setVariantOpen(false);
+                      }}
+                      className={`tk-callout-variant-cell${v === variant ? " is-active" : ""}`}
+                      style={{
+                        color: s.textColor,
+                        borderColor: s.borderColor,
+                        background: s.backgroundColor,
+                      }}
+                    >
+                      <span>{s.emoji}</span>
+                      <span>{t(`callout.${v}`)}</span>
+                    </button>
+                  );
+                })}
+              </div>,
+              document.body
+            )}
         </div>
       )}
     </NodeViewWrapper>
