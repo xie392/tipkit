@@ -1217,8 +1217,8 @@
   position: relative;
   display: flex;
   width: 100%;
-  gap: 10px;
-  align-items: stretch;
+  gap: 8px;
+  align-items: flex-start;
   padding: 12px 44px 12px 14px;
   margin: 0.75em 0;
 }
@@ -1270,24 +1270,24 @@
 }
 
 .tk-callout-head {
-  position: relative;
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 28px;
-  padding-top: 2px;
+  position: relative;
+  margin-top: 1px;
 }
 
 .tk-callout-emoji {
+  display: block;
+  width: 24px;
+  height: 24px;
   font-size: 18px;
-  line-height: 1;
+  line-height: 24px;
+  text-align: center;
   background: transparent;
   border: none;
   cursor: pointer;
   padding: 0;
-  display: flex;
-  align-items: center;
+  margin: 0;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
 }
 
 .tk-callout-emoji-panel {
