@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SiteThemeSwitch } from "@/components/site-theme-switch";
+import { SiteLangSwitch } from "@/components/site-lang-switch";
 
 const NAV_LINKS = [
   { href: "/", label: "首页" },
@@ -39,6 +40,7 @@ export function SiteHeader() {
           })}
         </nav>
         <SiteThemeSwitch />
+        <SiteLangSwitch />
         <Link href="/docs" className="site-header-cta">
           快速接入
         </Link>

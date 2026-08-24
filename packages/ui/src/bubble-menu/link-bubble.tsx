@@ -4,6 +4,7 @@ import { BubbleMenu } from "@tiptap/react/menus";
 import type { Editor } from "@tiptap/react";
 import { useEditorState } from "@tiptap/react";
 import { Pencil, ExternalLink, Unlink } from "lucide-react";
+import { useT } from "@tipkit/core";
 import { openLinkDialog } from "./link-dialog";
 
 /* 链接气泡（迁移自 blog rich-text/link-bubble.tsx）：
@@ -33,6 +34,7 @@ function BubbleBtn({
 }
 
 export function LinkBubble({ editor }: { editor: Editor | null }) {
+  const t = useT();
   const href =
     useEditorState({
       editor,
@@ -54,11 +56,11 @@ export function LinkBubble({ editor }: { editor: Editor | null }) {
     >
       <span className="tk-bubble-href">{href}</span>
       <span className="tk-bubble-divider" />
-      <BubbleBtn title="编辑链接" onClick={() => openLinkDialog()}>
+      <BubbleBtn title={t("link.edit")} onClick={() => openLinkDialog()}>
         <Pencil className="tk-icon-sm" />
       </BubbleBtn>
       <BubbleBtn
-        title="打开链接"
+        title={t("link.open")}
         onClick={() => {
           if (href) window.open(href, "_blank", "noopener,noreferrer");
         }}
@@ -66,7 +68,7 @@ export function LinkBubble({ editor }: { editor: Editor | null }) {
         <ExternalLink className="tk-icon-sm" />
       </BubbleBtn>
       <BubbleBtn
-        title="取消链接"
+        title={t("link.unlink")}
         onClick={() => editor.chain().focus().extendMarkRange("link").unsetLink().run()}
       >
         <Unlink className="tk-icon-sm" />

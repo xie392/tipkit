@@ -38,7 +38,7 @@ describe("EditorProvider 依赖注入", () => {
     expect(received?.uploadAttachment).toBe(deps.uploadAttachment);
   });
 
-  it("未提供 Provider 时返回空对象（安全降级）", () => {
+  it("未提供 Provider 时安全降级（仅带默认中文 t）", () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
     const root = createRoot(container);
@@ -48,6 +48,8 @@ describe("EditorProvider 依赖注入", () => {
       root.render(<Probe onDeps={(d) => (received = d)} />);
     });
 
-    expect(received).toEqual({});
+    // 降级时不抛错；t 兜底为默认中文翻译函数
+    expect(received?.t).toBeTypeOf("function");
+    expect(received?.t?.("toolbar.undo")).toBe("撤销");
   });
 });

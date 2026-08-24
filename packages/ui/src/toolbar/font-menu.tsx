@@ -4,65 +4,69 @@ import { useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Tooltip, TooltipContent, TooltipTrigger } from "@tipkit/components";
 import { Type, ChevronDown } from "lucide-react";
+import { useT, type Translate } from "@tipkit/core";
 import { ToolbarBtn } from "./toolbar-button";
 
 /* 字体/字号选择器（迁移自 blog font-menu.tsx） */
 interface Option {
-  label: string;
+  labelKey: string;
   value: string;
 }
 
 const FONT_FAMILIES: Option[] = [
-  { label: "默认", value: "" },
-  { label: "系统无衬线", value: "ui-sans-serif, system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif" },
-  { label: "系统衬线", value: "ui-serif, Georgia, 'Songti SC', 'STSong', 'SimSun', serif" },
-  { label: "等宽", value: "ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace" },
-  { label: "楷体", value: "'KaiTi', 'STKaiti', 'Kaiti SC', serif" },
-  { label: "黑体", value: "'Heiti SC', 'Microsoft YaHei', 'PingFang SC', sans-serif" },
-  { label: "宋体", value: "'Songti SC', 'STSong', 'SimSun', serif" },
+  { labelKey: "toolbar.fontFamilyDefault", value: "" },
+  { labelKey: "toolbar.fontFamilySans", value: "ui-sans-serif, system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif" },
+  { labelKey: "toolbar.fontFamilySerif", value: "ui-serif, Georgia, 'Songti SC', 'STSong', 'SimSun', serif" },
+  { labelKey: "toolbar.fontFamilyMono", value: "ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace" },
+  { labelKey: "toolbar.fontFamilyKai", value: "'KaiTi', 'STKaiti', 'Kaiti SC', serif" },
+  { labelKey: "toolbar.fontFamilyHei", value: "'Heiti SC', 'Microsoft YaHei', 'PingFang SC', sans-serif" },
+  { labelKey: "toolbar.fontFamilySong", value: "'Songti SC', 'STSong', 'SimSun', serif" },
 ];
 
-const FONT_SIZES: Option[] = [
-  { label: "默认", value: "" },
-  { label: "12px", value: "12px" },
-  { label: "14px", value: "14px" },
-  { label: "16px", value: "16px" },
-  { label: "18px", value: "18px" },
-  { label: "20px", value: "20px" },
-  { label: "24px", value: "24px" },
-  { label: "28px", value: "28px" },
-  { label: "32px", value: "32px" },
-  { label: "36px", value: "36px" },
-  { label: "42px", value: "42px" },
-  { label: "48px", value: "48px" },
+const FONT_SIZES: { value: string }[] = [
+  { value: "" },
+  { value: "12px" },
+  { value: "14px" },
+  { value: "16px" },
+  { value: "18px" },
+  { value: "20px" },
+  { value: "24px" },
+  { value: "28px" },
+  { value: "32px" },
+  { value: "36px" },
+  { value: "42px" },
+  { value: "48px" },
 ];
 
-export function FontFamilyPicker({ editor }: { editor: Editor }) {
+export function FontFamilyPicker({ editor, t }: { editor: Editor; t?: Translate }) {
+  const ctxT = useT();
+  const tr = t ?? ctxT;
   const [open, setOpen] = useState(false);
   const current = (editor.getAttributes("textStyle").fontFamily as string | undefined) ?? "";
+  const currentOpt = FONT_FAMILIES.find((f) => f.value === current);
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <ToolbarBtn title="字体" className="tk-w-fit tk-px-2">
+            <ToolbarBtn title={tr("toolbar.fontFamily")} className="tk-w-fit tk-px-2">
               <span className="tk-flex tk-items-center tk-gap-1 tk-text-12px">
                 <Type className="tk-icon-md" />
                 <span className="tk-max-w-60px tk-truncate">
-                  {FONT_FAMILIES.find((f) => f.value === current)?.label ?? "字体"}
+                  {currentOpt ? tr(currentOpt.labelKey) : tr("toolbar.fontFamily")}
                 </span>
                 <ChevronDown className="tk-icon-sm tk-opacity-60" />
               </span>
             </ToolbarBtn>
           </DropdownMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent side="bottom">字体</TooltipContent>
+        <TooltipContent side="bottom">{tr("toolbar.fontFamily")}</TooltipContent>
       </Tooltip>
       <DropdownMenuContent align="start" className="tk-w-44">
         {FONT_FAMILIES.map((opt) => (
           <DropdownMenuItem
-            key={opt.label}
+            key={opt.labelKey + opt.value}
             onClick={() => {
               if (opt.value) {
                 editor.chain().focus().setFontFamily(opt.value).run();
@@ -74,7 +78,7 @@ export function FontFamilyPicker({ editor }: { editor: Editor }) {
             style={{ fontFamily: opt.value || undefined }}
             className={current === opt.value ? "tk-bg-primary-10 tk-text-primary" : ""}
           >
-            {opt.label}
+            {tr(opt.labelKey)}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -82,7 +86,9 @@ export function FontFamilyPicker({ editor }: { editor: Editor }) {
   );
 }
 
-export function FontSizePicker({ editor }: { editor: Editor }) {
+export function FontSizePicker({ editor, t }: { editor: Editor; t?: Translate }) {
+  const ctxT = useT();
+  const tr = t ?? ctxT;
   const [open, setOpen] = useState(false);
   const current = (editor.getAttributes("textStyle").fontSize as string | undefined) ?? "";
 
@@ -91,20 +97,20 @@ export function FontSizePicker({ editor }: { editor: Editor }) {
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <ToolbarBtn title="字号" className="tk-w-fit tk-px-2">
+            <ToolbarBtn title={tr("toolbar.fontSize")} className="tk-w-fit tk-px-2">
               <span className="tk-flex tk-items-center tk-gap-1 tk-text-12px">
-                <span className="tk-max-w-40px tk-truncate">{current || "字号"}</span>
+                <span className="tk-max-w-40px tk-truncate">{current || tr("toolbar.fontSize")}</span>
                 <ChevronDown className="tk-icon-sm tk-opacity-60" />
               </span>
             </ToolbarBtn>
           </DropdownMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent side="bottom">字号</TooltipContent>
+        <TooltipContent side="bottom">{tr("toolbar.fontSize")}</TooltipContent>
       </Tooltip>
       <DropdownMenuContent align="start" className="tk-w-32">
         {FONT_SIZES.map((opt) => (
           <DropdownMenuItem
-            key={opt.label}
+            key={opt.value}
             onClick={() => {
               if (opt.value) {
                 editor.chain().focus().setFontSize(opt.value).run();
@@ -115,7 +121,7 @@ export function FontSizePicker({ editor }: { editor: Editor }) {
             }}
             className={current === opt.value ? "tk-bg-primary-10 tk-text-primary" : ""}
           >
-            {opt.label}
+            {opt.value || tr("toolbar.fontSizeDefault")}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

@@ -22,7 +22,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@tipkit/components";
-import { getInsertActions, type InsertAction } from "@tipkit/extensions";
+import { getInsertActions, getSlashGroupLabel, SLASH_GROUP_ORDER, type InsertAction } from "@tipkit/extensions";
+import { useDemoLang } from "@/components/use-demo-lang";
 import {
   Bold,
   Check,
@@ -98,6 +99,7 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
   const [textOpen, setTextOpen] = useState(false);
   const [insertOpen, setInsertOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { t } = useDemoLang();
   useEffect(() => {
     if (!editor) return;
     const refresh = () => force((n) => n + 1);
@@ -116,9 +118,10 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
             editor,
             openImagePicker: () => fileRef.current?.click(),
             openLinkDialog,
+            t,
           })
         : [],
-    [editor, insertOpen],
+    [editor, insertOpen, t],
   );
 
   if (!editor) return null;
@@ -133,7 +136,7 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
           <PopoverTrigger asChild>
             <button
               type="button"
-              aria-label="插入"
+              aria-label={t("slash.group.basic")}
               data-active={insertOpen || undefined}
               className="tk-toolbar-add inline-flex items-center justify-center w-7 h-7 rounded-md bg-foreground text-background hover:opacity-90 transition-opacity"
             >
@@ -147,30 +150,30 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
             />
           </PopoverContent>
         </Popover>
-        <Tip label="撤销 ⌘Z">
-          <ToolbarBtn icon={Undo2} label="撤销" onClick={() => chain().undo().run()} />
+        <Tip label={`${t("toolbar.undo")} ⌘Z`}>
+          <ToolbarBtn icon={Undo2} label={t("toolbar.undo")} onClick={() => chain().undo().run()} />
         </Tip>
-        <Tip label="重做 ⌘⇧Z">
-          <ToolbarBtn icon={Redo2} label="重做" onClick={() => chain().redo().run()} />
+        <Tip label={`${t("toolbar.redo")} ⌘⇧Z`}>
+          <ToolbarBtn icon={Redo2} label={t("toolbar.redo")} onClick={() => chain().redo().run()} />
         </Tip>
 
         <ToolbarDivider />
 
-        <BlockStyleMenu editor={editor} />
-        <FontFamilyPicker editor={editor} />
-        <FontSizePicker editor={editor} />
+        <BlockStyleMenu editor={editor} t={t} />
+        <FontFamilyPicker editor={editor} t={t} />
+        <FontSizePicker editor={editor} t={t} />
 
-        <Tip label="加粗 ⌘B">
-          <ToolbarBtn icon={Bold} label="加粗" active={editor.isActive("bold")} onClick={() => chain().toggleBold().run()} />
+        <Tip label={`${t("toolbar.bold")} ⌘B`}>
+          <ToolbarBtn icon={Bold} label={t("toolbar.bold")} active={editor.isActive("bold")} onClick={() => chain().toggleBold().run()} />
         </Tip>
-        <Tip label="斜体 ⌘I">
-          <ToolbarBtn icon={Italic} label="斜体" active={editor.isActive("italic")} onClick={() => chain().toggleItalic().run()} />
+        <Tip label={`${t("toolbar.italic")} ⌘I`}>
+          <ToolbarBtn icon={Italic} label={t("toolbar.italic")} active={editor.isActive("italic")} onClick={() => chain().toggleItalic().run()} />
         </Tip>
-        <Tip label="删除线 ⌘⇧X">
-          <ToolbarBtn icon={Strikethrough} label="删除线" active={editor.isActive("strike")} onClick={() => chain().toggleStrike().run()} />
+        <Tip label={`${t("toolbar.strike")} ⌘⇧X`}>
+          <ToolbarBtn icon={Strikethrough} label={t("toolbar.strike")} active={editor.isActive("strike")} onClick={() => chain().toggleStrike().run()} />
         </Tip>
-        <Tip label="下划线 ⌘U">
-          <ToolbarBtn icon={Underline} label="下划线" active={editor.isActive("underline")} onClick={() => chain().toggleUnderline().run()} />
+        <Tip label={`${t("toolbar.underline")} ⌘U`}>
+          <ToolbarBtn icon={Underline} label={t("toolbar.underline")} active={editor.isActive("underline")} onClick={() => chain().toggleUnderline().run()} />
         </Tip>
 
         {/* 文本更多：字体族 / 上标 / 下标 / 行内代码 / 清除格式 */}
@@ -178,7 +181,7 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              aria-label="更多文本格式"
+              aria-label={t("toolbar.moreText")}
               data-active={textOpen || editor.isActive("superscript") || editor.isActive("subscript") || editor.isActive("code") || undefined}
               className="tk-toolbar-btn inline-flex items-center justify-center h-8 gap-0.5 px-1.5 rounded text-sm font-medium"
             >
@@ -186,58 +189,58 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="min-w-44">
-            <MoreItem icon={Superscript} label="上标" active={editor.isActive("superscript")} onClick={() => chain().toggleSuperscript().run()} />
-            <MoreItem icon={Subscript} label="下标" active={editor.isActive("subscript")} onClick={() => chain().toggleSubscript().run()} />
-            <MoreItem icon={Code} label="行内代码" active={editor.isActive("code")} onClick={() => chain().toggleCode().run()} />
+            <MoreItem icon={Superscript} label={t("toolbar.superscript")} active={editor.isActive("superscript")} onClick={() => chain().toggleSuperscript().run()} />
+            <MoreItem icon={Subscript} label={t("toolbar.subscript")} active={editor.isActive("subscript")} onClick={() => chain().toggleSubscript().run()} />
+            <MoreItem icon={Code} label={t("toolbar.code")} active={editor.isActive("code")} onClick={() => chain().toggleCode().run()} />
             <DropdownMenuSeparator />
-            <MoreItem icon={Eraser} label="清除格式" onClick={() => chain().unsetAllMarks().clearNodes().run()} />
+            <MoreItem icon={Eraser} label={t("toolbar.clearFormat")} onClick={() => chain().unsetAllMarks().clearNodes().run()} />
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <ColorMenu editor={editor} mode="text" />
-        <ColorMenu editor={editor} mode="highlight" />
+        <ColorMenu editor={editor} mode="text" t={t} />
+        <ColorMenu editor={editor} mode="highlight" t={t} />
 
         <ToolbarDivider />
 
-        <AlignMenu editor={editor} />
+        <AlignMenu editor={editor} t={t} />
 
         <ToolbarDivider />
 
-        <Tip label="有序列表">
-          <ToolbarBtn icon={ListOrdered} label="有序列表" active={editor.isActive("orderedList")} onClick={() => chain().toggleOrderedList().run()} />
+        <Tip label={t("toolbar.orderedList")}>
+          <ToolbarBtn icon={ListOrdered} label={t("toolbar.orderedList")} active={editor.isActive("orderedList")} onClick={() => chain().toggleOrderedList().run()} />
         </Tip>
-        <Tip label="无序列表">
-          <ToolbarBtn icon={List} label="无序列表" active={editor.isActive("bulletList")} onClick={() => chain().toggleBulletList().run()} />
+        <Tip label={t("toolbar.bulletList")}>
+          <ToolbarBtn icon={List} label={t("toolbar.bulletList")} active={editor.isActive("bulletList")} onClick={() => chain().toggleBulletList().run()} />
         </Tip>
 
         <ToolbarDivider />
 
-        <Tip label="任务列表">
-          <ToolbarBtn icon={ListChecks} label="任务列表" active={editor.isActive("taskList")} onClick={() => chain().toggleTaskList().run()} />
+        <Tip label={t("toolbar.taskList")}>
+          <ToolbarBtn icon={ListChecks} label={t("toolbar.taskList")} active={editor.isActive("taskList")} onClick={() => chain().toggleTaskList().run()} />
         </Tip>
-        <Tip label="插入链接 ⌘K">
+        <Tip label={`${t("toolbar.insertLink")} ⌘K`}>
           <ToolbarBtn
             icon={Link}
-            label="插入链接"
+            label={t("toolbar.insertLink")}
             active={editor.isActive("link")}
             onClick={() => openLinkDialog()}
           />
         </Tip>
-        <Tip label="引用块">
-          <ToolbarBtn icon={Quote} label="引用" active={editor.isActive("blockquote")} onClick={() => chain().toggleBlockquote().run()} />
+        <Tip label={t("toolbar.blockquote")}>
+          <ToolbarBtn icon={Quote} label={t("toolbar.blockquote")} active={editor.isActive("blockquote")} onClick={() => chain().toggleBlockquote().run()} />
         </Tip>
-        <Tip label="分隔线">
-          <ToolbarBtn icon={Minus} label="分隔线" onClick={() => chain().setHorizontalRule().run()} />
+        <Tip label={t("toolbar.separator")}>
+          <ToolbarBtn icon={Minus} label={t("toolbar.separator")} onClick={() => chain().setHorizontalRule().run()} />
         </Tip>
 
         <ToolbarDivider />
 
-        <Tip label="图片">
-          <ToolbarBtn icon={ImageIcon} label="图片" onClick={() => fileRef.current?.click()} />
+        <Tip label={t("toolbar.image")}>
+          <ToolbarBtn icon={ImageIcon} label={t("toolbar.image")} onClick={() => fileRef.current?.click()} />
         </Tip>
-        <TablePicker editor={editor} />
-        <Tip label="代码块">
-          <ToolbarBtn icon={Code2} label="代码块" active={editor.isActive("codeBlock")} onClick={() => chain().toggleCodeBlock().run()} />
+        <TablePicker editor={editor} t={t} />
+        <Tip label={t("toolbar.codeBlock")}>
+          <ToolbarBtn icon={Code2} label={t("toolbar.codeBlock")} active={editor.isActive("codeBlock")} onClick={() => chain().toggleCodeBlock().run()} />
         </Tip>
 
         <input
@@ -319,8 +322,6 @@ function ToolbarDivider() {
   return <span className="tk-toolbar-divider w-px h-5 bg-border mx-1" />;
 }
 
-const INSERT_GROUP_ORDER: InsertAction["group"][] = ["基础", "结构", "媒体"];
-
 function InsertPanel({
   actions,
   onSelect,
@@ -329,6 +330,7 @@ function InsertPanel({
   onSelect: () => void;
 }) {
   const [query, setQuery] = useState("");
+  const { t } = useDemoLang();
   const q = query.trim().toLowerCase();
 
   const filtered = q
@@ -340,8 +342,9 @@ function InsertPanel({
       )
     : actions;
 
-  const groups = INSERT_GROUP_ORDER.map((g) => ({
+  const groups = SLASH_GROUP_ORDER.map((g) => ({
     group: g,
+    label: getSlashGroupLabel(g, t),
     items: filtered.filter((a) => a.group === g),
   })).filter((g) => g.items.length > 0);
 
@@ -353,7 +356,7 @@ function InsertPanel({
           autoFocus
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="搜索要插入的内容"
+          placeholder={t("slash.searchPlaceholder")}
           className="tk-insert-search-input"
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -368,11 +371,11 @@ function InsertPanel({
       </div>
       <div className="tk-insert-body">
         {groups.length === 0 && (
-          <div className="tk-insert-empty">没有匹配的内容</div>
+          <div className="tk-insert-empty">{t("slash.insertEmpty")}</div>
         )}
-        {groups.map(({ group, items }) => (
+        {groups.map(({ group, label, items }) => (
           <div key={group} className="tk-insert-group">
-            <div className="tk-insert-group-title">{group}</div>
+            <div className="tk-insert-group-title">{label}</div>
             <div className="tk-insert-grid">
               {items.map((item) => {
                 const Icon = INSERT_ICONS[item.icon];
@@ -381,7 +384,7 @@ function InsertPanel({
                     key={item.id}
                     type="button"
                     disabled={!item.available}
-                    title={item.description}
+                    title={item.label}
                     className="tk-insert-card"
                     onClick={() => {
                       if (!item.available) return;

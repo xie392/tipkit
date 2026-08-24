@@ -14,6 +14,7 @@ import {
   selectionCell,
 } from "@tiptap/pm/tables";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@tipkit/components";
+import { useT, type Translate } from "@tipkit/core";
 
 const PICKER_COLS = 8;
 const PICKER_ROWS = 6;
@@ -66,10 +67,14 @@ function TbDivider() {
 export function TablePicker({
   editor,
   onInsert,
+  t,
 }: {
   editor: Editor;
   onInsert?: () => void;
+  t?: Translate;
 }) {
+  const ctxT = useT();
+  const tr = t ?? ctxT;
   const [, force] = useState(0);
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState<{ cols: number; rows: number }>({ cols: 0, rows: 0 });
@@ -150,7 +155,7 @@ export function TablePicker({
           </button>
         </TooltipTrigger>
         <TooltipContent side="bottom">
-          {disabled ? "表格内不可插入表格" : "插入表格"}
+          {disabled ? tr("table.cantInsertInTable") : tr("table.insertTable")}
         </TooltipContent>
       </Tooltip>
       {open && createPortal(
@@ -185,7 +190,7 @@ export function TablePicker({
             )}
           </div>
           <div className="tk-table-picker-label">
-            {hover.cols > 0 ? `${hover.cols} × ${hover.rows}` : "拖动选择行列"}
+            {hover.cols > 0 ? `${hover.cols} × ${hover.rows}` : tr("table.dragToSelect")}
           </div>
         </div>,
         document.body,
@@ -279,7 +284,7 @@ function resetColumnWidths(editor: Editor) {
 function useEditorTick(editor: Editor) {
   const [, setTick] = useState(0);
   useEffect(() => {
-    const onUpdate = () => setTick((t) => t + 1);
+    const onUpdate = () => setTick((n) => n + 1);
     editor.on("selectionUpdate", onUpdate);
     editor.on("update", onUpdate);
     return () => {
@@ -405,6 +410,7 @@ function IconAutofit() {
 }
 
 export function TableBubbleToolbar({ editor }: { editor: Editor }) {
+  const t = useT();
   const whole = useRef(false);
   useEditorTick(editor);
 
@@ -423,35 +429,35 @@ export function TableBubbleToolbar({ editor }: { editor: Editor }) {
       updateDelay={50}
     >
       <div className="tk-table-toolbar">
-        <TbBtn title="合并单元格" onClick={() => editor.chain().focus().mergeCells().run()}>
+        <TbBtn title={t("table.mergeCells")} onClick={() => editor.chain().focus().mergeCells().run()}>
           <IconMerge />
         </TbBtn>
-        <TbBtn title="拆分单元格" onClick={() => editor.chain().focus().splitCell().run()}>
+        <TbBtn title={t("table.splitCells")} onClick={() => editor.chain().focus().splitCell().run()}>
           <IconSplit />
         </TbBtn>
         <TbDivider />
-        <TbBtn title="左侧插入列" onClick={() => editor.chain().focus().addColumnBefore().run()}>
+        <TbBtn title={t("table.insertColBefore")} onClick={() => editor.chain().focus().addColumnBefore().run()}>
           <IconColBefore />
         </TbBtn>
-        <TbBtn title="右侧插入列" onClick={() => editor.chain().focus().addColumnAfter().run()}>
+        <TbBtn title={t("table.insertColAfter")} onClick={() => editor.chain().focus().addColumnAfter().run()}>
           <IconColAfter />
         </TbBtn>
-        <TbBtn title="上方插入行" onClick={() => editor.chain().focus().addRowBefore().run()}>
+        <TbBtn title={t("table.insertRowBefore")} onClick={() => editor.chain().focus().addRowBefore().run()}>
           <IconRowBefore />
         </TbBtn>
-        <TbBtn title="下方插入行" onClick={() => editor.chain().focus().addRowAfter().run()}>
+        <TbBtn title={t("table.insertRowAfter")} onClick={() => editor.chain().focus().addRowAfter().run()}>
           <IconRowAfter />
         </TbBtn>
         <TbDivider />
         <TbBtn
-          title="切换表头行"
+          title={t("table.toggleHeaderRow")}
           active={isHeaderRowActive(editor.state)}
           onClick={() => editor.chain().focus().toggleHeaderRow().run()}
         >
           <IconHeader />
         </TbBtn>
         <TbBtn
-          title="切换表头列"
+          title={t("table.toggleHeaderCol")}
           active={isHeaderColumnActive(editor.state)}
           onClick={() => editor.chain().focus().toggleHeaderColumn().run()}
         >
@@ -459,31 +465,31 @@ export function TableBubbleToolbar({ editor }: { editor: Editor }) {
         </TbBtn>
         <TbDivider />
         <TbBtn
-          title="左对齐"
+          title={t("table.alignLeft")}
           active={align === "left"}
           onClick={() => editor.chain().focus().setCellAttribute("align", "left").run()}
         >
           <IconAlignLeft />
         </TbBtn>
         <TbBtn
-          title="居中对齐"
+          title={t("table.alignCenter")}
           active={align === "center"}
           onClick={() => editor.chain().focus().setCellAttribute("align", "center").run()}
         >
           <IconAlignCenter />
         </TbBtn>
         <TbBtn
-          title="右对齐"
+          title={t("table.alignRight")}
           active={align === "right"}
           onClick={() => editor.chain().focus().setCellAttribute("align", "right").run()}
         >
           <IconAlignRight />
         </TbBtn>
-        <TbBtn title="重置列宽" onClick={() => resetColumnWidths(editor)}>
+        <TbBtn title={t("table.resetWidth")} onClick={() => resetColumnWidths(editor)}>
           <IconAutofit />
         </TbBtn>
         <TbDivider />
-        <TbBtn title="删除表格" onClick={() => editor.chain().focus().deleteTable().run()}>
+        <TbBtn title={t("table.deleteTable")} onClick={() => editor.chain().focus().deleteTable().run()}>
           <IconTrash />
         </TbBtn>
       </div>
@@ -502,6 +508,7 @@ interface MenuItem {
 }
 
 export function TableContextMenu({ editor }: { editor: Editor }) {
+  const t = useT();
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [adjusted, setAdjusted] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -565,26 +572,26 @@ export function TableContextMenu({ editor }: { editor: Editor }) {
   if (!pos || !adjusted) return null;
 
   const items: MenuItem[] = [
-    { key: "merge", label: "合并单元格", run: () => editor.chain().focus().mergeCells().run() },
-    { key: "split", label: "拆分单元格", run: () => editor.chain().focus().splitCell().run() },
+    { key: "merge", label: t("table.mergeCells"), run: () => editor.chain().focus().mergeCells().run() },
+    { key: "split", label: t("table.splitCells"), run: () => editor.chain().focus().splitCell().run() },
     { key: "sep1", label: "", run: () => {}, divider: true },
-    { key: "colBefore", label: "左侧插入列", run: () => editor.chain().focus().addColumnBefore().run() },
-    { key: "colAfter", label: "右侧插入列", run: () => editor.chain().focus().addColumnAfter().run() },
-    { key: "colDel", label: "删除列", run: () => editor.chain().focus().deleteColumn().run() },
-    { key: "rowBefore", label: "上方插入行", run: () => editor.chain().focus().addRowBefore().run() },
-    { key: "rowAfter", label: "下方插入行", run: () => editor.chain().focus().addRowAfter().run() },
-    { key: "rowDel", label: "删除行", run: () => editor.chain().focus().deleteRow().run() },
+    { key: "colBefore", label: t("table.insertColBefore"), run: () => editor.chain().focus().addColumnBefore().run() },
+    { key: "colAfter", label: t("table.insertColAfter"), run: () => editor.chain().focus().addColumnAfter().run() },
+    { key: "colDel", label: t("table.deleteCol"), run: () => editor.chain().focus().deleteColumn().run() },
+    { key: "rowBefore", label: t("table.insertRowBefore"), run: () => editor.chain().focus().addRowBefore().run() },
+    { key: "rowAfter", label: t("table.insertRowAfter"), run: () => editor.chain().focus().addRowAfter().run() },
+    { key: "rowDel", label: t("table.deleteRow"), run: () => editor.chain().focus().deleteRow().run() },
     { key: "sep2", label: "", run: () => {}, divider: true },
-    { key: "alignLeft", label: "左对齐", run: () => editor.chain().focus().setCellAttribute("align", "left").run() },
-    { key: "alignCenter", label: "居中对齐", run: () => editor.chain().focus().setCellAttribute("align", "center").run() },
-    { key: "alignRight", label: "右对齐", run: () => editor.chain().focus().setCellAttribute("align", "right").run() },
-    { key: "autofit", label: "重置列宽", run: () => resetColumnWidths(editor) },
+    { key: "alignLeft", label: t("table.alignLeft"), run: () => editor.chain().focus().setCellAttribute("align", "left").run() },
+    { key: "alignCenter", label: t("table.alignCenter"), run: () => editor.chain().focus().setCellAttribute("align", "center").run() },
+    { key: "alignRight", label: t("table.alignRight"), run: () => editor.chain().focus().setCellAttribute("align", "right").run() },
+    { key: "autofit", label: t("table.resetWidth"), run: () => resetColumnWidths(editor) },
     { key: "sep3", label: "", run: () => {}, divider: true },
-    { key: "headerRow", label: "切换表头行", run: () => editor.chain().focus().toggleHeaderRow().run() },
-    { key: "headerCol", label: "切换表头列", run: () => editor.chain().focus().toggleHeaderColumn().run() },
-    { key: "headerCell", label: "切换表头单元格", run: () => editor.chain().focus().toggleHeaderCell().run() },
+    { key: "headerRow", label: t("table.toggleHeaderRow"), run: () => editor.chain().focus().toggleHeaderRow().run() },
+    { key: "headerCol", label: t("table.toggleHeaderCol"), run: () => editor.chain().focus().toggleHeaderColumn().run() },
+    { key: "headerCell", label: t("table.toggleHeaderCell"), run: () => editor.chain().focus().toggleHeaderCell().run() },
     { key: "sep4", label: "", run: () => {}, divider: true },
-    { key: "del", label: "删除表格", run: () => editor.chain().focus().deleteTable().run(), danger: true },
+    { key: "del", label: t("table.deleteTable"), run: () => editor.chain().focus().deleteTable().run(), danger: true },
   ];
 
   const close = () => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useT } from "@tipkit/core";
 import type { BlockActionProps } from "./types";
 import { IconUpload, IconDownload, IconEdit } from "./icons";
 import { ActionButton } from "./shared";
@@ -15,6 +16,7 @@ import {
 } from "@tipkit/components";
 
 export function AttachmentActions({ node, updateAttributes }: BlockActionProps) {
+  const t = useT();
   const attrs = node.attrs as {
     fileName: string | null;
     url: string | null;
@@ -72,24 +74,24 @@ export function AttachmentActions({ node, updateAttributes }: BlockActionProps) 
 
   return (
     <>
-      <ActionButton icon={<IconUpload />} label="重新上传" onClick={reupload} />
-      <ActionButton icon={<IconDownload />} label="下载" onClick={download} />
-      <ActionButton icon={<IconEdit />} label="重命名" onClick={openRename} />
+      <ActionButton icon={<IconUpload />} label={t("attachment.reupload")} onClick={reupload} />
+      <ActionButton icon={<IconDownload />} label={t("attachment.download")} onClick={download} />
+      <ActionButton icon={<IconEdit />} label={t("attachment.rename")} onClick={openRename} />
       <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
         <DialogContent className="tk-rename-dialog tk-max-w-sm">
           <DialogHeader>
-            <DialogTitle>重命名</DialogTitle>
+            <DialogTitle>{t("attachment.renameTitle")}</DialogTitle>
           </DialogHeader>
           <div className="tk-rename-dialog-body">
             <div className="tk-rename-field">
               <label htmlFor="tk-rename-input" className="tk-rename-label">
-                文件名（不含扩展名）
+                {t("attachment.renameLabel")}
               </label>
               <Input
                 id="tk-rename-input"
                 value={nameValue}
                 onChange={(e) => setNameValue(e.target.value)}
-                placeholder="请输入文件名"
+                placeholder={t("attachment.renamePlaceholder")}
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -102,10 +104,10 @@ export function AttachmentActions({ node, updateAttributes }: BlockActionProps) 
           </div>
           <DialogFooter className="tk-rename-dialog-footer">
             <Button type="button" variant="ghost" onClick={() => setRenameOpen(false)}>
-              取消
+              {t("attachment.renameCancel")}
             </Button>
             <Button type="button" onClick={confirmRename}>
-              确定
+              {t("attachment.renameConfirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

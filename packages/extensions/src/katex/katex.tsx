@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { mergeAttributes, Node, nodeInputRule } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
+import { useT } from "@tipkit/core";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 
@@ -88,6 +89,7 @@ function KatexView(props: NodeViewProps) {
   const attrs = node.attrs as KatexAttrs;
   const text = attrs.text ?? "";
   const isEditable = editor.isEditable;
+  const t = useT();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(text);
 
@@ -100,9 +102,9 @@ function KatexView(props: NodeViewProps) {
         output: "html",
       });
     } catch {
-      return `<span style="color:#dc2626">公式渲染失败：${text}</span>`;
+      return `<span style="color:#dc2626">${t("katex.renderError")}${text}</span>`;
     }
-  }, [text]);
+  }, [text, t]);
 
   const openEditor = () => {
     setDraft(text);
@@ -129,7 +131,7 @@ function KatexView(props: NodeViewProps) {
               if (e.key === "Escape") setEditing(false);
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) commit();
             }}
-            placeholder="输入 LaTeX 公式，如 \frac{1}{2} 或 e^{i\pi}+1=0"
+            placeholder={t("katex.placeholder")}
             className="tk-katex-textarea"
             rows={3}
           />
@@ -140,7 +142,7 @@ function KatexView(props: NodeViewProps) {
               onClick={() => setEditing(false)}
               className="tk-katex-btn"
             >
-              取消
+              {t("katex.cancel")}
             </button>
             <button
               type="button"
@@ -148,7 +150,7 @@ function KatexView(props: NodeViewProps) {
               onClick={commit}
               className="tk-katex-btn tk-katex-btn-primary"
             >
-              保存 (⌘↵)
+              {t("katex.save")}
             </button>
           </div>
         </div>
@@ -163,7 +165,7 @@ function KatexView(props: NodeViewProps) {
               onClick={openEditor}
               className="tk-katex-placeholder"
             >
-              + 输入数学公式
+              {t("katex.emptyPlaceholder")}
             </button>
           )}
         </div>

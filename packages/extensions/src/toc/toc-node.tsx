@@ -3,6 +3,7 @@
 import { Node } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { useEffect, useState } from "react";
+import { useT } from "@tipkit/core";
 
 /* 目录节点（迁移自 blog rich-text/ext/toc-node.tsx）：
  * 插入后自动扫描文档 heading 并渲染列表，点击跳转。 */
@@ -40,6 +41,7 @@ function collectHeadings(doc: NodeViewProps["editor"]["state"]["doc"]): HeadingI
 
 function TocView(props: NodeViewProps) {
   const { editor, extension } = props;
+  const t = useT();
   const scrollOffset = (extension.options.scrollOffset ?? 0) as number;
   const [items, setItems] = useState<HeadingInfo[]>([]);
 
@@ -67,9 +69,9 @@ function TocView(props: NodeViewProps) {
   return (
     <NodeViewWrapper>
       <div className="tk-toc" contentEditable={false}>
-        <div className="tk-toc-title">▍本页目录</div>
+        <div className="tk-toc-title">{t("toc.title")}</div>
         {items.length === 0 ? (
-          <div className="tk-toc-empty">还没有标题，添加标题后这里会自动生成目录。</div>
+          <div className="tk-toc-empty">{t("toc.empty")}</div>
         ) : (
           <ul className="tk-toc-list">
             {items.map((item) => (

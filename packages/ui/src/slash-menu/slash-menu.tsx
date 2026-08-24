@@ -10,6 +10,7 @@ import {
   type InsertAction,
   type SlashCommandState,
 } from "@tipkit/extensions";
+import { useT } from "@tipkit/core";
 import { openLinkDialog } from "../bubble-menu/link-dialog";
 
 export interface SlashMenuProps {
@@ -33,6 +34,7 @@ const MENU_MAX_HEIGHT = 340;
 const OFFSET = 8;
 
 export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProps) {
+  const t = useT();
   const [slash, setSlash] = useState<SlashCommandState>(INACTIVE);
   const [activeIndex, setActiveIndex] = useState(0);
   const [hiddenKey, setHiddenKey] = useState("");
@@ -51,9 +53,10 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
             openImagePicker: onUploadImage ? () => fileRef.current?.click() : undefined,
             openLinkDialog,
             clearSlashQuery: true,
+            t,
           })
         : [],
-    [editor, onUploadImage, slash.key, slash.active],
+    [editor, onUploadImage, slash.key, slash.active, t],
   );
   const actions = useMemo(
     () => filterInsertActions(allActions, slash.query),
@@ -227,7 +230,7 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
       role="menu"
     >
       <div ref={listRef} className="tk-slash-menu-list">
-        {actions.length === 0 && <div className="tk-slash-menu-empty">没有匹配的命令</div>}
+        {actions.length === 0 && <div className="tk-slash-menu-empty">{t("slash.noMatch")}</div>}
         {actions.map((item, idx) => (
           <SlashItem
             key={item.id}
@@ -240,7 +243,7 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
         ))}
       </div>
       <div className="tk-slash-menu-footer">
-        <span>关闭菜单</span>
+        <span>{t("slash.closeMenu")}</span>
         <kbd>esc</kbd>
       </div>
     </div>

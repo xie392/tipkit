@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
+import { ImagePreview } from "@tipkit/extensions";
+import { useT } from "@tipkit/core";
 import type { BlockActionProps } from "./types";
 import {
   IconAlignLeft,
@@ -24,34 +25,8 @@ const WIDTH_OPTIONS = [
 
 type Align = "left" | "center" | "right";
 
-function PreviewOverlay({ src, alt, onClose }: { src: string; alt?: string; onClose: () => void }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
-
-  return createPortal(
-    <div className="tk-image-preview-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={alt ?? ""}
-        className="tk-image-preview-img"
-        onMouseDown={(e) => e.stopPropagation()}
-      />
-    </div>,
-    document.body,
-  );
-}
-
 export function ImageBlockActions({ node, updateAttributes }: BlockActionProps) {
+  const t = useT();
   const attrs = node.attrs as {
     width: string;
     align: Align;
@@ -84,7 +59,7 @@ export function ImageBlockActions({ node, updateAttributes }: BlockActionProps) 
   };
 
   const editLink = () => {
-    const url = window.prompt("输入图片链接", attrs.src || "");
+    const url = window.prompt(t("image.linkPrompt"), attrs.src || "");
     if (url != null) {
       updateAttributes({ src: url.trim() });
     }
@@ -96,7 +71,7 @@ export function ImageBlockActions({ node, updateAttributes }: BlockActionProps) 
 
   return (
     <>
-      <ActionDropdown icon={<IconWidth />} label="宽度">
+      <ActionDropdown icon={<IconWidth />} label={t("image.width")}>
         {(close) =>
           WIDTH_OPTIONS.map((opt) => (
             <ActionMenuItem
@@ -115,35 +90,35 @@ export function ImageBlockActions({ node, updateAttributes }: BlockActionProps) 
 
       <ActionButton
         icon={<IconAlignLeft />}
-        label="左对齐"
+        label={t("image.alignLeft")}
         active={align === "left"}
         onClick={() => setAlign("left")}
       />
       <ActionButton
         icon={<IconAlignCenter />}
-        label="居中"
+        label={t("image.alignCenter")}
         active={align === "center"}
         onClick={() => setAlign("center")}
       />
       <ActionButton
         icon={<IconAlignRight />}
-        label="右对齐"
+        label={t("image.alignRight")}
         active={align === "right"}
         onClick={() => setAlign("right")}
       />
 
-      <ActionButton icon={<IconImage />} label="替换图片" onClick={replaceImage} />
-      <ActionButton icon={<IconLink />} label="图片链接" onClick={editLink} />
+      <ActionButton icon={<IconImage />} label={t("image.replace")} onClick={replaceImage} />
+      <ActionButton icon={<IconLink />} label={t("image.editLink")} onClick={editLink} />
       <ActionButton
         icon={<IconCaption />}
-        label={attrs.caption != null ? "移除说明" : "添加说明"}
+        label={attrs.caption != null ? t("image.removeCaption") : t("image.addCaption")}
         active={attrs.caption != null}
         onClick={toggleCaption}
       />
-      <ActionButton icon={<IconZoomIn />} label="预览图片" onClick={() => setPreview(true)} />
+      <ActionButton icon={<IconZoomIn />} label={t("image.preview")} onClick={() => setPreview(true)} />
 
       {preview && (
-        <PreviewOverlay src={attrs.src} alt={attrs.alt} onClose={() => setPreview(false)} />
+        <ImagePreview src={attrs.src} alt={attrs.alt} onClose={() => setPreview(false)} />
       )}
     </>
   );

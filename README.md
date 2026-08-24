@@ -15,6 +15,10 @@
 
 ---
 
+[![TipKit 在线演示](apps/demo/public/screenshots/demo-mac.png)](https://tipkit-delta.vercel.app/demo)
+
+<p align="center"><a href="https://tipkit-delta.vercel.app/demo">👉 点击体验在线演示</a></p>
+
 ## 特性
 
 | 能力 | 说明 |
@@ -80,17 +84,12 @@ packages/editor/     # 聚合入口 <TipKitEditor>
 
 ```bash
 pnpm install                   # 安装依赖
-pnpm dev                       # 启动 demo（http://localhost:3000）
+pnpm dev                       # 启动 demo（http://localhost:4000）
 pnpm --filter @tipkit/demo dev # 只启动 demo
 pnpm type-check                # 全仓类型检查
 pnpm test                      # 全仓测试
 pnpm build                     # 全仓构建（demo 输出纯静态 out/）
 ```
-
-## 部署与发布
-
-- **官网 / 演示**：`apps/demo` 配置了 `output: "export"` 纯静态导出，`vercel.json` 已就绪，push 到 master 即可由 Vercel 自动部署
-- **npm 包**：`.github/workflows/publish.yml` 已配置，push `v*` tag 自动发布全部 `@tipkit/*` 包
 
 ## 文档
 

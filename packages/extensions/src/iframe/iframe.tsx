@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { mergeAttributes, Node, nodeInputRule } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
+import { useT } from "@tipkit/core";
 
 /* Iframe 嵌入（迁移自 blog rich-text/ext/iframe.tsx）。
  * 属性：url / width / height；空 url 显示输入卡片，有 url 渲染 iframe，可拖拽改高度。 */
@@ -150,6 +151,7 @@ function disableScrollAnchoring(): () => void {
 
 function IframeView(props: NodeViewProps) {
   const { editor, node, updateAttributes, selected } = props;
+  const t = useT();
   const attrs = node.attrs as IframeAttrs;
   const { url, width, height } = attrs;
   const isEditable = editor.isEditable;
@@ -282,20 +284,20 @@ function IframeView(props: NodeViewProps) {
         <>
           <span
             role="button"
-            aria-label="拖拽调整高度"
-            title="拖拽调整高度"
+            aria-label={t("iframeView.dragResize")}
+            title={t("iframeView.dragResize")}
             onPointerDown={onResizeDown}
             style={{ touchAction: "none" }}
             className="tk-iframe-handle"
           />
           <button
             type="button"
-            title="编辑链接"
+            title={t("iframeView.changeLink")}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => setEditing(true)}
             className="tk-iframe-edit"
           >
-            改链接
+            {t("iframeView.changeLink")}
           </button>
         </>
       )}

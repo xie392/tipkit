@@ -6,6 +6,7 @@ import type { Editor } from "@tiptap/react";
 import { useEditorState } from "@tiptap/react";
 import { NodeSelection, type EditorState } from "@tiptap/pm/state";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
+import { useT } from "@tipkit/core";
 import { ImageBlockActions } from "./block-actions/image-block-actions";
 import { IframeActions } from "./block-actions/iframe-actions";
 import { KatexActions } from "./block-actions/katex-actions";
@@ -86,6 +87,7 @@ function renderSpecificActions(
 }
 
 export function BlockBubbleMenu({ editor }: { editor: Editor | null }) {
+  const t = useT();
   const selected = useEditorState({
     editor,
     selector: ({ editor: ed }) => selectBlock(ed),
@@ -160,10 +162,10 @@ export function BlockBubbleMenu({ editor }: { editor: Editor | null }) {
           <span className="tk-block-bubble-divider" />
         </>
       )}
-      <BlockTooltip label="复制块">
+      <BlockTooltip label={t("block.duplicate")}>
         <button
           type="button"
-          title="复制块"
+          title={t("block.duplicate")}
           className="tk-block-bubble-btn"
           onMouseDown={(e) => e.preventDefault()}
           onClick={selected ? duplicate(selected.pos, selected.nodeSize) : undefined}
@@ -171,10 +173,10 @@ export function BlockBubbleMenu({ editor }: { editor: Editor | null }) {
           <IconDuplicate />
         </button>
       </BlockTooltip>
-      <BlockTooltip label="删除块">
+      <BlockTooltip label={t("block.delete")}>
         <button
           type="button"
-          title="删除块"
+          title={t("block.delete")}
           className="tk-block-bubble-btn is-danger"
           onMouseDown={(e) => e.preventDefault()}
           onClick={selected ? deleteNode(selected.pos, selected.nodeSize) : undefined}

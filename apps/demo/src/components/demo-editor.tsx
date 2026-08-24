@@ -1,10 +1,13 @@
 "use client";
 
+import { useMemo } from "react";
 import type { Editor } from "@tiptap/react";
 import { TipKitEditor } from "@tipkit/editor";
 import type { EditorDeps, IconRef } from "@tipkit/editor";
 import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensions";
 import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockBubbleMenu, BlockHandleMenu, TableControls } from "@tipkit/ui";
+import { useDemoLang } from "@/components/use-demo-lang";
+import type { DemoLang } from "@/components/site-lang-switch";
 import { TooltipProvider } from "@tipkit/components";
 import {
   Bold,
@@ -84,8 +87,10 @@ const iconMap: Record<IconRef, LucideIcon> = {
 /** demo 图片上传：本地 blob 预览（消费方替换为真实上传） */
 const uploadImage = async (file: File): Promise<string> => URL.createObjectURL(file);
 
-const demoDeps: EditorDeps = {
-  uploadImage,
+/** 占位符双语 */
+const PLACEHOLDER: Record<DemoLang, string> = {
+  zh: "输入 / 打开斜杠菜单，或直接粘贴 Markdown…",
+  en: "Type / to open the slash menu, or paste Markdown…",
 };
 
 /** 示例内容：展示常见格式（HTML 由 ProseMirror 解析） */
@@ -150,16 +155,19 @@ export function DemoEditor({
   /** 编辑器实例就绪后回传（供页面级工具栏使用） */
   onEditorReady?: (editor: Editor) => void;
 }) {
+  const { lang, t } = useDemoLang();
+  const deps = useMemo<EditorDeps>(() => ({ uploadImage, t }), [t]);
+
   return (
     <TipKitEditor
-      deps={demoDeps}
+      deps={deps}
       content={DEMO_CONTENT}
       onCreate={(editor) => onEditorReady?.(editor)}
       extensions={[
         ...createBasicExtensions(),
         ...createAdvancedExtensions({ tocScrollOffset: 120 }),
       ]}
-      placeholder={placeholder}
+      placeholder={placeholder ?? PLACEHOLDER[lang]}
       className="max-w-4xl mx-auto"
       onChange={(editor) => {
         // demo：输出 HTML 便于观察序列化结果

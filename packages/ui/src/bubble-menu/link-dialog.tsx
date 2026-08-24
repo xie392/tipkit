@@ -13,6 +13,7 @@ import {
   Button,
   Input,
 } from "@tipkit/components";
+import { useT } from "@tipkit/core";
 
 interface LinkDialogProps {
   editor: Editor | null;
@@ -21,6 +22,7 @@ interface LinkDialogProps {
 }
 
 export function LinkDialog({ editor, open, onOpenChange }: LinkDialogProps) {
+  const t = useT();
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
 
@@ -45,7 +47,7 @@ export function LinkDialog({ editor, open, onOpenChange }: LinkDialogProps) {
   const applyLink = () => {
     if (!editor) return;
     const href = url.trim();
-    const label = text.trim() || href || "链接";
+    const label = text.trim() || href || t("link.defaultText");
     const { from, to, empty } = editor.state.selection;
 
     if (!href) {
@@ -90,19 +92,19 @@ export function LinkDialog({ editor, open, onOpenChange }: LinkDialogProps) {
         <DialogHeader>
           <DialogTitle className="tk-dialog-title-row">
             <Link className="tk-icon-md tk-dialog-title-icon" />
-            编辑链接
+            {t("link.editTitle")}
           </DialogTitle>
         </DialogHeader>
         <div className="tk-link-dialog-body">
           <div className="tk-link-field">
             <label htmlFor="tk-link-text" className="tk-link-label">
-              显示文字
+              {t("link.textLabel")}
             </label>
             <Input
               id="tk-link-text"
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="链接上显示的文字"
+              placeholder={t("link.textPlaceholder")}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
@@ -113,7 +115,7 @@ export function LinkDialog({ editor, open, onOpenChange }: LinkDialogProps) {
           </div>
           <div className="tk-link-field">
             <label htmlFor="tk-link-url" className="tk-link-label">
-              链接地址
+              {t("link.urlLabel")}
             </label>
             <Input
               id="tk-link-url"
@@ -132,13 +134,13 @@ export function LinkDialog({ editor, open, onOpenChange }: LinkDialogProps) {
         </div>
         <DialogFooter className="tk-link-dialog-footer">
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-            取消
+            {t("link.cancel")}
           </Button>
           <Button type="button" variant="outline" onClick={removeLink}>
-            移除链接
+            {t("link.remove")}
           </Button>
           <Button type="button" onClick={applyLink}>
-            应用
+            {t("link.apply")}
           </Button>
         </DialogFooter>
       </DialogContent>

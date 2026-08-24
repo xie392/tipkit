@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { NodeSelection } from "@tiptap/pm/state";
 import { getActiveBlockPos } from "@tipkit/extensions";
+import { useT } from "@tipkit/core";
 import {
   IconCopy,
   IconScissors,
@@ -29,15 +30,15 @@ interface Anchor {
 const GAP = 8;
 
 const TURN_INTO_TARGETS = [
-  { id: "p", label: "正文" },
-  { id: "h1", label: "标题 1" },
-  { id: "h2", label: "标题 2" },
-  { id: "h3", label: "标题 3" },
-  { id: "bulletList", label: "无序列表" },
-  { id: "orderedList", label: "有序列表" },
-  { id: "taskList", label: "任务列表" },
-  { id: "blockquote", label: "引用" },
-  { id: "codeBlock", label: "代码块" },
+  { id: "p", labelKey: "blockHandle.turnInto.p" },
+  { id: "h1", labelKey: "blockHandle.turnInto.h1" },
+  { id: "h2", labelKey: "blockHandle.turnInto.h2" },
+  { id: "h3", labelKey: "blockHandle.turnInto.h3" },
+  { id: "bulletList", labelKey: "blockHandle.turnInto.bulletList" },
+  { id: "orderedList", labelKey: "blockHandle.turnInto.orderedList" },
+  { id: "taskList", labelKey: "blockHandle.turnInto.taskList" },
+  { id: "blockquote", labelKey: "blockHandle.turnInto.blockquote" },
+  { id: "codeBlock", labelKey: "blockHandle.turnInto.codeBlock" },
 ] as const;
 
 const TURN_INTO_TYPES = new Set([
@@ -51,9 +52,9 @@ const TURN_INTO_TYPES = new Set([
 ]);
 
 const LAYOUTS = [
-  { value: "two-column", label: "两栏等宽" },
-  { value: "sidebar-left", label: "左窄右宽" },
-  { value: "sidebar-right", label: "右窄左宽" },
+  { value: "two-column", labelKey: "blockHandle.layout.twoColumn" },
+  { value: "sidebar-left", labelKey: "blockHandle.layout.sidebarLeft" },
+  { value: "sidebar-right", labelKey: "blockHandle.layout.sidebarRight" },
 ];
 
 function readActive(editor: Editor | null): ActiveBlock | null {
@@ -67,6 +68,7 @@ function readActive(editor: Editor | null): ActiveBlock | null {
 }
 
 export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const [left, setLeft] = useState(0);
@@ -263,8 +265,8 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
       style={{ position: "fixed", left, top: anchor?.top ?? 0, zIndex: 60 }}
       onMouseDown={(e) => e.preventDefault()}
       onMouseOver={(e) => {
-        const t = e.target as HTMLElement;
-        if (!t.closest(".has-sub")) setSubmenu(null);
+        const target = e.target as HTMLElement;
+        if (!target.closest(".has-sub")) setSubmenu(null);
       }}
     >
       {showTurnInto && (
@@ -273,18 +275,18 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
           onMouseEnter={() => setSubmenu("turn")}
         >
           <span className="tk-block-popover-icon"><IconTransform /></span>
-          <span className="tk-block-popover-label">转化为</span>
+          <span className="tk-block-popover-label">{t("blockHandle.turnInto")}</span>
           <span className="tk-block-popover-arrow"><IconChevronRight /></span>
           {submenu === "turn" && (
             <div className="tk-block-popover-sub">
-              {TURN_INTO_TARGETS.map((t) => (
+              {TURN_INTO_TARGETS.map((item) => (
                 <button
-                  key={t.id}
+                  key={item.id}
                   type="button"
                   className="tk-block-popover-sub-item"
-                  onClick={runAndClose(() => turnInto(t.id))}
+                  onClick={runAndClose(() => turnInto(item.id))}
                 >
-                  {t.label}
+                  {t(item.labelKey)}
                 </button>
               ))}
             </div>
@@ -298,7 +300,7 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
           onMouseEnter={() => setSubmenu("layout")}
         >
           <span className="tk-block-popover-icon"><IconColumns /></span>
-          <span className="tk-block-popover-label">分栏布局</span>
+          <span className="tk-block-popover-label">{t("blockHandle.layout")}</span>
           <span className="tk-block-popover-arrow"><IconChevronRight /></span>
           {submenu === "layout" && (
             <div className="tk-block-popover-sub" style={{ minWidth: 140 }}>
@@ -311,7 +313,7 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
                   }`}
                   onClick={runAndClose(() => updateAttributes({ layout: l.value }))}
                 >
-                  {l.label}
+                  {t(l.labelKey)}
                 </button>
               ))}
             </div>
@@ -326,29 +328,29 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
           onClick={runAndClose(() => updateAttributes({ open: !node.attrs.open }))}
         >
           <span className="tk-block-popover-icon"><IconChevronRight /></span>
-          <span className="tk-block-popover-label">{node.attrs.open ? "折叠" : "展开"}</span>
+          <span className="tk-block-popover-label">{node.attrs.open ? t("blockHandle.collapse") : t("blockHandle.expand")}</span>
         </button>
       )}
 
       <button type="button" className="tk-block-popover-item is-danger" onClick={runAndClose(deleteNode)}>
         <span className="tk-block-popover-icon"><IconTrash /></span>
-        <span className="tk-block-popover-label">删除</span>
+        <span className="tk-block-popover-label">{t("blockHandle.delete")}</span>
       </button>
       <button type="button" className="tk-block-popover-item" onClick={runAndClose(duplicate)}>
         <span className="tk-block-popover-icon"><IconCopy /></span>
-        <span className="tk-block-popover-label">复制</span>
+        <span className="tk-block-popover-label">{t("blockHandle.duplicate")}</span>
       </button>
       <button type="button" className="tk-block-popover-item" onClick={runAndClose(copyNode)}>
         <span className="tk-block-popover-icon"><IconCopy /></span>
-        <span className="tk-block-popover-label">复制到剪贴板</span>
+        <span className="tk-block-popover-label">{t("blockHandle.copy")}</span>
       </button>
       <button type="button" className="tk-block-popover-item" onClick={runAndClose(cutNode)}>
         <span className="tk-block-popover-icon"><IconScissors /></span>
-        <span className="tk-block-popover-label">剪切</span>
+        <span className="tk-block-popover-label">{t("blockHandle.cut")}</span>
       </button>
       <button type="button" className="tk-block-popover-item" onClick={runAndClose(insertBelow)}>
         <span className="tk-block-popover-icon"><IconPlusBelow /></span>
-        <span className="tk-block-popover-label">在下方添加</span>
+        <span className="tk-block-popover-label">{t("blockHandle.insertBelow")}</span>
       </button>
     </div>
   );

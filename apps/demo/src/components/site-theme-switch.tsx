@@ -46,9 +46,11 @@ export function SiteThemeSwitch() {
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved && THEMES.some((t) => t.id === saved)) {
-      applyTheme(saved as ThemeId);
-    }
+    const initial = saved && THEMES.some((t) => t.id === saved) ? (saved as ThemeId) : "default";
+    setTheme(initial);
+    const root = document.documentElement;
+    root.classList.remove(...THEME_CLASSES);
+    root.classList.add(`tk-theme-${initial}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

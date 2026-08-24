@@ -1,0 +1,170 @@
+<h2 id="i18n">多语言（i18n）</h2>
+
+<p>TipKit 内置轻量 i18n：默认中文，开箱即用；接入方通过 <code>EditorDeps.t</code> 注入翻译函数即可切换语言、覆盖文案或新增语言。编辑器内所有用户可见文案（工具栏、斜杠菜单、浮层、KaTeX、表格控制、代码块、附件、提示框等）均走 <code>t()</code>，无硬编码。</p>
+
+<h3 id="i18n-overview">设计概览</h3>
+
+<ul>
+  <li><strong>零依赖</strong>：不引入 i18next / react-intl，仅一个 <code>createT(messages)</code> 工具 + <code>Record&lt;string, string&gt;</code> 词典。</li>
+  <li><strong>依赖注入</strong>：翻译函数通过 <code>EditorDeps.t</code> 注入，编辑器内扩展通过 <code>useT()</code> 读取，<strong>不</strong>直接读全局变量。</li>
+  <li><strong>默认兜底</strong>：未注入 <code>t</code> 时返回内置中文词典（<code>zh</code>），保证开箱即用不报错。</li>
+  <li><strong>类型安全</strong>：<code>Messages = Record&lt;string, string&gt;</code>，可用 <code>Partial&lt;Messages&gt;</code> 描述部分覆盖。</li>
+</ul>
+
+<h3 id="i18n-default">默认行为（不配置）</h3>
+
+<p>不传 <code>t</code> 时，编辑器使用内置中文：</p>
+
+```tsx
+import { TipKitEditor } from "@tipkit/editor";
+
+<TipKitEditor deps={{ uploadImage }} />
+```
+
+<h3 id="i18n-builtin">切换内置语言（中文 / English）</h3>
+
+<p><code>@tipkit/core</code> 导出 <code>zh</code> 与 <code>en</code> 两套词典，用 <code>createT</code> 包装成 <code>Translate</code> 函数注入：</p>
+
+```tsx
+import { useMemo, useState } from "react";
+import { TipKitEditor } from "@tipkit/editor";
+import type { EditorDeps } from "@tipkit/editor";
+import { createT, en, zh, type Translate } from "@tipkit/core";
+
+function App() {
+  const [lang, setLang] = useState<"zh" | "en">("zh");
+  const t = useMemo<Translate>(
+    () => createT(lang === "en" ? en : zh),
+    [lang],
+  );
+  const deps = useMemo<EditorDeps>(() => ({ t }), [t]);
+
+  return (
+    <>
+      <button onClick={() => setLang("zh")}>中文</button>
+      <button onClick={() => setLang("en")}>English</button>
+      <TipKitEditor deps={deps} />
+    </>
+  );
+}
+```
+
+<p>切换 <code>lang</code> 后，<code>deps.t</code> 引用变化 → <code>EditorProvider</code> 重新合并 deps → 所有 <code>useT()</code> 消费者（斜杠菜单、浮层、NodeView 等）自动重渲染，编辑器实例与内容保持不变。</p>
+
+<h3 id="i18n-override">覆盖部分文案</h3>
+
+<p>用对象展开合并内置词典，只改需要的 key：</p>
+
+```tsx
+import { createT, zh } from "@tipkit/core";
+
+const myZh = {
+  ...zh,
+  "toolbar.undo": "撤销操作",
+  "slash.searchPlaceholder": "搜索内容…",
+};
+
+const deps = { t: createT(myZh) };
+```
+
+<h3 id="i18n-new-lang">新增语言</h3>
+
+<p>以内置 <code>zh</code> 为基准补齐缺失 key，避免遗漏：</p>
+
+```tsx
+import { createT, zh, type Messages } from "@tipkit/core";
+
+const ja: Messages = {
+  ...zh, // 兜底：未翻译的 key 回退到中文（可改为英文 en）
+  "toolbar.undo": "元に戻す",
+  "toolbar.redo": "やり直し",
+  "toolbar.bold": "太字",
+  // … 其余 key 按需翻译
+};
+
+const deps = { t: createT(ja) };
+```
+
+<blockquote>
+  <p><strong>提示</strong>：缺 key 时 <code>t()</code> 原样返回 key 本身（如 <code>t("toolbar.image")</code> 缺失时返回 <code>"toolbar.image"</code>），不会抛错。建议上线前对照 <code>packages/core/src/i18n/zh.ts</code> 补齐。</p>
+</blockquote>
+
+<h3 id="i18n-toolbar">工具栏接入</h3>
+
+<p><code>buildToolbarGroups(editor, t)</code> 接受可选 <code>t</code>，传入后工具栏分组数据中的 label / prompt 全部本地化。在 EditorProvider 内部调用时可直接用 <code>useT()</code>：</p>
+
+```tsx
+import { useT } from "@tipkit/core";
+import { TipKitEditor, buildToolbarGroups } from "@tipkit/editor";
+
+<TipKitEditor deps={deps}>
+  {(editor) => {
+    // children 在 EditorProvider 内，可直接用 hook
+    return <ToolbarInner groups={buildToolbarGroups(editor, useT())} />;
+  }}
+</TipKitEditor>
+```
+
+<p>若工具栏渲染在 EditorProvider 外部（如页面级 sticky 工具条），需要自行从外部维护 <code>lang</code> 并把 <code>t</code> 传给 <code>buildToolbarGroups</code>，demo 中的 <code>apps/demo/src/components/editor-toolbar.tsx</code> 即此模式（通过 <code>useDemoLang()</code> 监听语言切换）。</p>
+
+<h3 id="i18n-extensions">扩展内部使用 useT()</h3>
+
+<p>自定义扩展的 React NodeView 内可直接调用 <code>useT()</code>（前提是组件树位于 <code>EditorProvider</code> 内，<code>EditorContent</code> 默认满足）：</p>
+
+```tsx
+import { useT } from "@tipkit/core";
+
+function MyNodeView() {
+  const t = useT();
+  return <button>{t("myExtension.action")}</button>;
+}
+```
+
+<h3 id="i18n-api">API 参考</h3>
+
+<table>
+  <thead>
+    <tr><th>导出</th><th>来源</th><th>说明</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>createT(messages)</code></td><td><code>@tipkit/core</code></td><td>由词典构造 <code>Translate</code> 函数，缺 key 时返回 key 本身</td></tr>
+    <tr><td><code>zh</code></td><td><code>@tipkit/core</code></td><td>内置中文词典（默认）</td></tr>
+    <tr><td><code>en</code></td><td><code>@tipkit/core</code></td><td>内置英文词典</td></tr>
+    <tr><td><code>type Messages</code></td><td><code>@tipkit/core</code></td><td><code>Record&lt;string, string&gt;</code>，词典类型</td></tr>
+    <tr><td><code>type Translate</code></td><td><code>@tipkit/core</code></td><td><code>(key: string) =&gt; string</code>，翻译函数类型</td></tr>
+    <tr><td><code>EditorDeps.t?</code></td><td><code>@tipkit/editor</code></td><td>注入翻译函数；不传走默认中文</td></tr>
+    <tr><td><code>useT()</code></td><td><code>@tipkit/core</code></td><td>读取当前 <code>t</code>（React hook，需在 Provider 内）</td></tr>
+  </tbody>
+</table>
+
+<h3 id="i18n-keys">词典 key 命名约定</h3>
+
+<p>key 按模块分段，点号分隔，便于查找与覆盖：</p>
+
+<ul>
+  <li><code>toolbar.&#42;</code> —— 顶部工具栏（撤销/重做/加粗/列表/对齐…）</li>
+  <li><code>slash.&#42;</code> —— 斜杠菜单（命令 label/description/previewTitle、分组标题、搜索占位）</li>
+  <li><code>link.&#42;</code> / <code>text.&#42;</code> / <code>block.&#42;</code> / <code>blockHandle.&#42;</code> —— 浮层与块手柄菜单</li>
+  <li><code>image.&#42;</code> / <code>imagePreview.&#42;</code> —— 图片块操作与图片预览</li>
+  <li><code>iframe.&#42;</code> / <code>iframeView.&#42;</code> —— 嵌入网页</li>
+  <li><code>katex.&#42;</code> —— 数学公式</li>
+  <li><code>attachment.&#42;</code> / <code>attachmentView.&#42;</code> —— 附件</li>
+  <li><code>columns.&#42;</code> / <code>details.&#42;</code> / <code>callout.&#42;</code> / <code>codeBlock.&#42;</code> / <code>toc.&#42;</code> / <code>table.&#42;</code> —— 各高级节点</li>
+  <li><code>placeholder.default</code> —— 编辑器默认占位符</li>
+</ul>
+
+<p>完整 key 列表见仓库内 <code>packages/core/src/i18n/zh.ts</code>（内置中文词典，作为 key 名义的 source of truth）。</p>
+
+<h3 id="i18n-demo">在线演示</h3>
+
+<p>demo 站点（<code>/docs</code> → 在线演示）右上角导航栏内置语言切换按钮（与主题切换并列）。点击可在 中文 / English 之间切换，立即生效：</p>
+
+<ul>
+  <li>斜杠菜单命令名 / 分组标题 / 搜索占位符</li>
+  <li>顶部工具栏按钮 tooltip 与 aria-label</li>
+  <li>文字浮层、块手柄菜单、链接对话框</li>
+  <li>KaTeX 编辑器、表格控制、代码块、附件、提示框</li>
+  <li>编辑器占位符</li>
+</ul>
+
+<p>选择会持久化到 <code>localStorage</code>，刷新后保持。实现参考 <code>apps/demo/src/components/site-lang-switch.tsx</code> 与 <code>apps/demo/src/components/use-demo-lang.ts</code>。</p>

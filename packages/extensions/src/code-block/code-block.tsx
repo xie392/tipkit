@@ -5,6 +5,7 @@ import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { createLowlight, common } from "lowlight";
 import type { NodeViewProps } from "@tiptap/react";
 import { useEffect, useRef, useState } from "react";
+import { useT } from "@tipkit/core";
 
 const lowlight = createLowlight(common);
 
@@ -16,7 +17,7 @@ export interface CodeLanguage {
 }
 
 export const CODE_LANGUAGES: CodeLanguage[] = [
-  { value: null, label: "纯文本" },
+  { value: null, label: "" },
   { value: "javascript", label: "JavaScript" },
   { value: "typescript", label: "TypeScript" },
   { value: "python", label: "Python" },
@@ -39,7 +40,7 @@ export const CODE_LANGUAGES: CodeLanguage[] = [
   { value: "yaml", label: "YAML" },
   { value: "markdown", label: "Markdown" },
   { value: "bash", label: "Bash / Shell" },
-  { value: "shell", label: "Shell 会话" },
+  { value: "shell", label: "" },
   { value: "graphql", label: "GraphQL" },
   { value: "ini", label: "INI / TOML" },
   { value: "makefile", label: "Makefile" },
@@ -176,6 +177,7 @@ function IconTrash() {
 
 function CodeBlockView(props: NodeViewProps) {
   const { node, updateAttributes, deleteNode, editor } = props;
+  const t = useT();
   const language = (node.attrs.language as string | null) ?? null;
   const dark = (node.attrs.theme as CodeBlockTheme) === "dark";
 
@@ -282,7 +284,7 @@ function CodeBlockView(props: NodeViewProps) {
             type="button"
             className="tk-code-block-action-btn"
             onClick={copyCode}
-            title="复制代码"
+            title={t("codeBlock.copy")}
           >
             {copied ? <IconCheck /> : <IconCopy />}
           </button>
@@ -291,7 +293,7 @@ function CodeBlockView(props: NodeViewProps) {
               type="button"
               className="tk-code-block-action-btn tk-code-block-action-danger"
               onClick={() => deleteNode()}
-              title="删除代码块"
+              title={t("codeBlock.delete")}
             >
               <IconTrash />
             </button>

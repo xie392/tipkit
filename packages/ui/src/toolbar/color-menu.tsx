@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, Tooltip, TooltipContent, TooltipTrigger } from "@tipkit/components";
 import { Highlighter, Palette } from "lucide-react";
+import { useT, type Translate } from "@tipkit/core";
 import { ToolbarBtn } from "./toolbar-button";
 
 /* 颜色菜单（迁移自 blog color-menu.tsx）：
@@ -87,7 +88,9 @@ function Swatch({ color, active, onClick, title }: { color: string; active?: boo
   );
 }
 
-export function ColorMenu({ editor, mode }: ColorMenuProps) {
+export function ColorMenu({ editor, mode, t }: ColorMenuProps & { t?: Translate }) {
+  const ctxT = useT();
+  const tr = t ?? ctxT;
   const isText = mode === "text";
   const [open, setOpen] = useState(false);
   const [recent, setRecent] = useState<string[]>(() => loadRecent(mode));
@@ -131,7 +134,7 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
             </ToolbarBtn>
           </DropdownMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent side="bottom">{isText ? "文字颜色" : "高亮颜色"}</TooltipContent>
+        <TooltipContent side="bottom">{isText ? tr("toolbar.textColor") : tr("toolbar.highlightColor")}</TooltipContent>
       </Tooltip>
       <DropdownMenuContent align="start" className="tk-w-56 tk-p-2">
         {/* 灰阶 */}
@@ -165,7 +168,7 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
         {/* 最近使用 */}
         {recent.length > 0 && (
           <div className="tk-mt-2 tk-border-t tk-border-border tk-pt-2">
-            <div className="tk-mb-1 tk-text-11px tk-opacity-50">最近使用</div>
+            <div className="tk-mb-1 tk-text-11px tk-opacity-50">{tr("toolbar.recentColors")}</div>
             <div className="tk-flex tk-flex-wrap tk-gap-0-5">
               {recent.map((color) => (
                 <Swatch
@@ -197,7 +200,7 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
               className="tk-icon-sm tk-rounded-full tk-border tk-border-border"
               style={{ background: "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)" }}
             />
-            更多颜色
+            {tr("toolbar.moreColors")}
           </button>
           {activeColor && (
             <button
@@ -205,7 +208,7 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
               className="tk-rounded-md tk-px-1-5 tk-py-1 tk-text-xs tk-opacity-70 tk-transition-colors tk-hover-bg-accent"
               onClick={clear}
             >
-              清除{isText ? "颜色" : "高亮"}
+              {isText ? tr("toolbar.clearColor") : tr("toolbar.clearHighlight")}
             </button>
           )}
         </div>

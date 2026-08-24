@@ -7,6 +7,7 @@ import { useEditorState } from "@tiptap/react";
 import { NodeSelection } from "@tiptap/pm/state";
 import { CellSelection } from "@tiptap/pm/tables";
 import { Bold, Italic, Underline, Strikethrough, Code, Link } from "lucide-react";
+import { useT } from "@tipkit/core";
 
 /* 选中文字浮层（迁移自 blog rich-text/text-menu.tsx）：
  * 选中非空文本时弹出加粗/斜体/下划线/删除线/行内代码/链接工具条。
@@ -39,6 +40,7 @@ function MenuBtn({
 }
 
 export function TextMenu({ editor }: { editor: Editor | null }) {
+  const t = useT();
   const [scrollTarget, setScrollTarget] = useState<HTMLElement | Window | undefined>(undefined);
 
   useEffect(() => {
@@ -106,37 +108,37 @@ export function TextMenu({ editor }: { editor: Editor | null }) {
       updateDelay={120}
     >
       <div className="tk-bubble-menu">
-        <MenuBtn title="加粗 ⌘B" active={states.isBold} onClick={() => chain().toggleBold().run()}>
+        <MenuBtn title={`${t("text.bold")} ⌘B`} active={states.isBold} onClick={() => chain().toggleBold().run()}>
           <Bold className="tk-icon-md" />
         </MenuBtn>
-        <MenuBtn title="斜体 ⌘I" active={states.isItalic} onClick={() => chain().toggleItalic().run()}>
+        <MenuBtn title={`${t("text.italic")} ⌘I`} active={states.isItalic} onClick={() => chain().toggleItalic().run()}>
           <Italic className="tk-icon-md" />
         </MenuBtn>
         <MenuBtn
-          title="下划线 ⌘U"
+          title={`${t("text.underline")} ⌘U`}
           active={states.isUnderline}
           onClick={() => chain().toggleUnderline().run()}
         >
           <Underline className="tk-icon-md" />
         </MenuBtn>
         <MenuBtn
-          title="删除线"
+          title={t("text.strike")}
           active={states.isStrike}
           onClick={() => chain().toggleStrike().run()}
         >
           <Strikethrough className="tk-icon-md" />
         </MenuBtn>
-        <MenuBtn title="行内代码" active={states.isCode} onClick={() => chain().toggleCode().run()}>
+        <MenuBtn title={t("text.code")} active={states.isCode} onClick={() => chain().toggleCode().run()}>
           <Code className="tk-icon-md" />
         </MenuBtn>
 
         <span className="tk-bubble-divider" />
 
         <MenuBtn
-          title="链接 ⌘K"
+          title={`${t("text.link")} ⌘K`}
           active={states.isLink}
           onClick={() => {
-            const href = window.prompt("链接地址（https://…）");
+            const href = window.prompt(t("toolbar.linkPrompt"));
             if (href) chain().setLink({ href }).run();
           }}
         >

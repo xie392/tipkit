@@ -1,10 +1,12 @@
 "use client";
 
+import { useT } from "@tipkit/core";
 import type { BlockActionProps } from "./types";
 import { IconEdit, IconCopy, IconFormula } from "./icons";
 import { ActionButton } from "./shared";
 
 export function KatexActions({ node, editor, pos }: BlockActionProps) {
+  const t = useT();
   const text = (node.attrs.text as string) ?? "";
 
   const editFormula = () => {
@@ -26,9 +28,9 @@ export function KatexActions({ node, editor, pos }: BlockActionProps) {
 
   return (
     <>
-      <ActionButton icon={<IconFormula />} label="公式" active onClick={editFormula} />
-      <ActionButton icon={<IconEdit />} label="编辑公式" onClick={editFormula} />
-      <ActionButton icon={<IconCopy />} label="复制 LaTeX 源码" onClick={copySource} />
+      <ActionButton icon={<IconFormula />} label={t("katex.formula")} active onClick={editFormula} />
+      <ActionButton icon={<IconEdit />} label={t("katex.edit")} onClick={editFormula} />
+      <ActionButton icon={<IconCopy />} label={t("katex.copySource")} onClick={copySource} />
     </>
   );
 }

@@ -1,20 +1,22 @@
 "use client";
 
+import { useT } from "@tipkit/core";
 import type { BlockActionProps } from "./types";
 import { IconColumns } from "./icons";
 import { ActionDropdown, ActionMenuItem } from "./shared";
 
 const LAYOUTS = [
-  { value: "two-column", label: "两栏等宽", icon: "▥" },
-  { value: "sidebar-left", label: "左窄右宽", icon: "◧" },
-  { value: "sidebar-right", label: "右窄左宽", icon: "◨" },
+  { value: "two-column", labelKey: "columns.twoColumn", icon: "▥" },
+  { value: "sidebar-left", labelKey: "columns.sidebarLeft", icon: "◧" },
+  { value: "sidebar-right", labelKey: "columns.sidebarRight", icon: "◨" },
 ] as const;
 
 export function ColumnsActions({ node, updateAttributes }: BlockActionProps) {
+  const t = useT();
   const layout = (node.attrs.layout as string) ?? "two-column";
 
   return (
-    <ActionDropdown icon={<IconColumns />} label="分栏布局" width={150}>
+    <ActionDropdown icon={<IconColumns />} label={t("columns.layout")} width={150}>
       {(close) =>
         LAYOUTS.map((l) => (
           <ActionMenuItem
@@ -26,7 +28,7 @@ export function ColumnsActions({ node, updateAttributes }: BlockActionProps) {
             }}
           >
             <span className="tk-block-action-item-icon">{l.icon}</span>
-            <span>{l.label}</span>
+            <span>{t(l.labelKey)}</span>
           </ActionMenuItem>
         ))
       }

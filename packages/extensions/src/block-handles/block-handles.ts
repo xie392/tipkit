@@ -370,8 +370,18 @@ export const BlockHandles = Extension.create({
           view = v;
           if (v.editable) createUI();
           return {
-            update: (updatedView) => {
+            update: (updatedView, prevState) => {
               view = updatedView;
+              const statePos = getActiveBlockPos(updatedView.state);
+              if (statePos !== activePos) activePos = statePos;
+              if (
+                updatedView.state.doc !== prevState.doc &&
+                hoverEl &&
+                !hoverEl.isConnected
+              ) {
+                hoverEl = null;
+                wrap?.classList.add("is-hidden");
+              }
             },
             destroy: () => destroyUI(),
           };

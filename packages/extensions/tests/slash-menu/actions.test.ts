@@ -9,6 +9,10 @@ import {
   filterInsertActions,
   getInsertActions,
 } from "../../src/index";
+import { createT, zh } from "@tipkit/core";
+
+/** 测试用中文翻译（恢复 i18n 改造前的 label 行为） */
+const t = createT(zh);
 
 function makeEditor(content = "<p></p>") {
   return new Editor({
@@ -184,7 +188,7 @@ describe("filterInsertActions — 完整过滤逻辑", () => {
 
   beforeEach(() => {
     editor = makeEditor();
-    actions = getInsertActions({ editor });
+    actions = getInsertActions({ editor, t });
   });
   afterEach(() => editor.destroy());
 
@@ -229,7 +233,7 @@ describe("filterInsertActions — 完整过滤逻辑", () => {
       expect(a.id).toBeTruthy();
       expect(a.label).toBeTruthy();
       expect(typeof a.run).toBe("function");
-      expect(["基础", "结构", "媒体"]).toContain(a.group);
+      expect(["basic", "structure", "media"]).toContain(a.group);
     }
   });
 

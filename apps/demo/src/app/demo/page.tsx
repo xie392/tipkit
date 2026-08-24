@@ -22,7 +22,7 @@ export default function DemoPage() {
 
       {/* 主区：仅编辑器 */}
       <main className="demo-main tk-reveal" style={{ animationDelay: "0.16s" }}>
-        <DemoEditor placeholder="输入 / 打开斜杠菜单，或直接粘贴 Markdown…" onEditorReady={setEditor} />
+        <DemoEditor onEditorReady={setEditor} />
       </main>
     </div>
   );

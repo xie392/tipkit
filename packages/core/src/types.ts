@@ -1,4 +1,5 @@
 import type { Editor } from "@tiptap/react";
+import type { Translate } from "./i18n/messages";
 
 /**
  * TipKit 共享类型。
@@ -59,6 +60,8 @@ export interface EditorDeps {
   uploadAttachment?: (file: File, editor: Editor) => Promise<AttachmentMeta>;
   /** Katex 渲染：返回渲染后的 HTML（服务端/客户端均可） */
   renderKatex?: (tex: string, displayMode: boolean) => Promise<string>;
+  /** i18n 翻译函数。不传时默认中文（zh 词典） */
+  t?: Translate;
 }
 
 export interface AttachmentMeta {

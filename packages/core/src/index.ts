@@ -5,7 +5,7 @@
  */
 export { useTipKitEditor } from "./use-editor";
 export type { UseTipKitEditorOptions } from "./use-editor";
-export { EditorProvider, useEditorDeps } from "./context";
+export { EditorProvider, useEditorDeps, useT } from "./context";
 export { createSerializer } from "./serialization";
 export type { TipKitSerializer } from "./serialization";
 export type {
@@ -18,3 +18,7 @@ export type {
   ImageAttrs,
   IconRef,
 } from "./types";
+
+// i18n
+export { createT, zh, en } from "./i18n";
+export type { Messages, Translate } from "./i18n";

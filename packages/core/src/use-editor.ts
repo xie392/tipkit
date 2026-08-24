@@ -32,7 +32,7 @@ export function useTipKitEditor(options: UseTipKitEditorOptions) {
   const editor = useEditor({
     extensions: [
       Placeholder.configure({
-        placeholder: options.placeholder ?? "写下点什么…",
+        placeholder: options.placeholder ?? "Write something…",
       }),
       ...(options.extensions ?? []),
     ],

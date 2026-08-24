@@ -8,6 +8,7 @@ import {
   NodeViewContent,
   type NodeViewProps,
 } from "@tiptap/react";
+import { useT } from "@tipkit/core";
 import { emojisToName } from "../emoji/emoji-data";
 
 /* Callout 提示框（迁移自 blog rich-text/ext/callout.tsx）。
@@ -161,6 +162,7 @@ export const Callout = TiptapNode.create({
 
 function CalloutView(props: NodeViewProps) {
   const { editor, node, updateAttributes } = props;
+  const t = useT();
   const attrs = node.attrs as { variant: CalloutVariant; emoji: string | null };
   const variant = attrs.variant ?? "info";
   const style = CALLOUT_VARIANTS[variant] ?? CALLOUT_VARIANTS.info;
@@ -211,7 +213,7 @@ function CalloutView(props: NodeViewProps) {
         <button
           type="button"
           className="tk-callout-emoji"
-          title="更换图标"
+          title={t("callout.changeIcon")}
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => {
             setEmojiOpen((v) => !v);
@@ -283,7 +285,7 @@ function CalloutView(props: NodeViewProps) {
                     }}
                   >
                     <span>{s.emoji}</span>
-                    <span>{s.label}</span>
+                    <span>{t(`callout.${v}`)}</span>
                   </button>
                 );
               })}

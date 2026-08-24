@@ -7,7 +7,7 @@ import {
   NodeViewWrapper,
   type NodeViewProps,
 } from "@tiptap/react";
-import { useEditorDeps } from "@tipkit/core";
+import { useEditorDeps, useT } from "@tipkit/core";
 
 /* Attachment 附件（迁移自 blog rich-text/ext/attachment.tsx）。
  * 上传经 EditorDeps.uploadAttachment 注入（返回 AttachmentMeta），
@@ -164,6 +164,7 @@ function AttachmentView(props: NodeViewProps) {
   const { fileName, fileSize, fileExt, url } = attrs;
   const isEditable = editor.isEditable;
   const deps = useEditorDeps();
+  const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
@@ -195,7 +196,7 @@ function AttachmentView(props: NodeViewProps) {
       });
     } catch (err) {
       setProgress(null);
-      setErrMsg(err instanceof Error ? err.message : "上传失败");
+      setErrMsg(err instanceof Error ? err.message : t("attachmentView.uploadFailed"));
       updateAttributes({ error: String(err) });
     }
   };
@@ -212,7 +213,7 @@ function AttachmentView(props: NodeViewProps) {
     a.remove();
   };
 
-  const displayName = fileName && fileExt ? `${fileName}.${fileExt}` : fileName ?? "未命名文件";
+  const displayName = fileName && fileExt ? `${fileName}.${fileExt}` : fileName ?? t("attachmentView.unnamed");
 
   let content: React.ReactNode;
   if (url) {

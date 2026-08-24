@@ -3,7 +3,7 @@
 import { EditorContent } from "@tiptap/react";
 import type { Editor } from "@tiptap/react";
 import { EditorProvider, useTipKitEditor } from "@tipkit/core";
-import type { EditorDeps, ToolbarAction, ToolbarGroup, IconRef } from "@tipkit/core";
+import type { EditorDeps, ToolbarAction, ToolbarGroup, IconRef, Translate } from "@tipkit/core";
 import { createBasicExtensions } from "@tipkit/extensions";
 
 /**
@@ -14,7 +14,7 @@ import { createBasicExtensions } from "@tipkit/extensions";
  *
  * ```tsx
  * <TipKitEditor deps={deps}>
- *   {(editor) => <MyToolbar groups={buildToolbarGroups(editor)} />}
+ *   {(editor) => <MyToolbar groups={buildToolbarGroups(editor, t)} />}
  * </TipKitEditor>
  * ```
  */
@@ -71,10 +71,13 @@ export function TipKitEditor({
 // buildToolbarGroups 在 render 中调用，保存当前实例供 isActive/isEnabled 使用
 let editorRef: { current: Editor | null } = { current: null };
 
-/** 由 editor 计算基础工具栏分组。视觉渲染交给主题/消费方。 */
-export function buildToolbarGroups(editor: Editor | null): ToolbarGroup[] {
+/** 由 editor 计算基础工具栏分组。视觉渲染交给主题/消费方。
+ *  t 为 i18n 翻译函数（来自 useT()），不传时 key 原样返回。 */
+export function buildToolbarGroups(editor: Editor | null, t?: Translate): ToolbarGroup[] {
   editorRef.current = editor;
   if (!editor) return [];
+
+  const tr = t ?? ((k: string) => k);
 
   const groups: ToolbarGroup[] = [
     {
@@ -83,14 +86,14 @@ export function buildToolbarGroups(editor: Editor | null): ToolbarGroup[] {
         {
           type: "button",
           id: "undo",
-          label: "撤销",
+          label: tr("toolbar.undo"),
           icon: "Undo2",
           onExecute: (e) => e.chain().focus().undo().run(),
         },
         {
           type: "button",
           id: "redo",
-          label: "重做",
+          label: tr("toolbar.redo"),
           icon: "Redo2",
           onExecute: (e) => e.chain().focus().redo().run(),
         },
@@ -99,22 +102,22 @@ export function buildToolbarGroups(editor: Editor | null): ToolbarGroup[] {
     {
       id: "marks",
       actions: [
-        markAction("bold", "加粗", "Bold", (e) => e.isActive("bold"), (e) => e.chain().focus().toggleBold().run()),
-        markAction("italic", "斜体", "Italic", (e) => e.isActive("italic"), (e) => e.chain().focus().toggleItalic().run()),
-        markAction("strike", "删除线", "Strikethrough", (e) => e.isActive("strike"), (e) => e.chain().focus().toggleStrike().run()),
-        markAction("underline", "下划线", "Underline", (e) => e.isActive("underline"), (e) => e.chain().focus().toggleUnderline().run()),
-        markAction("code", "行内代码", "Code", (e) => e.isActive("code"), (e) => e.chain().focus().toggleCode().run()),
-        markAction("highlight", "高亮", "Highlighter", (e) => e.isActive("highlight"), (e) => e.chain().focus().toggleHighlight().run()),
+        markAction("bold", tr("toolbar.bold"), "Bold", (e) => e.isActive("bold"), (e) => e.chain().focus().toggleBold().run()),
+        markAction("italic", tr("toolbar.italic"), "Italic", (e) => e.isActive("italic"), (e) => e.chain().focus().toggleItalic().run()),
+        markAction("strike", tr("toolbar.strike"), "Strikethrough", (e) => e.isActive("strike"), (e) => e.chain().focus().toggleStrike().run()),
+        markAction("underline", tr("toolbar.underline"), "Underline", (e) => e.isActive("underline"), (e) => e.chain().focus().toggleUnderline().run()),
+        markAction("code", tr("toolbar.code"), "Code", (e) => e.isActive("code"), (e) => e.chain().focus().toggleCode().run()),
+        markAction("highlight", tr("toolbar.highlight"), "Highlighter", (e) => e.isActive("highlight"), (e) => e.chain().focus().toggleHighlight().run()),
         {
           type: "select",
           id: "color",
-          label: "文字颜色",
+          label: tr("toolbar.textColor"),
           icon: "Palette",
           options: [
-            { id: "default", label: "默认色", onSelect: (e) => e.chain().focus().unsetColor().run() },
-            { id: "red", label: "红", onSelect: (e) => e.chain().focus().setColor("#e4572e").run() },
-            { id: "blue", label: "蓝", onSelect: (e) => e.chain().focus().setColor("#3b82f6").run() },
-            { id: "green", label: "绿", onSelect: (e) => e.chain().focus().setColor("#22c55e").run() },
+            { id: "default", label: tr("toolbar.colorDefault"), onSelect: (e) => e.chain().focus().unsetColor().run() },
+            { id: "red", label: tr("toolbar.colorRed"), onSelect: (e) => e.chain().focus().setColor("#e4572e").run() },
+            { id: "blue", label: tr("toolbar.colorBlue"), onSelect: (e) => e.chain().focus().setColor("#3b82f6").run() },
+            { id: "green", label: tr("toolbar.colorGreen"), onSelect: (e) => e.chain().focus().setColor("#22c55e").run() },
           ],
         },
       ],
@@ -125,24 +128,24 @@ export function buildToolbarGroups(editor: Editor | null): ToolbarGroup[] {
         {
           type: "select",
           id: "heading",
-          label: "标题",
+          label: tr("toolbar.heading"),
           icon: "Heading1",
           options: [
-            { id: "p", label: "正文", onSelect: (e) => e.chain().focus().setParagraph().run() },
-            { id: "h1", label: "标题 1", onSelect: (e) => e.chain().focus().toggleHeading({ level: 1 }).run() },
-            { id: "h2", label: "标题 2", onSelect: (e) => e.chain().focus().toggleHeading({ level: 2 }).run() },
-            { id: "h3", label: "标题 3", onSelect: (e) => e.chain().focus().toggleHeading({ level: 3 }).run() },
+            { id: "p", label: tr("toolbar.paragraph"), onSelect: (e) => e.chain().focus().setParagraph().run() },
+            { id: "h1", label: tr("toolbar.heading1"), onSelect: (e) => e.chain().focus().toggleHeading({ level: 1 }).run() },
+            { id: "h2", label: tr("toolbar.heading2"), onSelect: (e) => e.chain().focus().toggleHeading({ level: 2 }).run() },
+            { id: "h3", label: tr("toolbar.heading3"), onSelect: (e) => e.chain().focus().toggleHeading({ level: 3 }).run() },
           ],
         },
-        markAction("bulletList", "无序列表", "List", (e) => e.isActive("bulletList"), (e) => e.chain().focus().toggleBulletList().run()),
-        markAction("orderedList", "有序列表", "ListOrdered", (e) => e.isActive("orderedList"), (e) => e.chain().focus().toggleOrderedList().run()),
-        markAction("taskList", "任务列表", "ListChecks", (e) => e.isActive("taskList"), (e) => e.chain().focus().toggleTaskList().run()),
-        markAction("blockquote", "引用", "Quote", (e) => e.isActive("blockquote"), (e) => e.chain().focus().toggleBlockquote().run()),
-        markAction("codeBlock", "代码块", "Code2", (e) => e.isActive("codeBlock"), (e) => e.chain().focus().toggleCodeBlock().run()),
+        markAction("bulletList", tr("toolbar.bulletList"), "List", (e) => e.isActive("bulletList"), (e) => e.chain().focus().toggleBulletList().run()),
+        markAction("orderedList", tr("toolbar.orderedList"), "ListOrdered", (e) => e.isActive("orderedList"), (e) => e.chain().focus().toggleOrderedList().run()),
+        markAction("taskList", tr("toolbar.taskList"), "ListChecks", (e) => e.isActive("taskList"), (e) => e.chain().focus().toggleTaskList().run()),
+        markAction("blockquote", tr("toolbar.blockquote"), "Quote", (e) => e.isActive("blockquote"), (e) => e.chain().focus().toggleBlockquote().run()),
+        markAction("codeBlock", tr("toolbar.codeBlock"), "Code2", (e) => e.isActive("codeBlock"), (e) => e.chain().focus().toggleCodeBlock().run()),
         {
           type: "button",
           id: "insertTable",
-          label: "插入表格",
+          label: tr("toolbar.insertTable"),
           icon: "Table2",
           onExecute: (e) => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
         },
@@ -151,10 +154,10 @@ export function buildToolbarGroups(editor: Editor | null): ToolbarGroup[] {
     {
       id: "align",
       actions: [
-        markAction("alignLeft", "左对齐", "AlignLeft", (e) => e.isActive({ textAlign: "left" }), (e) => e.chain().focus().setTextAlign("left").run()),
-        markAction("alignCenter", "居中", "AlignCenter", (e) => e.isActive({ textAlign: "center" }), (e) => e.chain().focus().setTextAlign("center").run()),
-        markAction("alignRight", "右对齐", "AlignRight", (e) => e.isActive({ textAlign: "right" }), (e) => e.chain().focus().setTextAlign("right").run()),
-        markAction("alignJustify", "两端对齐", "AlignJustify", (e) => e.isActive({ textAlign: "justify" }), (e) => e.chain().focus().setTextAlign("justify").run()),
+        markAction("alignLeft", tr("toolbar.alignLeft"), "AlignLeft", (e) => e.isActive({ textAlign: "left" }), (e) => e.chain().focus().setTextAlign("left").run()),
+        markAction("alignCenter", tr("toolbar.alignCenter"), "AlignCenter", (e) => e.isActive({ textAlign: "center" }), (e) => e.chain().focus().setTextAlign("center").run()),
+        markAction("alignRight", tr("toolbar.alignRight"), "AlignRight", (e) => e.isActive({ textAlign: "right" }), (e) => e.chain().focus().setTextAlign("right").run()),
+        markAction("alignJustify", tr("toolbar.alignJustify"), "AlignJustify", (e) => e.isActive({ textAlign: "justify" }), (e) => e.chain().focus().setTextAlign("justify").run()),
       ],
     },
     {
@@ -163,11 +166,11 @@ export function buildToolbarGroups(editor: Editor | null): ToolbarGroup[] {
         {
           type: "button",
           id: "link",
-          label: "插入链接",
+          label: tr("toolbar.insertLink"),
           icon: "Link",
           isEnabled: () => !editor.state.selection.empty,
           onExecute: (e) => {
-            const href = window.prompt("链接地址（https://…）");
+            const href = window.prompt(tr("toolbar.linkPrompt"));
             if (!href) return;
             e.chain().focus().setLink({ href }).run();
           },

@@ -2,7 +2,7 @@ import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import Image from "@tiptap/extension-image";
 import type { NodeViewProps } from "@tiptap/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { ImagePreview } from "./image-preview";
 
 /* ImageBlock 节点（迁移自 blog rich-text/ext/image-block/image-block.ts）。
  * - parseHTML 只认 div[data-type="image-block"]，与 inline <img> 共存
@@ -103,7 +103,14 @@ export const ImageBlock = Image.extend({
         "data-align": align,
         "data-width": width,
       },
-      ["img", { src: attrs.src, alt: attrs.alt ?? "" }],
+      [
+        "img",
+        {
+          src: attrs.src,
+          alt: attrs.alt ?? "",
+          style: `width:${width};max-width:100%`,
+        },
+      ],
     ];
   },
 
@@ -144,39 +151,6 @@ export const ImageBlock = Image.extend({
     return ReactNodeViewRenderer(ImageBlockView);
   },
 });
-
-/** 图片预览遮罩（全屏 lightbox），readonly 下点击图片或工具栏按钮触发 */
-function ImagePreview({ src, alt, onClose }: { src: string; alt?: string; onClose: () => void }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
-
-  return createPortal(
-    <div
-      className="tk-image-preview-overlay"
-      onMouseDown={onClose}
-      role="dialog"
-      aria-modal="true"
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={alt ?? ""}
-        className="tk-image-preview-img"
-        onMouseDown={(e) => e.stopPropagation()}
-      />
-    </div>,
-    document.body,
-  );
-}
 
 /** ImageBlock NodeView：图片 + 左右宽度拖拽手柄 + 就地 caption + 预览。视觉走主题。 */
 function ImageBlockView(props: NodeViewProps) {

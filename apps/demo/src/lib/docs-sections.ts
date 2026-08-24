@@ -31,6 +31,22 @@ export const DOC_SECTIONS: DocSection[] = [
       { id: "commands", label: "常用命令" },
     ],
   },
+  {
+    slug: "i18n",
+    label: "多语言 i18n",
+    items: [
+      { id: "i18n-overview", label: "设计概览" },
+      { id: "i18n-default", label: "默认行为" },
+      { id: "i18n-builtin", label: "切换内置语言" },
+      { id: "i18n-override", label: "覆盖部分文案" },
+      { id: "i18n-new-lang", label: "新增语言" },
+      { id: "i18n-toolbar", label: "工具栏接入" },
+      { id: "i18n-extensions", label: "扩展使用 useT" },
+      { id: "i18n-api", label: "API 参考" },
+      { id: "i18n-keys", label: "词典 key 约定" },
+      { id: "i18n-demo", label: "在线演示" },
+    ],
+  },
 ];
 
 export const DOC_SLUGS = DOC_SECTIONS.map((s) => s.slug);
