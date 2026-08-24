@@ -568,7 +568,8 @@
 }
 
 .tk-code-block:hover .tk-code-block-toolbar,
-.tk-code-block:focus-within .tk-code-block-toolbar {
+.tk-code-block:focus-within .tk-code-block-toolbar,
+.tk-code-block[data-toolbar-open="true"] .tk-code-block-toolbar {
   opacity: 1;
   pointer-events: auto;
 }
@@ -601,6 +602,12 @@
   padding: 4px;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
+}
+
+.tk-code-block-lang-dropdown--portal {
+  right: auto;
+  top: auto;
+  z-index: 9999;
 }
 
 .tk-code-block-lang-option {
@@ -708,6 +715,19 @@
   font-weight: 600;
 }
 
+.tk-code-block-dark-dropdown {
+  background: #161b22;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  color: #e6edf3;
+}
+.tk-code-block-dark-dropdown .tk-code-block-lang-option:hover {
+  background: rgb(255 255 255 / 0.1);
+}
+.tk-code-block-dark-dropdown .tk-code-block-lang-option.is-active {
+  color: #e6a700;
+  font-weight: 600;
+}
+
 .tk-code-block-dark .tk-code-block-action-btn {
   color: #9d9d9d;
 }
@@ -798,6 +818,19 @@
 }
 
 .tk-code-block-light .tk-code-block-lang-option.is-active {
+  color: #0969da;
+  font-weight: 600;
+}
+
+.tk-code-block-light-dropdown {
+  background: #fff;
+  border: 1px solid #d0d7de;
+  color: #24292f;
+}
+.tk-code-block-light-dropdown .tk-code-block-lang-option:hover {
+  background: #f3f4f6;
+}
+.tk-code-block-light-dropdown .tk-code-block-lang-option.is-active {
   color: #0969da;
   font-weight: 600;
 }
@@ -1162,6 +1195,14 @@
   border-radius: 6px;
   padding: 8px;
   background: var(--background, #fff);
+  color: var(--foreground, #1f2937);
+  caret-color: var(--foreground, #1f2937);
+  outline: none;
+}
+
+.tk-katex-textarea:focus {
+  border-color: var(--primary, #0075de);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary, #0075de) 20%, transparent);
 }
 
 .tk-katex-editor-actions {
@@ -1171,61 +1212,82 @@
   margin-top: 6px;
 }
 
-/* 提示框：编辑器内 NodeView 不带内联 style，按 variant 类名上色
- * （导出 HTML 时由 renderHTML 写内联 style，两套保持一致） */
+/* 提示框 Callout：base 层只放布局，视觉由主题覆盖 */
 .tk-callout {
   position: relative;
-  border: 2px solid;
-  border-radius: 10px;
-  padding: 12px 14px 12px 44px;
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  align-items: stretch;
+  padding: 12px 44px 12px 14px;
   margin: 0.75em 0;
-  color: #1e40af;
-  border-color: #93c5fd;
-  background: #eff6ff;
 }
 
-.tk-callout-info {
-  color: #1e40af;
-  border-color: #93c5fd;
-  background: #eff6ff;
+.tk-callout.ProseMirror-selectednode {
+  outline: none;
+  box-shadow: none;
 }
 
-.tk-callout-success {
-  color: #166534;
-  border-color: #86efac;
-  background: #f0fdf4;
+.tk-callout-content {
+  flex: 1;
+  min-width: 1em;
 }
 
-.tk-callout-warning {
-  color: #854d0e;
-  border-color: #fcd34d;
-  background: #fefce8;
+.tk-callout .tk-callout-content[data-node-view-content] {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 1em;
 }
 
-.tk-callout-danger {
-  color: #991b1b;
-  border-color: #fca5a5;
-  background: #fef2f2;
+.tk-callout .tk-callout-content [data-node-view-content-react] {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  min-width: 1em;
 }
 
-.tk-callout-note {
-  color: #3f3f46;
-  border-color: #d4d4d8;
-  background: #f4f4f5;
+.tk-callout .tk-callout-content p:empty::before {
+  content: "";
+  display: inline-block;
+  width: 1em;
+}
+
+.tk-callout .ProseMirror-selectednode {
+  outline: none;
+  outline-offset: 0;
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.tk-callout .tk-callout-content :first-child {
+  margin-top: 0;
+}
+
+.tk-callout .tk-callout-content :last-child {
+  margin-bottom: 0;
 }
 
 .tk-callout-head {
-  position: absolute;
-  left: 10px;
-  top: 10px;
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  padding-top: 2px;
 }
 
 .tk-callout-emoji {
   font-size: 18px;
+  line-height: 1;
   background: transparent;
   border: none;
   cursor: pointer;
   padding: 0;
+  display: flex;
+  align-items: center;
 }
 
 .tk-callout-emoji-panel {
@@ -1311,6 +1373,10 @@
 
 .tk-callout-variant-cell.is-active {
   box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 40%, transparent);
+}
+
+.tk-portal-panel {
+  z-index: 9999;
 }
 
 /* 分栏 */

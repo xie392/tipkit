@@ -296,6 +296,7 @@ export const zh: Messages = {
 
   /* ── 代码块 ── */
   "codeBlock.plainText": "纯文本",
+  "codeBlock.auto": "自动",
   "codeBlock.shellSession": "Shell 会话",
   "codeBlock.setLanguage": "设置编程语言",
   "codeBlock.switchLight": "切换到亮色主题",

@@ -43,7 +43,7 @@
   "scripts": {
     "lint": "eslint src/",
     "type-check": "tsc --noEmit",
-    "build": "tsc -p tsconfig.json && node -e \"require('node:fs').cpSync('src','dist',{recursive:true,filter:f=>require('node:fs').statSync(f).isDirectory()||f.endsWith('.css')})\""
+    "build": "node scripts/build-themes.mjs"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

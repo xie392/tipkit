@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { mergeAttributes, Node, nodeInputRule } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { useT } from "@tipkit/core";
@@ -90,8 +90,20 @@ function KatexView(props: NodeViewProps) {
   const text = attrs.text ?? "";
   const isEditable = editor.isEditable;
   const t = useT();
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(!text.trim());
   const [draft, setDraft] = useState(text);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (editing) {
+      const ta = textareaRef.current;
+      if (ta) {
+        ta.focus();
+        const len = ta.value.length;
+        ta.setSelectionRange(len, len);
+      }
+    }
+  }, [editing]);
 
   const html = useMemo(() => {
     if (!text.trim()) return "";
@@ -109,6 +121,14 @@ function KatexView(props: NodeViewProps) {
   const openEditor = () => {
     setDraft(text);
     setEditing(true);
+    requestAnimationFrame(() => {
+      const ta = textareaRef.current;
+      if (ta) {
+        ta.focus();
+        const len = ta.value.length;
+        ta.setSelectionRange(len, len);
+      }
+    });
   };
   const commit = () => {
     updateAttributes({ text: draft });
@@ -124,7 +144,7 @@ function KatexView(props: NodeViewProps) {
       {editing ? (
         <div className="tk-katex-editor">
           <textarea
-            autoFocus
+            ref={textareaRef}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {

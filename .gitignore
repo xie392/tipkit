@@ -31,3 +31,7 @@ test-results/
 
 # omc runtime state (sessions/project memory are machine-local)
 .omc
+
+# trae skill installation (machine-local)
+.trae/
+skills-lock.json

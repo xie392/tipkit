@@ -12,9 +12,17 @@ import { createBasicExtensions } from "@tipkit/extensions";
 import "@tipkit/themes/default.css";
 
 export default function Editor() {
-  return <TipKitEditor deps={{}} extensions={createBasicExtensions()} />;
+  return (
+    <div className="tk-theme-default">
+      <TipKitEditor deps={{}} extensions={createBasicExtensions()} />
+    </div>
+  );
 }
 ```
+
+<div className="docs-callout docs-callout-warning">
+主题 CSS 的视觉样式全部作用域在 <code>tk-theme-default</code> 类下——<strong>只 import CSS 不会生效</strong>，必须把该类加到编辑器的任意祖先元素（通常是包裹 div 或 <code>&lt;html&gt;</code>）上。切换主题同理：换成 <code>tk-theme-sketch</code> / <code>tk-theme-dark</code> 即可，也可直接用 <code>&lt;TipKitEditor className="tk-theme-sketch"&gt;</code>。
+</div>
 
 <div className="docs-callout docs-callout-info">
 注意 <code>deps</code> 是必填 prop，用于注入项目特定能力；不需要时可传空对象 <code>{"{}"}</code>，详见「[依赖注入](/docs/deps)」。
@@ -42,6 +50,7 @@ export default function App() {
   return (
     <TipKitEditor
       deps={deps}
+      className="tk-theme-default"
       placeholder="输入 / 打开斜杠菜单…"
       extensions={[...createBasicExtensions(), ...createAdvancedExtensions()]}
       onChange={(editor) => console.log(editor.getHTML())}

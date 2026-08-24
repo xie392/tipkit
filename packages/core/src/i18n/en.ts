@@ -296,6 +296,7 @@ export const en: Messages = {
 
   /* ── Code block ── */
   "codeBlock.plainText": "Plain Text",
+  "codeBlock.auto": "Auto",
   "codeBlock.shellSession": "Shell Session",
   "codeBlock.setLanguage": "Set programming language",
   "codeBlock.switchLight": "Switch to light theme",

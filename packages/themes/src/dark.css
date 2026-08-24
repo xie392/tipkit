@@ -44,3 +44,41 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
+
+/* ---------- 提示框 Callout ---------- */
+.tk-theme-dark .tk-callout {
+  border: 2px solid var(--callout-info-border, #1e3a5f);
+  border-radius: 10px;
+  color: var(--callout-info-text, #93c5fd);
+  background: var(--callout-info-bg, #0d1b2a);
+}
+
+.tk-theme-dark .tk-callout.tk-callout-info {
+  color: var(--callout-info-text, #93c5fd);
+  border-color: var(--callout-info-border, #1e3a5f);
+  background: var(--callout-info-bg, #0d1b2a);
+}
+
+.tk-theme-dark .tk-callout.tk-callout-success {
+  color: var(--callout-success-text, #86efac);
+  border-color: var(--callout-success-border, #14532d);
+  background: var(--callout-success-bg, #0d1f12);
+}
+
+.tk-theme-dark .tk-callout.tk-callout-warning {
+  color: var(--callout-warning-text, #fcd34d);
+  border-color: var(--callout-warning-border, #78350f);
+  background: var(--callout-warning-bg, #1f1705);
+}
+
+.tk-theme-dark .tk-callout.tk-callout-danger {
+  color: var(--callout-danger-text, #fca5a5);
+  border-color: var(--callout-danger-border, #7f1d1d);
+  background: var(--callout-danger-bg, #1f0d0d);
+}
+
+.tk-theme-dark .tk-callout.tk-callout-note {
+  color: var(--callout-note-text, #d4d4d8);
+  border-color: var(--callout-note-border, #3f3f46);
+  background: var(--callout-note-bg, #1a1a1d);
+}

@@ -4,7 +4,8 @@ import { NodeViewContent, NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { createLowlight, common } from "lowlight";
 import type { NodeViewProps } from "@tiptap/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useT } from "@tipkit/core";
 
 const lowlight = createLowlight(common);
@@ -77,7 +78,7 @@ function canonicalLang(value: string | null): string | null {
 
 function langLabel(value: string | null): string {
   const canonical = canonicalLang(value);
-  return CODE_LANGUAGES.find((l) => l.value === canonical)?.label ?? value ?? "纯文本";
+  return CODE_LANGUAGES.find((l) => l.value === canonical)?.label || value || "纯文本";
 }
 
 function detectLanguage(code: string): string | null {
@@ -184,13 +185,82 @@ function CodeBlockView(props: NodeViewProps) {
   const [langOpen, setLangOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [autoDetected, setAutoDetected] = useState(false);
-  const langRef = useRef<HTMLDivElement>(null);
+  const [userSelectedAuto, setUserSelectedAuto] = useState(false);
+  const langBtnRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<{
+    top: number;
+    left: number;
+    minWidth: number;
+    maxHeight: number;
+    placement: "bottom" | "top";
+  }>({ top: 0, left: 0, minWidth: 160, maxHeight: 280, placement: "bottom" });
   const prevContentRef = useRef(node.textContent);
+
+  const DROPDOWN_WIDTH = 200;
+  const GAP = 4;
+  const MARGIN = 8;
+
+  const posRef = useRef(dropdownStyle);
+  posRef.current = dropdownStyle;
+
+  const calcPosition = useCallback(() => {
+    if (!langBtnRef.current) return;
+    const rect = langBtnRef.current.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const dropdownH = dropdownRef.current?.offsetHeight || 280;
+
+    let left = rect.right - DROPDOWN_WIDTH;
+    if (left < MARGIN) left = MARGIN;
+    if (left + DROPDOWN_WIDTH > vw - MARGIN) left = vw - DROPDOWN_WIDTH - MARGIN;
+
+    const spaceBelow = vh - rect.bottom - MARGIN;
+    const spaceAbove = rect.top - MARGIN;
+
+    let top: number;
+    let placement: "bottom" | "top";
+    let maxHeight: number;
+
+    if (spaceBelow >= dropdownH + GAP || spaceBelow >= spaceAbove) {
+      placement = "bottom";
+      top = rect.bottom + GAP;
+      maxHeight = Math.min(280, spaceBelow - GAP);
+    } else {
+      placement = "top";
+      maxHeight = Math.min(280, spaceAbove - GAP);
+      top = rect.top - GAP - maxHeight;
+    }
+
+    const next = { top, left, minWidth: Math.max(160, rect.width), maxHeight, placement };
+    const prev = posRef.current;
+    if (
+      prev.top === next.top &&
+      prev.left === next.left &&
+      prev.minWidth === next.minWidth &&
+      prev.maxHeight === next.maxHeight &&
+      prev.placement === next.placement
+    ) {
+      return;
+    }
+    posRef.current = next;
+    setDropdownStyle(next);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!langOpen) return;
+    calcPosition();
+    requestAnimationFrame(calcPosition);
+  }, [langOpen, calcPosition]);
 
   useEffect(() => {
     if (!langOpen) return;
     const onDown = (e: MouseEvent) => {
-      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        !langBtnRef.current?.contains(target) &&
+        !dropdownRef.current?.contains(target)
+      ) {
         setLangOpen(false);
       }
     };
@@ -199,21 +269,25 @@ function CodeBlockView(props: NodeViewProps) {
     };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", calcPosition, true);
+    window.addEventListener("resize", calcPosition);
     return () => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", calcPosition, true);
+      window.removeEventListener("resize", calcPosition);
     };
-  }, [langOpen]);
+  }, [langOpen, calcPosition]);
 
   useEffect(() => {
-    if (language || autoDetected) return;
+    if (language || autoDetected || userSelectedAuto) return;
     const detected = detectLanguage(node.textContent);
     if (detected) {
       updateAttributes({ language: detected });
       setAutoDetected(true);
     }
     prevContentRef.current = node.textContent;
-  }, [node.textContent, language, autoDetected, updateAttributes]);
+  }, [node.textContent, language, autoDetected, userSelectedAuto, updateAttributes]);
 
   const copyCode = async () => {
     try {
@@ -231,44 +305,60 @@ function CodeBlockView(props: NodeViewProps) {
       className={`tk-code-block tk-group ${dark ? "tk-code-block-dark" : "tk-code-block-light"}`}
       data-theme={dark ? "dark" : "light"}
       data-language={language ?? undefined}
+      data-toolbar-open={langOpen ? "true" : undefined}
     >
       <div
         className="tk-code-block-toolbar"
         contentEditable={false}
         onMouseDown={(e) => e.preventDefault()}
       >
-        <div ref={langRef} className="tk-code-block-lang-wrap">
+        <div className="tk-code-block-lang-wrap">
           <button
+            ref={langBtnRef}
             type="button"
             className="tk-code-block-lang-btn"
             onClick={() => setLangOpen((v) => !v)}
             title="设置编程语言"
           >
-            {langLabel(language)}
+            {language === null ? t("codeBlock.auto") : langLabel(language)}
             <IconChevron />
           </button>
-          {langOpen && (
-            <div className="tk-code-block-lang-dropdown">
-              {CODE_LANGUAGES.map((l) => {
-                const active = canonicalLang(l.value) === canonicalLang(language);
-                return (
-                  <button
-                    key={l.value ?? "__plain__"}
-                    type="button"
-                    className={`tk-code-block-lang-option ${active ? "is-active" : ""}`}
-                    onClick={() => {
-                      updateAttributes({ language: l.value });
-                      setAutoDetected(false);
-                      setLangOpen(false);
-                    }}
-                  >
-                    <span>{l.label}</span>
-                    {active && <span className="tk-code-block-check">✓</span>}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          {langOpen &&
+            typeof document !== "undefined" &&
+            createPortal(
+              <div
+                ref={dropdownRef}
+                className={`tk-code-block-lang-dropdown tk-code-block-lang-dropdown--portal ${dark ? "tk-code-block-dark-dropdown" : "tk-code-block-light-dropdown"}`}
+                style={{
+                  position: "fixed",
+                  top: dropdownStyle.top,
+                  left: dropdownStyle.left,
+                  minWidth: dropdownStyle.minWidth,
+                  maxHeight: dropdownStyle.maxHeight,
+                }}
+              >
+                {CODE_LANGUAGES.filter((l) => l.value === null || l.label).map((l) => {
+                  const active = canonicalLang(l.value) === canonicalLang(language);
+                  return (
+                    <button
+                      key={l.value ?? "__plain__"}
+                      type="button"
+                      className={`tk-code-block-lang-option ${active ? "is-active" : ""}`}
+                      onClick={() => {
+                        updateAttributes({ language: l.value });
+                        setAutoDetected(false);
+                        setUserSelectedAuto(l.value === null);
+                        setLangOpen(false);
+                      }}
+                    >
+                      <span>{l.value === null ? t("codeBlock.auto") : l.label}</span>
+                      {active && <span className="tk-code-block-check">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>,
+              document.body
+            )}
         </div>
 
         <div className="tk-code-block-actions">

@@ -292,3 +292,41 @@
 .tk-theme-default .tk-hr-wrap hr {
   border-top-color: color-mix(in srgb, var(--foreground) 14%, transparent);
 }
+
+/* ---------- 提示框 Callout ---------- */
+.tk-theme-default .tk-callout {
+  border: 2px solid var(--callout-info-border, #93c5fd);
+  border-radius: 10px;
+  color: var(--callout-info-text, #1e40af);
+  background: var(--callout-info-bg, #eff6ff);
+}
+
+.tk-theme-default .tk-callout.tk-callout-info {
+  color: var(--callout-info-text, #1e40af);
+  border-color: var(--callout-info-border, #93c5fd);
+  background: var(--callout-info-bg, #eff6ff);
+}
+
+.tk-theme-default .tk-callout.tk-callout-success {
+  color: var(--callout-success-text, #166534);
+  border-color: var(--callout-success-border, #86efac);
+  background: var(--callout-success-bg, #f0fdf4);
+}
+
+.tk-theme-default .tk-callout.tk-callout-warning {
+  color: var(--callout-warning-text, #854d0e);
+  border-color: var(--callout-warning-border, #fcd34d);
+  background: var(--callout-warning-bg, #fefce8);
+}
+
+.tk-theme-default .tk-callout.tk-callout-danger {
+  color: var(--callout-danger-text, #991b1b);
+  border-color: var(--callout-danger-border, #fca5a5);
+  background: var(--callout-danger-bg, #fef2f2);
+}
+
+.tk-theme-default .tk-callout.tk-callout-note {
+  color: var(--callout-note-text, #3f3f46);
+  border-color: var(--callout-note-border, #d4d4d8);
+  background: var(--callout-note-bg, #f4f4f5);
+}
