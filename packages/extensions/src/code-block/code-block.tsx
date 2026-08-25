@@ -426,36 +426,4 @@ export const CustomCodeBlock = CodeBlockLowlight.configure({
   addNodeView() {
     return ReactNodeViewRenderer(CodeBlockView);
   },
-  addKeyboardShortcuts() {
-    const handleSelectAll = () => {
-      const { state } = this.editor;
-      const { selection } = state;
-      const { $from, $to } = selection;
-
-      const codeBlockType = this.type;
-      const inSameCodeBlock =
-        $from.parent.type === codeBlockType &&
-        $to.parent.type === codeBlockType &&
-        $from.before($from.depth) === $to.before($to.depth);
-
-      if (inSameCodeBlock) {
-        const blockStart = $from.start($from.depth);
-        const blockEnd = $from.end($from.depth);
-
-        const isFullBlockSelected =
-          selection.from === blockStart && selection.to === blockEnd;
-
-        if (!isFullBlockSelected) {
-          this.editor.commands.setTextSelection({ from: blockStart, to: blockEnd });
-          return true;
-        }
-      }
-
-      return false;
-    };
-
-    return {
-      "Mod-a": handleSelectAll,
-    };
-  },
 });
