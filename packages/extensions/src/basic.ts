@@ -27,6 +27,7 @@ import { MarkdownPaste } from "./markdown/paste";
 import { ListInputRules } from "./markdown/list-input-rules";
 import { TrailingNode } from "./basic/trailing-node";
 import { Selection } from "./basic/selection";
+import { SelectAll } from "./basic/select-all";
 import { FontSize } from "./basic/font-size";
 import { CustomHorizontalRule } from "./basic/horizontal-rule";
 
@@ -102,6 +103,7 @@ function buildBasicExtensions(): AnyExtension[] {
     // 编辑器体验（对齐 blog use-editor.ts）
     TrailingNode,
     Selection,
+    SelectAll,
     ListInputRules,
     CharacterCount.configure({ limit: 100000 }),
     Dropcursor.configure({ width: 2 }),
