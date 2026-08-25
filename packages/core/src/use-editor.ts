@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useEditor, type Editor, type EditorOptions } from "@tiptap/react";
 import { Placeholder } from "@tiptap/extension-placeholder";
 
@@ -56,6 +57,12 @@ export function useTipKitEditor(options: UseTipKitEditorOptions) {
     onCreate: ({ editor }) => options.onCreate?.(editor),
     onSelectionUpdate: ({ editor }) => options.onSelectionUpdate?.(editor),
   });
+
+  // Tiptap v3 的 useEditor 在选项更新时强制保留 editable（不会跟随 props 变化），
+  // 这里用 setEditable 命令式同步，保证只读开关能实时生效。
+  useEffect(() => {
+    editor?.setEditable(options.editable ?? true);
+  }, [editor, options.editable]);
 
   return editor;
 }

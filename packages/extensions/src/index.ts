@@ -55,7 +55,7 @@ export {
 } from "./slash-menu/actions";
 export type { InsertAction, SlashCommandState, GetInsertActionsOptions } from "./slash-menu/actions";
 export { ImageBlock } from "./image-block/image-block";
-export type { ImageBlockAttrs } from "./image-block/image-block";
+export type { ImageBlockAttrs, ImageStyleType } from "./image-block/image-block";
 export { ImagePreview } from "./image-block/image-preview";
 export type { ImagePreviewProps } from "./image-block/image-preview";
 export { StaticImagePreview } from "./image-block/static-image-preview";

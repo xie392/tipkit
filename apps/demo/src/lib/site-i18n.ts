@@ -47,6 +47,11 @@ export const SITE_COPY = {
         en: { desc: "Built-in English" },
       },
     },
+    demoMode: {
+      title: "切换编辑 / 只读模式",
+      edit: "编辑",
+      readonly: "只读",
+    },
     home: {
       heroTitleA: "一套逻辑",
       heroTitleB: "任意风格",
@@ -131,6 +136,11 @@ export const SITE_COPY = {
         zh: { desc: "Built-in Chinese" },
         en: { desc: "Built-in English" },
       },
+    },
+    demoMode: {
+      title: "Toggle edit / read-only mode",
+      edit: "Edit",
+      readonly: "Read-only",
     },
     home: {
       heroTitleA: "One logic",

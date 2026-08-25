@@ -408,6 +408,48 @@ body::after {
   display: none;
 }
 
+/* 只读时：工具栏不可点、视觉降级 */
+.demo-toolbar-bar.is-readonly {
+  pointer-events: none;
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* 编辑 / 只读切换开关：右下角悬浮固定 */
+.demo-mode-toggle {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 80;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 85%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 8px 24px -8px color-mix(in srgb, var(--foreground) 24%, transparent);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+.demo-mode-toggle:hover {
+  background: var(--muted);
+  transform: translateY(-1px);
+}
+.demo-mode-toggle[data-readonly] {
+  border-color: color-mix(in srgb, var(--primary) 60%, var(--border));
+  color: var(--primary);
+}
+
 /* ---------- 主区：仅编辑器 ---------- */
 .demo-main {
   max-width: 960px;

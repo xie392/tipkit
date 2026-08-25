@@ -149,9 +149,12 @@ export default function App() {
 
 export function DemoEditor({
   placeholder,
+  editable = true,
   onEditorReady,
 }: {
   placeholder?: string;
+  /** 只读模式：关闭编辑交互（预览效果） */
+  editable?: boolean;
   /** 编辑器实例就绪后回传（供页面级工具栏使用） */
   onEditorReady?: (editor: Editor) => void;
 }) {
@@ -162,6 +165,7 @@ export function DemoEditor({
     <TipKitEditor
       deps={deps}
       content={DEMO_CONTENT}
+      editable={editable}
       onCreate={(editor) => onEditorReady?.(editor)}
       extensions={[
         ...createBasicExtensions(),

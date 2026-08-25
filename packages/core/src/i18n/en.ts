@@ -205,6 +205,11 @@ export const en: Messages = {
   "image.removeCaption": "Remove Caption",
   "image.preview": "Preview Image",
   "image.linkPrompt": "Enter image URL",
+  "image.style": "Image Style",
+  "image.styleNone": "None",
+  "image.styleBorder": "Border",
+  "image.styleShadow": "Shadow",
+  "image.styleBorderShadow": "Border + Shadow",
 
   /* ── Image preview ── */
   "imagePreview.zoomOut": "Zoom out (-)",

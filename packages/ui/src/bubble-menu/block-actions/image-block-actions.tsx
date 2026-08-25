@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ImagePreview } from "@tipkit/extensions";
+import type { ImageStyleType } from "@tipkit/extensions";
 import { useT } from "@tipkit/core";
 import type { BlockActionProps } from "./types";
 import {
@@ -13,6 +14,11 @@ import {
   IconCaption,
   IconWidth,
   IconZoomIn,
+  IconImageStyle,
+  IconStyleNone,
+  IconStyleBorder,
+  IconStyleShadow,
+  IconStyleBorderShadow,
 } from "./icons";
 import { ActionDropdown, ActionButton, ActionMenuItem } from "./shared";
 
@@ -22,6 +28,18 @@ const WIDTH_OPTIONS = [
   { value: "75%", label: "75%" },
   { value: "100%", label: "100%" },
 ];
+
+const STYLE_OPTIONS: { value: ImageStyleType; labelKey: string; icon: React.ReactNode }[] = [
+  { value: "none", labelKey: "image.styleNone", icon: <IconStyleNone /> },
+  { value: "border", labelKey: "image.styleBorder", icon: <IconStyleBorder /> },
+  { value: "shadow", labelKey: "image.styleShadow", icon: <IconStyleShadow /> },
+  { value: "border-shadow", labelKey: "image.styleBorderShadow", icon: <IconStyleBorderShadow /> },
+];
+
+function getStyleLabel(t: (key: string) => string, style: ImageStyleType): string {
+  const opt = STYLE_OPTIONS.find((o) => o.value === style);
+  return opt ? t(opt.labelKey) : "";
+}
 
 type Align = "left" | "center" | "right";
 
@@ -33,14 +51,17 @@ export function ImageBlockActions({ node, updateAttributes }: BlockActionProps) 
     alt?: string;
     caption?: string | null;
     src: string;
+    imageStyle?: ImageStyleType;
   };
 
   const [preview, setPreview] = useState(false);
 
   const currentWidth = attrs.width || "100%";
   const align = attrs.align || "center";
+  const currentStyle = attrs.imageStyle || "none";
 
   const setAlign = (a: Align) => updateAttributes({ align: a });
+  const setStyle = (s: ImageStyleType) => updateAttributes({ imageStyle: s });
 
   const replaceImage = () => {
     const input = document.createElement("input");
@@ -71,7 +92,11 @@ export function ImageBlockActions({ node, updateAttributes }: BlockActionProps) 
 
   return (
     <>
-      <ActionDropdown icon={<IconWidth />} label={t("image.width")}>
+      <ActionDropdown
+        icon={<IconWidth />}
+        label={t("image.width")}
+        currentLabel={currentWidth.replace("%", "") + "%"}
+      >
         {(close) =>
           WIDTH_OPTIONS.map((opt) => (
             <ActionMenuItem
@@ -83,6 +108,31 @@ export function ImageBlockActions({ node, updateAttributes }: BlockActionProps) 
               }}
             >
               {opt.label}
+            </ActionMenuItem>
+          ))
+        }
+      </ActionDropdown>
+
+      <ActionDropdown
+        icon={<IconImageStyle />}
+        label={t("image.style")}
+        currentLabel={currentStyle !== "none" ? getStyleLabel(t, currentStyle) : undefined}
+        width={160}
+      >
+        {(close) =>
+          STYLE_OPTIONS.map((opt) => (
+            <ActionMenuItem
+              key={opt.value}
+              active={currentStyle === opt.value}
+              onClick={() => {
+                setStyle(opt.value);
+                close();
+              }}
+            >
+              <span className="tk-image-style-option">
+                {opt.icon}
+                <span>{t(opt.labelKey)}</span>
+              </span>
             </ActionMenuItem>
           ))
         }

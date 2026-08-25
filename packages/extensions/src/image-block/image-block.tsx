@@ -10,12 +10,15 @@ import { ImagePreview } from "./image-preview";
  * - align：left / center / right；caption：就地编辑说明文字
  * 视觉剥离：NodeView 只输出布局与 tk-* 语义类名，视觉归主题 CSS。 */
 
+export type ImageStyleType = "none" | "border" | "shadow" | "border-shadow";
+
 export interface ImageBlockAttrs {
   src: string;
   width: string;
   align: "left" | "center" | "right";
   alt?: string;
   caption?: string | null;
+  imageStyle?: ImageStyleType;
 }
 
 declare module "@tiptap/core" {
@@ -28,6 +31,7 @@ declare module "@tiptap/core" {
       setImageBlockAlign: (align: "left" | "center" | "right") => ReturnType;
       setImageBlockWidth: (width: number) => ReturnType;
       setImageBlockCaption: (caption: string | null) => ReturnType;
+      setImageBlockStyle: (style: ImageStyleType) => ReturnType;
     };
   }
 }
@@ -85,6 +89,11 @@ export const ImageBlock = Image.extend({
         },
         renderHTML: () => ({}),
       },
+      imageStyle: {
+        default: "none",
+        parseHTML: (el) => (el as HTMLElement).getAttribute("data-image-style") ?? "none",
+        renderHTML: (a) => ({ "data-image-style": a.imageStyle }),
+      },
     };
   },
 
@@ -96,18 +105,21 @@ export const ImageBlock = Image.extend({
     const attrs = HTMLAttributes as Record<string, unknown>;
     const align = (attrs["data-align"] as string) ?? "center";
     const width = (attrs["data-width"] as string) ?? "100%";
+    const imageStyle = (attrs["data-image-style"] as string) ?? "none";
     return [
       "div",
       {
         "data-type": "image-block",
         "data-align": align,
         "data-width": width,
+        "data-image-style": imageStyle,
       },
       [
         "img",
         {
           src: attrs.src,
           alt: attrs.alt ?? "",
+          class: `tk-image-style-${imageStyle}`,
           style: `width:${width};max-width:100%`,
         },
       ],
@@ -144,6 +156,10 @@ export const ImageBlock = Image.extend({
         (caption) =>
         ({ commands }) =>
           commands.updateAttributes("imageBlock", { caption }),
+      setImageBlockStyle:
+        (style) =>
+        ({ commands }) =>
+          commands.updateAttributes("imageBlock", { imageStyle: style }),
     };
   },
 
@@ -156,7 +172,7 @@ export const ImageBlock = Image.extend({
 function ImageBlockView(props: NodeViewProps) {
   const { editor, node, updateAttributes, selected } = props;
   const attrs = node.attrs as unknown as ImageBlockAttrs;
-  const { src, width, align, alt, caption } = attrs;
+  const { src, width, align, alt, caption, imageStyle = "none" } = attrs;
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const captionRef = useRef<HTMLDivElement | null>(null);
@@ -265,7 +281,7 @@ function ImageBlockView(props: NodeViewProps) {
         <img
           src={src}
           alt={alt ?? ""}
-          className="tk-image-block-img tk-block tk-w-full tk-h-auto"
+          className={`tk-image-block-img tk-image-style-${imageStyle} tk-block tk-w-full tk-h-auto`}
           draggable={false}
           onClick={onImageClick}
         />

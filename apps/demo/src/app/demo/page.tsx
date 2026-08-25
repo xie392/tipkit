@@ -5,16 +5,25 @@ import type { Editor } from "@tiptap/react";
 import { DemoEditor } from "@/components/demo-editor";
 import { EditorToolbar } from "@/components/editor-toolbar";
 import { SiteHeader } from "@/components/site-header";
+import { useDemoLang } from "@/components/use-demo-lang";
+import { SITE_COPY } from "@/lib/site-i18n";
+import { Eye, PencilLine } from "lucide-react";
 
 export default function DemoPage() {
   const [editor, setEditor] = useState<Editor | null>(null);
+  const [readOnly, setReadOnly] = useState(false);
+  const { lang } = useDemoLang();
+  const c = SITE_COPY[lang].demoMode;
 
   return (
     <div className="demo-shell">
       <SiteHeader />
 
       {/* 顶部工具条：sticky 在导航下方（如 Notion/语雀）；主题切换在右上导航 */}
-      <div className="demo-toolbar-bar tk-reveal" style={{ animationDelay: "0.08s" }}>
+      <div
+        className={`demo-toolbar-bar tk-reveal${readOnly ? " is-readonly" : ""}`}
+        style={{ animationDelay: "0.08s" }}
+      >
         <div className="demo-toolbar-inner">
           <EditorToolbar editor={editor} />
         </div>
@@ -22,8 +31,21 @@ export default function DemoPage() {
 
       {/* 主区：仅编辑器 */}
       <main className="demo-main tk-reveal" style={{ animationDelay: "0.16s" }}>
-        <DemoEditor onEditorReady={setEditor} />
+        <DemoEditor onEditorReady={setEditor} editable={!readOnly} />
       </main>
+
+      {/* 悬浮开关：右下角固定，切换编辑 / 只读模式 */}
+      <button
+        type="button"
+        className="demo-mode-toggle"
+        data-readonly={readOnly || undefined}
+        aria-pressed={readOnly}
+        title={c.title}
+        onClick={() => setReadOnly((v) => !v)}
+      >
+        {readOnly ? <Eye className="w-4 h-4" /> : <PencilLine className="w-4 h-4" />}
+        <span>{readOnly ? c.readonly : c.edit}</span>
+      </button>
     </div>
   );
 }

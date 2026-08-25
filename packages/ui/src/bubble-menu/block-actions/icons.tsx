@@ -207,3 +207,47 @@ export function IconIndent(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function IconImageStyle(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 16 16" width="15" height="15" {...base} strokeWidth="1.3" {...props}>
+      <rect x="2" y="2" width="12" height="12" rx="1.5" />
+      <rect x="4" y="4" width="8" height="8" rx="1" strokeDasharray="2 2" />
+    </svg>
+  );
+}
+
+export function IconStyleNone(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" width="32" height="24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="3" y="4" width="18" height="16" rx="1" />
+      <line x1="3" y1="4" x2="21" y2="20" strokeDasharray="2 2" opacity="0.5" />
+    </svg>
+  );
+}
+
+export function IconStyleBorder(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" width="32" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="3" y="4" width="18" height="16" rx="1" />
+    </svg>
+  );
+}
+
+export function IconStyleShadow(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" width="32" height="24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="3" y="3" width="16" height="14" rx="1" />
+      <rect x="5" y="5" width="16" height="14" rx="1" fill="currentColor" fillOpacity="0.08" />
+    </svg>
+  );
+}
+
+export function IconStyleBorderShadow(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" width="32" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="5" y="5" width="16" height="14" rx="1" fill="currentColor" fillOpacity="0.08" />
+      <rect x="3" y="3" width="16" height="14" rx="1" />
+    </svg>
+  );
+}

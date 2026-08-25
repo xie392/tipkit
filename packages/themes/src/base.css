@@ -337,8 +337,33 @@
 }
 
 .tk-image-block-img {
-  border-radius: 8px;
   display: block;
+  border-radius: 8px;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+/* 图片样式：无样式（默认圆角） */
+.tk-image-style-none {
+  border: none;
+  box-shadow: none;
+}
+
+/* 图片样式：边框 */
+.tk-image-style-border {
+  border: 1px solid var(--tk-border, #e5e7eb);
+  box-shadow: none;
+}
+
+/* 图片样式：阴影 */
+.tk-image-style-shadow {
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* 图片样式：边框+阴影 */
+.tk-image-style-border-shadow {
+  border: 1px solid var(--tk-border, #e5e7eb);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 /* 只读态下图片可点击预览 */
@@ -2131,6 +2156,12 @@
   flex-shrink: 0;
 }
 
+.tk-block-action-label {
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .tk-block-action-divider {
   width: 1px;
   height: 18px;
@@ -2186,6 +2217,21 @@
   width: 16px;
   justify-content: center;
   font-size: 15px;
+}
+
+.tk-image-style-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tk-image-style-option svg {
+  flex-shrink: 0;
+  color: var(--muted-foreground, #666);
+}
+
+.tk-block-action-item.is-active .tk-image-style-option svg {
+  color: var(--primary, #2563eb);
 }
 
 .tk-block-popover {

@@ -54,11 +54,13 @@ export function ActionButton({
 export function ActionDropdown({
   icon,
   label,
+  currentLabel,
   children,
   width = 120,
 }: {
   icon: ReactNode;
   label: string;
+  currentLabel?: string;
   children: (close: () => void) => ReactNode;
   width?: number;
 }) {
@@ -93,6 +95,7 @@ export function ActionDropdown({
           onClick={() => setOpen((v) => !v)}
         >
           {icon}
+          {currentLabel && <span className="tk-block-action-label">{currentLabel}</span>}
           <IconChevronDown />
         </button>
       </BlockTooltip>

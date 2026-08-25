@@ -205,6 +205,11 @@ export const zh: Messages = {
   "image.removeCaption": "移除说明",
   "image.preview": "预览图片",
   "image.linkPrompt": "输入图片链接",
+  "image.style": "图片样式",
+  "image.styleNone": "无样式",
+  "image.styleBorder": "边框",
+  "image.styleShadow": "阴影",
+  "image.styleBorderShadow": "边框+阴影",
 
   /* ── 图片预览 ── */
   "imagePreview.zoomOut": "缩小 (-)",
