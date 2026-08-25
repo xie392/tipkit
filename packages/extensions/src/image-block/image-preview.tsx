@@ -82,39 +82,48 @@ function IconDownload() {
 
 export function ImagePreview({ src, alt, onClose }: ImagePreviewProps) {
   const t = useT();
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const [naturalSize, setNaturalSize] = useState({ w: 0, h: 0 });
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
-  const imgRef = useRef<HTMLImageElement | null>(null);
-  const [naturalSize, setNaturalSize] = useState({ w: 0, h: 0 });
+  const stateRef = useRef({ scale: 1, position: { x: 0, y: 0 } });
 
   const reset = useCallback(() => {
     setScale(1);
     setRotation(0);
     setPosition({ x: 0, y: 0 });
+    stateRef.current = { scale: 1, position: { x: 0, y: 0 } };
   }, []);
 
   const clampScale = useCallback((s: number) => Math.max(MIN_SCALE, Math.min(MAX_SCALE, s)), []);
 
   const zoom = useCallback(
     (delta: number, center?: { x: number; y: number }) => {
-      setScale((prev) => {
-        const next = clampScale(Number((prev + delta).toFixed(2)));
-        if (next === prev) return prev;
-        if (center && imgRef.current) {
-          const rect = imgRef.current.getBoundingClientRect();
-          const cx = center.x - (rect.left + rect.width / 2);
-          const cy = center.y - (rect.top + rect.height / 2);
-          const ratio = next / prev;
-          setPosition((p) => ({
-            x: p.x - cx * (ratio - 1),
-            y: p.y - cy * (ratio - 1),
-          }));
-        }
-        return next;
-      });
+      const prevScale = stateRef.current.scale;
+      const nextScale = clampScale(Number((prevScale + delta).toFixed(2)));
+      if (nextScale === prevScale) return;
+
+      let nextPos = stateRef.current.position;
+
+      if (center && imgRef.current) {
+        const rect = imgRef.current.getBoundingClientRect();
+        // 鼠标点相对于图片中心的偏移（屏幕坐标）
+        const cx = center.x - (rect.left + rect.width / 2);
+        const cy = center.y - (rect.top + rect.height / 2);
+        const ratio = nextScale / prevScale;
+        // 为了让鼠标点在缩放后仍在同一屏幕位置，需要反向偏移
+        nextPos = {
+          x: stateRef.current.position.x - cx * (ratio - 1),
+          y: stateRef.current.position.y - cy * (ratio - 1),
+        };
+      }
+
+      stateRef.current = { scale: nextScale, position: nextPos };
+      setScale(nextScale);
+      setPosition(nextPos);
     },
     [clampScale],
   );
@@ -155,18 +164,22 @@ export function ImagePreview({ src, alt, onClose }: ImagePreviewProps) {
           break;
         case "ArrowLeft":
           e.preventDefault();
+          stateRef.current.position.x += 40;
           setPosition((p) => ({ ...p, x: p.x + 40 }));
           break;
         case "ArrowRight":
           e.preventDefault();
+          stateRef.current.position.x -= 40;
           setPosition((p) => ({ ...p, x: p.x - 40 }));
           break;
         case "ArrowUp":
           e.preventDefault();
+          stateRef.current.position.y += 40;
           setPosition((p) => ({ ...p, y: p.y + 40 }));
           break;
         case "ArrowDown":
           e.preventDefault();
+          stateRef.current.position.y -= 40;
           setPosition((p) => ({ ...p, y: p.y - 40 }));
           break;
       }
@@ -197,11 +210,11 @@ export function ImagePreview({ src, alt, onClose }: ImagePreviewProps) {
       dragStart.current = {
         x: e.clientX,
         y: e.clientY,
-        posX: position.x,
-        posY: position.y,
+        posX: stateRef.current.position.x,
+        posY: stateRef.current.position.y,
       };
     },
-    [scale, position],
+    [scale],
   );
 
   useEffect(() => {
@@ -209,10 +222,12 @@ export function ImagePreview({ src, alt, onClose }: ImagePreviewProps) {
     const onMove = (e: MouseEvent) => {
       const dx = e.clientX - dragStart.current.x;
       const dy = e.clientY - dragStart.current.y;
-      setPosition({
+      const nextPos = {
         x: dragStart.current.posX + dx,
         y: dragStart.current.posY + dy,
-      });
+      };
+      stateRef.current.position = nextPos;
+      setPosition(nextPos);
     };
     const onUp = () => setIsDragging(false);
     window.addEventListener("mousemove", onMove);
@@ -334,6 +349,7 @@ export function ImagePreview({ src, alt, onClose }: ImagePreviewProps) {
           onDoubleClick={onDoubleClick}
           style={{
             transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${rotation}deg)`,
+            transformOrigin: "center center",
             cursor: scale > 1 ? (isDragging ? "grabbing" : "grab") : "zoom-in",
             transition: isDragging ? "none" : "transform 0.15s ease-out",
           }}

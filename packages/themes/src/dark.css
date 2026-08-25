@@ -116,3 +116,22 @@
 .tk-theme-dark .tk-toolbar-divider {
   background: var(--border);
 }
+
+/* ---------- 块句柄：暗色下增强对比度 ---------- */
+.tk-theme-dark .tk-block-handle {
+  border-color: rgb(255 255 255 / 0.18);
+  background: oklch(0.28 0 0);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(255 255 255 / 0.04);
+  color: var(--foreground);
+}
+
+.tk-theme-dark .tk-block-handle:hover {
+  background: oklch(0.34 0 0);
+  border-color: rgb(255 255 255 / 0.25);
+}
+
+.tk-theme-dark .tk-block-handle-add:hover {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
