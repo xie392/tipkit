@@ -322,21 +322,27 @@ function CalloutView(props: NodeViewProps) {
       style={{ color: style.textColor, borderColor: style.borderColor, background: style.backgroundColor }}
     >
       <div className="tk-callout-head">
-        <button
-          ref={emojiBtnRef}
-          type="button"
-          className="tk-callout-emoji"
-          title={t("callout.changeIcon")}
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => {
-            setEmojiOpen((v) => !v);
-            setVariantOpen(false);
-          }}
-        >
-          {emoji}
-        </button>
+        {editor.isEditable ? (
+          <button
+            ref={emojiBtnRef}
+            type="button"
+            className="tk-callout-emoji"
+            title={t("callout.changeIcon")}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              setEmojiOpen((v) => !v);
+              setVariantOpen(false);
+            }}
+          >
+            {emoji}
+          </button>
+        ) : (
+          <span className="tk-callout-emoji" aria-hidden="true">
+            {emoji}
+          </span>
+        )}
       </div>
-      {emojiOpen &&
+      {editor.isEditable && emojiOpen &&
         typeof document !== "undefined" &&
         createPortal(
           <div
