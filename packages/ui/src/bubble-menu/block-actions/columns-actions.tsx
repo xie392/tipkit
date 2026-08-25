@@ -2,36 +2,60 @@
 
 import { useT } from "@tipkit/core";
 import type { BlockActionProps } from "./types";
-import { IconColumns } from "./icons";
-import { ActionDropdown, ActionMenuItem } from "./shared";
+import { ActionButton } from "./shared";
+import { ColumnLayout } from "@tipkit/extensions";
 
-const LAYOUTS = [
-  { value: "two-column", labelKey: "columns.twoColumn", icon: "▥" },
-  { value: "sidebar-left", labelKey: "columns.sidebarLeft", icon: "◧" },
-  { value: "sidebar-right", labelKey: "columns.sidebarRight", icon: "◨" },
-] as const;
+function IconTwoCol() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+      <rect x="2" y="3" width="5.5" height="10" rx="1" />
+      <rect x="8.5" y="3" width="5.5" height="10" rx="1" />
+    </svg>
+  );
+}
+
+function IconLeftNarrow() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+      <rect x="2" y="3" width="3.5" height="10" rx="1" />
+      <rect x="6.5" y="3" width="7.5" height="10" rx="1" />
+    </svg>
+  );
+}
+
+function IconRightNarrow() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+      <rect x="2" y="3" width="7.5" height="10" rx="1" />
+      <rect x="10.5" y="3" width="3.5" height="10" rx="1" />
+    </svg>
+  );
+}
 
 export function ColumnsActions({ node, updateAttributes }: BlockActionProps) {
   const t = useT();
-  const layout = (node.attrs.layout as string) ?? "two-column";
+  const layout = (node.attrs.layout as ColumnLayout) ?? ColumnLayout.TwoColumn;
 
   return (
-    <ActionDropdown icon={<IconColumns />} label={t("columns.layout")} width={150}>
-      {(close) =>
-        LAYOUTS.map((l) => (
-          <ActionMenuItem
-            key={l.value}
-            active={layout === l.value}
-            onClick={() => {
-              updateAttributes({ layout: l.value });
-              close();
-            }}
-          >
-            <span className="tk-block-action-item-icon">{l.icon}</span>
-            <span>{t(l.labelKey)}</span>
-          </ActionMenuItem>
-        ))
-      }
-    </ActionDropdown>
+    <>
+      <ActionButton
+        icon={<IconTwoCol />}
+        label={t("columns.twoColumn")}
+        active={layout === ColumnLayout.TwoColumn}
+        onClick={() => updateAttributes({ layout: ColumnLayout.TwoColumn })}
+      />
+      <ActionButton
+        icon={<IconLeftNarrow />}
+        label={t("columns.sidebarLeft")}
+        active={layout === ColumnLayout.SidebarLeft}
+        onClick={() => updateAttributes({ layout: ColumnLayout.SidebarLeft })}
+      />
+      <ActionButton
+        icon={<IconRightNarrow />}
+        label={t("columns.sidebarRight")}
+        active={layout === ColumnLayout.SidebarRight}
+        onClick={() => updateAttributes({ layout: ColumnLayout.SidebarRight })}
+      />
+    </>
   );
 }

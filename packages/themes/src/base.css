@@ -1438,23 +1438,99 @@
 }
 
 /* 分栏 */
-.tk-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+.tk-columns-wrap {
+  position: relative;
   margin: 0.75em 0;
+  border-radius: 6px;
+  transition: box-shadow 0.15s;
 }
 
-.tk-columns.layout-sidebar-left {
+.tk-columns-wrap.is-hovered {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
+}
+
+/* NodeViewContent 外层（className 挂载点）重置默认样式 */
+.tk-columns-grid[data-node-view-content] {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+}
+
+/* ReactNodeView 内部包裹层：真正的 grid 容器 */
+.tk-columns-grid[data-node-view-content] > [data-node-view-content-react] {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 8px 4px;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 6px;
+}
+
+.tk-columns-wrap.layout-sidebar-left .tk-columns-grid[data-node-view-content] > [data-node-view-content-react] {
   grid-template-columns: 1fr 2fr;
 }
 
-.tk-columns.layout-sidebar-right {
+.tk-columns-wrap.layout-sidebar-right .tk-columns-grid[data-node-view-content] > [data-node-view-content-react] {
   grid-template-columns: 2fr 1fr;
 }
 
 .tk-column {
   min-width: 0;
+}
+
+.tk-columns-toolbar {
+  position: absolute;
+  top: -38px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-radius: 10px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  box-shadow: 0 4px 20px rgb(0 0 0 / 0.14);
+  z-index: 50;
+}
+
+.tk-ct-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--muted-foreground, #666);
+  transition: background 0.12s, color 0.12s;
+}
+
+.tk-ct-btn:hover {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  color: var(--foreground, #222);
+}
+
+.tk-ct-btn.is-active {
+  background: color-mix(in srgb, var(--primary, #2563eb) 12%, transparent);
+  color: var(--primary, #2563eb);
+}
+
+.tk-ct-btn.is-danger:hover {
+  background: color-mix(in srgb, #ef4444 12%, transparent);
+  color: #ef4444;
+}
+
+.tk-ct-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 2px;
+  background: var(--border, #e0e0e0);
 }
 
 /* 折叠块 */
