@@ -1,4 +1,4 @@
-import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -33,16 +33,11 @@ const themeFiles = ["default.css", "sketch.css", "dark.css"];
 for (const file of themeFiles) {
   const themeSource = readFileSync(resolve(srcDir, file), "utf-8");
 
-  // 移除第一行 @import "./base.css";（含空行）
   const withoutImport = themeSource
     .replace(/^@import\s+["']\.\/base\.css["']\s*;?\s*\n?/, "")
     .trimStart();
 
-  // 组合：base.css + 空行 + 主题内容
   const combined = `${baseCss}\n\n${withoutImport}`;
 
   writeFileSync(resolve(distDir, file), combined);
 }
-
-// 修正 import 避免未定义的 statSync
-import { statSync } from "node:fs";
