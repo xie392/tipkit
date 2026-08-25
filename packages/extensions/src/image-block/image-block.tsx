@@ -84,7 +84,7 @@ export const ImageBlock = Image.extend({
       caption: {
         default: null,
         parseHTML: (el) => {
-          const cap = (el as HTMLElement).querySelector(".tk-ib-caption");
+          const cap = (el as HTMLElement).querySelector(".tk-image-block-caption");
           return cap ? (cap.textContent ?? null) : null;
         },
         renderHTML: () => ({}),
@@ -101,12 +101,13 @@ export const ImageBlock = Image.extend({
     return [{ tag: "div[data-type='image-block']" }];
   },
 
-  renderHTML({ HTMLAttributes }) {
+  renderHTML({ node, HTMLAttributes }) {
     const attrs = HTMLAttributes as Record<string, unknown>;
     const align = (attrs["data-align"] as string) ?? "center";
     const width = (attrs["data-width"] as string) ?? "100%";
     const imageStyle = (attrs["data-image-style"] as string) ?? "none";
-    return [
+    const caption = (node.attrs.caption as string | null) ?? null;
+    const result: [string, Record<string, unknown>, ...any[]] = [
       "div",
       {
         "data-type": "image-block",
@@ -124,6 +125,10 @@ export const ImageBlock = Image.extend({
         },
       ],
     ];
+    if (caption) {
+      result.push(["div", { class: "tk-image-block-caption" }, caption]);
+    }
+    return result;
   },
 
   addCommands() {
