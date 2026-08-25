@@ -35,3 +35,6 @@ test-results/
 # trae skill installation (machine-local)
 .trae/
 skills-lock.json
+
+# 独立消费方测试项目（不入库，本地验证用）
+test-consumer/

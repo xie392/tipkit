@@ -714,6 +714,11 @@
   padding: 0.1em 0.35em;
 }
 
+.tk-theme-sketch .tk-slash-preview-title {
+  color: var(--foreground);
+  text-shadow: 0 1px 2px rgb(255 255 255 / 0.8);
+}
+
 /* ---------- 占位提示 ---------- */
 .tk-theme-sketch .tk-editor .tk-prosemirror p.is-editor-empty:first-child::before,
 .tk-theme-sketch .tk-editor .tk-prosemirror .is-empty::before {

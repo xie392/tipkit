@@ -613,6 +613,7 @@
   border: none;
   border-radius: 6px;
   background: transparent;
+  color: inherit;
   cursor: pointer;
 }
 
@@ -646,6 +647,7 @@
   border: none;
   border-radius: 6px;
   background: transparent;
+  color: inherit;
   cursor: pointer;
 }
 
@@ -670,6 +672,7 @@
   border: none;
   border-radius: 6px;
   background: transparent;
+  color: inherit;
   cursor: pointer;
   transition: background 0.12s;
 }
@@ -1058,10 +1061,11 @@
 .tk-slash-preview-title {
   margin-top: 8px;
   padding: 0 4px;
-  font-size: 11.5px;
-  font-weight: 500;
-  color: rgb(255 255 255 / 0.9);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.95);
   text-align: center;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.5);
 }
 
 /* 插入面板（工具栏 + 按钮弹层）：交互定位，视觉归主题 */

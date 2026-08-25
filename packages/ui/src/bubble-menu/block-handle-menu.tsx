@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
-import { NodeSelection } from "@tiptap/pm/state";
+import { NodeSelection, TextSelection } from "@tiptap/pm/state";
 import { getActiveBlockPos } from "@tipkit/extensions";
 import { useT } from "@tipkit/core";
 import {
@@ -219,7 +219,9 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
     const insertPos = active.pos + active.nodeSize;
     const tr = editor.state.tr;
     tr.insert(insertPos, paragraph.create());
+    const slashPos = insertPos + 2;
     tr.insertText("/", insertPos + 1, insertPos + 1);
+    tr.setSelection(TextSelection.create(tr.doc, slashPos));
     editor.view.dispatch(tr.scrollIntoView());
     editor.view.focus();
   };
