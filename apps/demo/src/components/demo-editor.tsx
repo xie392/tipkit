@@ -1,15 +1,17 @@
 "use client";
 
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { TipKitEditor } from "@tipkit/editor";
 import type { EditorDeps, IconRef, CommentRange } from "@tipkit/editor";
 import { createBasicExtensions, createAdvancedExtensions, Comment } from "@tipkit/extensions";
-import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockBubbleMenu, BlockHandleMenu, TableControls } from "@tipkit/ui";
+import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockBubbleMenu, BlockHandleMenu, TableControls, ReadonlyTextMenu } from "@tipkit/ui";
 import { useDemoLang } from "@/components/use-demo-lang";
 import type { DemoLang } from "@/components/site-lang-switch";
 import { BlockCommentHover } from "@/components/block-comment-hover";
+import { CommentHoverCard } from "@/components/comment-hover-card";
+import { CommentAnchorGutter } from "@/components/comment-anchor-gutter";
 import { TooltipProvider } from "@tipkit/components";
 import {
   Bold,
@@ -204,6 +206,9 @@ export function DemoEditor({
   /** 正在回复的目标：null = 回复主评论；{replyId, author} = 回复某条回复 */
   const [replyTarget, setReplyTarget] = useState<{ replyId: string; author: string } | null>(null);
 
+  /** 已存在的评论 id 集合（供锚点组件做 O(1) 存在性判断） */
+  const existingCommentIds = useMemo(() => new Set(comments.map((c) => c.id)), [comments]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -212,6 +217,14 @@ export function DemoEditor({
     pendingRangeRef.current = pendingRange;
   }, [pendingRange]);
 
+  /** 只读模式下划词评论回调：ReadonlyTextMenu 已经通过 view.dispatch 把 mark 加上了，这里只负责设置 pending 状态并打开抽屉 */
+  const handleReadonlyCommentCreate = useCallback((range: { from: number; to: number; text: string; commentId: string }) => {
+    setPendingRange(range);
+    setDraft("");
+    setActiveId(range.commentId);
+    setDrawerOpen(true);
+  }, []);
+
   const deps = useMemo<EditorDeps>(
     () => ({
       uploadImage,
@@ -219,43 +232,41 @@ export function DemoEditor({
       onCommentCreate: (range) => {
         setPendingRange(range);
         setDraft("");
+        // 创建新评论时仍直接打开抽屉，方便输入内容
         setDrawerOpen(true);
       },
-      onCommentClick: (commentId) => {
-        setActiveId(commentId);
-        setDrawerOpen(true);
-        // 1) 面板内评论项滚动到可视区并闪烁
-        setTimeout(() => {
-          const el = document.getElementById(`comment-${commentId}`);
-          el?.scrollIntoView({ behavior: "smooth", block: "center" });
-          el?.classList.add("is-flash");
-          setTimeout(() => el?.classList.remove("is-flash"), 1400);
-        }, 80);
-        // 2) 正文锚点滚动到可视区并闪烁
-        setTimeout(() => {
-          const editor = editorRef.current;
-          const view = editor?.view;
-          if (!view) return;
-          const anchor = view.dom.querySelector<HTMLElement>(`[data-comment-id="${commentId}"]`);
-          if (!anchor) return;
-          anchor.scrollIntoView({ behavior: "smooth", block: "center" });
-          anchor.classList.add("is-comment-flash");
-          setTimeout(() => anchor.classList.remove("is-comment-flash"), 1400);
-        }, 80);
-      },
+      // onCommentClick 不再由点击评论文字自动触发（扩展层已取消自动拦截，避免点击弹遮罩阻断编辑）；
+      // 改为由 hover 卡片 / FAB / 面板项点击主动调用 openCommentPanel
     }),
     [t],
   );
 
-  const commentExt = useMemo(
-    () =>
-      Comment.configure({
-        onCommentClick: (commentId) => {
-          deps.onCommentClick?.(commentId);
-        },
-      }),
-    [deps],
-  );
+  /** 打开右侧评论面板并定位到指定评论（供 hover 卡片/FAB/面板项调用） */
+  const openCommentPanel = useCallback((commentId: string | null) => {
+    setActiveId(commentId);
+    setDrawerOpen(true);
+    if (!commentId) return;
+    // 1) 面板内评论项滚动到可视区并闪烁
+    setTimeout(() => {
+      const el = document.getElementById(`comment-${commentId}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.classList.add("is-flash");
+      setTimeout(() => el?.classList.remove("is-flash"), 1400);
+    }, 120);
+    // 2) 正文锚点滚动到可视区并闪烁
+    setTimeout(() => {
+      const editor = editorRef.current;
+      const view = editor?.view;
+      if (!view) return;
+      const anchor = view.dom.querySelector<HTMLElement>(`[data-comment-id="${commentId}"]`);
+      if (!anchor) return;
+      anchor.scrollIntoView({ behavior: "smooth", block: "center" });
+      anchor.classList.add("is-comment-flash");
+      setTimeout(() => anchor.classList.remove("is-comment-flash"), 1400);
+    }, 120);
+  }, []);
+
+  const commentExt = useMemo(() => Comment.configure(), []);
 
   const submitComment = () => {
     if (!pendingRange || !draft.trim()) return;
@@ -295,6 +306,14 @@ export function DemoEditor({
     }
     setPendingRange(null);
     setDraft("");
+  };
+
+  /** 关闭抽屉：若当前有未提交的 pending 评论（用户直接点遮罩/X），取消并移除 mark */
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+    if (pendingRange) {
+      cancelComment();
+    }
   };
 
   const removeComment = (id: string) => {
@@ -407,7 +426,7 @@ export function DemoEditor({
           <button
             type="button"
             className="demo-comment-close"
-            onClick={() => setDrawerOpen(false)}
+            onClick={() => closeDrawer()}
             aria-label={lang === "zh" ? "关闭" : "Close"}
           >
             <X className="w-4 h-4" />
@@ -428,7 +447,17 @@ export function DemoEditor({
               key={c.id}
               id={`comment-${c.id}`}
               className={`demo-comment-item${activeId === c.id ? " is-active" : ""}`}
-              onClick={() => deps.onCommentClick?.(c.id)}
+              onClick={() => {
+                // 点击面板内评论项 → 高亮正文锚点（已在 openCommentPanel 中处理）
+                const editor = editorRef.current;
+                const view = editor?.view;
+                const anchor = view?.dom.querySelector<HTMLElement>(`[data-comment-id="${c.id}"]`);
+                if (anchor) {
+                  anchor.scrollIntoView({ behavior: "smooth", block: "center" });
+                  anchor.classList.add("is-comment-flash");
+                  setTimeout(() => anchor.classList.remove("is-comment-flash"), 1400);
+                }
+              }}
             >
               <div className="demo-comment-quote">"{c.quote}"</div>
 
@@ -678,6 +707,7 @@ export function DemoEditor({
                 <SlashMenu editor={editor} onUploadImage={uploadImage} iconRenderer={renderSlashIcon} />
                 <EmojiSuggestion editor={editor} />
                 <TextMenu editor={editor} />
+                <ReadonlyTextMenu editor={editor} onCommentCreate={handleReadonlyCommentCreate} />
                 <LinkBubble editor={editor} />
                 <LinkDialogHost editor={editor} />
                 {editable && <BlockBubbleMenu editor={editor} />}
@@ -699,6 +729,30 @@ export function DemoEditor({
         onBlockComment={handleBlockComment}
       />
 
+      {/* hover 评论文字时浮出的小评论卡片（语雀风格，不阻断编辑） */}
+      <CommentHoverCard
+        editor={editorInstance}
+        getComment={(id) => {
+          const c = comments.find((x) => x.id === id);
+          if (!c) return null;
+          return {
+            author: c.author,
+            text: c.text,
+            createdAt: c.createdAt,
+            replyCount: c.replies?.length ?? 0,
+          };
+        }}
+        onOpenPanel={(id) => openCommentPanel(id)}
+        text={{ view: lang === "zh" ? "查看评论" : "Open", reply: lang === "zh" ? "回复" : "Reply" }}
+      />
+
+      {/* 语雀风格：评论所在行右外侧 gutter 里显示小评论锚点图标 */}
+      <CommentAnchorGutter
+        editor={editorInstance}
+        existingIds={existingCommentIds}
+        onAnchorClick={(id) => openCommentPanel(id)}
+      />
+
       {/* 评论抽屉 + FAB + 遮罩：Portal 到 body，避免 fixed 被祖先 transform 影响 */}
       {mounted && createPortal(
         <>
@@ -707,7 +761,7 @@ export function DemoEditor({
             <button
               type="button"
               className="demo-comment-fab"
-              onClick={() => setDrawerOpen(true)}
+              onClick={() => openCommentPanel(null)}
               aria-label={lang === "zh" ? "查看评论" : "View comments"}
             >
               <MessageSquare className="w-4 h-4" />
@@ -722,7 +776,7 @@ export function DemoEditor({
 
           {/* 遮罩 */}
           {drawerOpen && (
-            <div className="demo-comment-overlay" onClick={() => setDrawerOpen(false)} />
+            <div className="demo-comment-overlay" onClick={() => closeDrawer()} />
           )}
         </>,
         document.body,

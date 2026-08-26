@@ -1261,39 +1261,42 @@
   margin-top: 6px;
 }
 
-/* 公式 hover 工具栏（与 columns/details 风格统一） */
+/* 公式块：居中展示；只读模式右上角显示复制源码按钮（风格同 code-block 复制按钮） */
 .tk-katex-display {
   position: relative;
   display: flex;
   justify-content: center;
 }
-.tk-katex-toolbar {
+.tk-katex-copy-btn {
   position: absolute;
   top: 4px;
   right: 4px;
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 4px 6px;
-  border-radius: 10px;
-  background: var(--popover, #fff);
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
   border: 1px solid var(--border, #e0e0e0);
-  box-shadow: 0 4px 20px rgb(0 0 0 / 0.14);
-  z-index: 50;
+  border-radius: 6px;
+  background: var(--popover, #fff);
+  color: var(--muted-foreground, #656d76);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  cursor: pointer;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.12s, visibility 0.12s, transform 0.12s;
-  transform: translateY(-2px);
+  transition: opacity 0.12s, visibility 0.12s, background 0.15s, color 0.15s;
 }
-/* hover 或选中时显示工具栏 */
-.tk-katex:hover .tk-katex-toolbar,
-.tk-katex.is-selected .tk-katex-toolbar,
-.tk-katex.ProseMirror-selectednode .tk-katex-toolbar {
+.tk-katex-copy-btn:hover {
+  background: rgb(0 0 0 / 0.05);
+  color: var(--foreground, #24292f);
+}
+.tk-katex.is-readonly:hover .tk-katex-copy-btn,
+.tk-katex:hover .tk-katex-copy-btn {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transform: translateY(0);
 }
 
 /* 提示框 Callout：base 层只放布局，视觉由主题覆盖 */

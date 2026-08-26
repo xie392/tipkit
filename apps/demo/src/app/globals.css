@@ -509,14 +509,14 @@ body::after {
   transform: translateX(0);
 }
 
-/* 悬浮评论按钮：右侧固定，点击打开抽屉 */
+/* 悬浮评论按钮：右下角留白区，不压编辑器卡片 */
 .demo-comment-fab {
   position: fixed;
-  right: 24px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
+  right: 12px;
+  bottom: 80px;
+  top: auto;
+  width: 40px;
+  height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -530,13 +530,13 @@ body::after {
   transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
 }
 .demo-comment-fab:hover {
-  transform: translateY(-50%) scale(1.06);
+  transform: translateY(-2px) scale(1.04);
   box-shadow: 0 6px 20px rgb(0 0 0 / 0.16);
 }
 .demo-comment-fab.is-hidden {
   opacity: 0;
   pointer-events: none;
-  transform: translateY(-50%) scale(0.8);
+  transform: scale(0.8);
 }
 .demo-comment-fab-badge {
   position: absolute;
@@ -566,7 +566,7 @@ body::after {
   padding: 16px 20px 20px;
 }
 
-/* 只读模式块右侧评论按钮（显示在块内右上角，与左侧 + 号手柄对称） */
+/* 只读模式块评论按钮（fixed，定位由 JS 放到正文右外侧 gutter，不压文字） */
 .tk-block-comment-btn {
   position: fixed;
   width: 28px;
@@ -603,6 +603,60 @@ body::after {
   margin: 0;
   width: 100%;
   box-sizing: border-box;
+  /* 右侧留 gutter 放置评论锚点图标（语雀风格） */
+  padding-right: 40px;
+}
+
+/* ---------- 评论锚点图标（语雀/飞书风格：正文右外侧小图标） ---------- */
+.demo-comment-anchor {
+  position: fixed;
+  z-index: 40;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.55;
+  transform: translateX(0);
+  transition: opacity 0.15s, transform 0.15s, color 0.15s, background-color 0.15s;
+}
+.demo-comment-anchor-icon {
+  width: 14px;
+  height: 14px;
+}
+/* 鼠标进入编辑器 / hover 锚点自身 / 强制可见时：完全不透明 */
+.demo-editor-article:hover .demo-comment-anchor,
+.demo-comment-anchor:hover,
+.demo-comment-anchor.is-visible {
+  opacity: 1;
+}
+.demo-comment-anchor:hover {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+/* 有未读/最新评论时，锚点旁边带一个小色条（语雀的红色短杠） */
+.demo-comment-anchor::after {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  width: 8px;
+  height: 2px;
+  background: var(--primary);
+  border-radius: 2px;
+  transform: translateY(-50%) scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.15s;
+}
+.demo-comment-anchor:hover::after {
+  transform: translateY(-50%) scaleX(1);
 }
 
 .demo-comment-panel-header {
@@ -956,6 +1010,109 @@ body::after {
   opacity: 0.5;
   cursor: not-allowed;
 }
+.demo-comment-btn.sm {
+  padding: 4px 10px;
+  font-size: 12px;
+  gap: 4px;
+}
+
+/* ============================================================
+ * 评论悬浮卡片（语雀风格：hover 评论文字浮出小卡片，不阻断编辑）
+ * ============================================================ */
+.demo-comment-hover-card {
+  position: fixed;
+  z-index: 60;
+  width: 280px;
+  max-width: calc(100vw - 24px);
+  background: var(--card, #fff);
+  color: var(--card-foreground, #222);
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow:
+    0 4px 12px rgb(0 0 0 / 0.08),
+    0 12px 32px -8px rgb(0 0 0 / 0.12);
+  font-size: 13px;
+  line-height: 1.55;
+  animation: tk-comment-card-in 0.14s ease-out both;
+}
+/* 卡片在文字上方 → 整体向上偏移 */
+.demo-comment-hover-card.is-above {
+  transform: translate(-50%, calc(-100% - 10px));
+}
+@keyframes tk-comment-card-in {
+  from { opacity: 0; transform: translate(-50%, calc(-100% - 6px)); }
+  to   { opacity: 1; transform: translate(-50%, calc(-100% - 10px)); }
+}
+/* 卡片在文字下方 → 整体向下偏移 */
+.demo-comment-hover-card.is-below {
+  transform: translate(-50%, 10px);
+  animation-name: tk-comment-card-in-below;
+}
+@keyframes tk-comment-card-in-below {
+  from { opacity: 0; transform: translate(-50%, 6px); }
+  to   { opacity: 1; transform: translate(-50%, 10px); }
+}
+
+.demo-comment-hover-arrow {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--card, #fff);
+  border-radius: 2px;
+}
+/* above：箭头在卡片底部，朝下 */
+.demo-comment-hover-card.is-above .demo-comment-hover-arrow {
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  border-right: 1px solid var(--border, #e5e5e5);
+  border-bottom: 1px solid var(--border, #e5e5e5);
+}
+/* below：箭头在卡片顶部，朝上 */
+.demo-comment-hover-card.is-below .demo-comment-hover-arrow {
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  border-left: 1px solid var(--border, #e5e5e5);
+  border-top: 1px solid var(--border, #e5e5e5);
+}
+
+.demo-comment-hover-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.demo-comment-hover-author {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foreground, #222);
+}
+.demo-comment-hover-reply {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted-foreground, #888);
+}
+.demo-comment-hover-text {
+  color: var(--foreground, #222);
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 7.5em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+}
+.demo-comment-hover-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border, #eee);
+}
 
 /* 响应式：小屏内容区加边距，FAB 移到右下角 */
 @media (max-width: 960px) {
@@ -970,10 +1127,11 @@ body::after {
     right: 16px;
     top: auto;
     bottom: 80px;
-    transform: none;
+    width: 44px;
+    height: 44px;
   }
   .demo-comment-fab:hover {
-    transform: scale(1.06);
+    transform: translateY(-2px) scale(1.04);
   }
   .demo-comment-fab.is-hidden {
     transform: scale(0.8);

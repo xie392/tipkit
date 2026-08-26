@@ -38,6 +38,12 @@
   --tk-scrollbar-thumb: rgba(49, 48, 46, 0.35);
   --tk-scrollbar-thumb-hover: rgba(49, 48, 46, 0.55);
 
+  /* 评论高亮（手绘风：马克笔底纹） */
+  --tk-comment-color: #d97706;
+  --tk-comment-bg: rgba(251, 191, 36, 0.35);
+  --tk-comment-hover-bg: rgba(251, 191, 36, 0.55);
+  --tk-comment-hover-color: #b45309;
+
   /* 手绘描边 / 阴影（blog DESIGN.md token） */
   --tk-sketch-line: rgba(49, 48, 46, 0.75);
   --tk-sketch-line-soft: rgba(49, 48, 46, 0.45);
@@ -76,6 +82,12 @@
   --tk-sketch-line-hair: rgba(230, 227, 221, 0.55);
   --tk-sketch-shadow: rgba(0, 0, 0, 0.55);
   --tk-sketch-shadow-soft: rgba(0, 0, 0, 0.4);
+
+  /* 评论高亮（手绘暗色） */
+  --tk-comment-color: #fbbf24;
+  --tk-comment-bg: rgba(251, 191, 36, 0.28);
+  --tk-comment-hover-bg: rgba(251, 191, 36, 0.45);
+  --tk-comment-hover-color: #fde68a;
 }
 
 /* ---------- 手绘边框 / 阴影工具（blog sketch-border / sketch-shadow） ---------- */

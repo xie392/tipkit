@@ -106,7 +106,11 @@ export const BlockHandles = Extension.create({
     let hoverEl: HTMLElement | null = null;
     let activePos: number | null = null;
     let hideTimer: ReturnType<typeof setTimeout> | null = null;
-    let dragSelection: NodeSelection | null = null;
+    // mousedown 时临时保存的信息：若随后触发 dragstart 则用于拖拽；若随后
+    // 触发 click（未拖动）则用于激活菜单。两者互斥：一旦开始拖拽就不再弹菜单。
+    let pendingPos: number | null = null;
+    let pendingDragSelection: NodeSelection | null = null;
+    let dragStarted = false;
 
     const setActive = (pos: number | null) => {
       if (!view) return;
@@ -126,8 +130,6 @@ export const BlockHandles = Extension.create({
     };
 
     const scheduleHide = () => {
-      // 块处于激活态（块菜单可能正打开）时保持手柄可见，避免鼠标移入
-      // portal 到 body 的弹层导致编辑器 mouseleave 而隐藏手柄。
       if (activePos != null) return;
       if (hideTimer) clearTimeout(hideTimer);
       hideTimer = setTimeout(() => wrap?.classList.add("is-hidden"), 280);
@@ -142,7 +144,6 @@ export const BlockHandles = Extension.create({
       const { paragraph } = view.state.schema.nodes;
       const tr = view.state.tr;
       const targetNode = tr.doc.nodeAt(nodePos);
-      // 目标块本身就是空段落时直接复用，避免在已有空段落前再插一个段落产生多余空行
       if (targetNode && targetNode.type === paragraph && targetNode.content.size === 0) {
         const contentPos = nodePos + 1;
         tr.insertText("/", contentPos, contentPos);
@@ -163,32 +164,91 @@ export const BlockHandles = Extension.create({
       e.stopPropagation();
     };
 
+    // mousedown：仅记录目标块，不 dispatch 任何 transaction（避免重渲染打断拖拽）
     const onDragMouseDown = () => {
       if (!hoverEl || !view) return;
       const nodePos = getBlockNodePos(view, hoverEl);
       if (nodePos == null) return;
-      setActive(nodePos);
+      pendingPos = nodePos;
+      dragStarted = false;
       try {
-        dragSelection = NodeSelection.create(view.state.doc, nodePos);
+        pendingDragSelection = NodeSelection.create(view.state.doc, nodePos);
       } catch {
-        dragSelection = null;
+        pendingDragSelection = null;
       }
     };
 
+    // dragstart：真正开始拖拽，标记内部拖拽状态并设置 dataTransfer（用于给其他
+    // 编辑器/应用识别内容，也设置 view.dragging 作为兜底）
     const onDragStart = (e: DragEvent) => {
-      if (!view || !dragSelection || !e.dataTransfer) return;
-      const slice = dragSelection.content();
+      if (!view || !pendingDragSelection || !e.dataTransfer) return;
+      dragStarted = true;
+      const slice = pendingDragSelection.content();
       const { dom, text } = view.serializeForClipboard(slice);
       e.dataTransfer.effectAllowed = "copyMove";
+      e.dataTransfer.dropEffect = "move";
       e.dataTransfer.clearData();
       e.dataTransfer.setData("text/html", dom.innerHTML);
       e.dataTransfer.setData("text/plain", text);
+      // 使用自定义 MIME 标记这是 TipKit 内部块拖拽
+      e.dataTransfer.setData("application/x-tipkit-block-drag", String(pendingPos));
       if (hoverEl) e.dataTransfer.setDragImage(hoverEl, 0, 0);
       view.dragging = { slice, move: true };
     };
 
     const onDragEnd = () => {
-      dragSelection = null;
+      if (view) view.dragging = null;
+      pendingPos = null;
+      pendingDragSelection = null;
+      dragStarted = false;
+    };
+
+    // handleDrop：手动处理内部块拖拽移动。因为手柄按钮 portal 到 document.body，
+    // 不在编辑器 DOM 内，ProseMirror 原生会把它当作外部粘贴（复制而非移动），
+    // 所以我们自己识别 dataTransfer 上的标记并执行 move。
+    const onDrop = (v: EditorView, event: DragEvent): boolean => {
+      if (!dragStarted || pendingPos == null || !event.dataTransfer) return false;
+      const isInternal = event.dataTransfer.types.includes("application/x-tipkit-block-drag");
+      if (!isInternal) return false;
+      event.preventDefault();
+      const sourcePos = pendingPos;
+      const coords = v.posAtCoords({ left: event.clientX, top: event.clientY });
+      if (!coords) return true;
+      let dropPos = coords.pos;
+      const tr = v.state.tr;
+      const sourceNode = tr.doc.nodeAt(sourcePos);
+      if (!sourceNode) return true;
+      const sourceSize = sourceNode.nodeSize;
+      // 调整目标位置：如果 drop 落在源块内部或紧贴源块边界，不做移动
+      if (dropPos >= sourcePos && dropPos <= sourcePos + sourceSize) {
+        onDragEnd();
+        return true;
+      }
+      // 删除源块（先记录目标位置在删除后的偏移）
+      let insertPos = dropPos;
+      if (dropPos > sourcePos) insertPos -= sourceSize;
+      const sourceSlice = tr.doc.slice(sourcePos, sourcePos + sourceSize);
+      tr.delete(sourcePos, sourcePos + sourceSize);
+      tr.insert(insertPos, sourceSlice.content);
+      // 移动后把光标放到被移动块之后
+      const afterPos = insertPos + sourceSize;
+      tr.setSelection(TextSelection.create(tr.doc, Math.min(afterPos, tr.doc.content.size)));
+      tr.setMeta(blockHandlesKey, { type: "setActive", pos: null });
+      tr.scrollIntoView();
+      v.dispatch(tr);
+      v.focus();
+      onDragEnd();
+      return true;
+    };
+
+    // click：仅在没有触发拖拽时才激活菜单（mousedown → mouseup 未移动）
+    const onDragClick = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (dragStarted) return;
+      if (pendingPos != null) setActive(pendingPos);
+      pendingPos = null;
+      pendingDragSelection = null;
     };
 
     const positionUI = (blockEl: HTMLElement) => {
@@ -264,6 +324,7 @@ export const BlockHandles = Extension.create({
       addBtn.addEventListener("click", onAddClick);
       addBtn.addEventListener("mousedown", onButtonMouseDown);
       dragBtn.addEventListener("mousedown", onDragMouseDown);
+      dragBtn.addEventListener("click", onDragClick);
       dragBtn.addEventListener("dragstart", onDragStart);
       dragBtn.addEventListener("dragend", onDragEnd);
       wrap.addEventListener("mouseenter", clearHide);
@@ -279,6 +340,7 @@ export const BlockHandles = Extension.create({
       addBtn?.removeEventListener("click", onAddClick);
       addBtn?.removeEventListener("mousedown", onButtonMouseDown);
       dragBtn?.removeEventListener("mousedown", onDragMouseDown);
+      dragBtn?.removeEventListener("click", onDragClick);
       dragBtn?.removeEventListener("dragstart", onDragStart);
       dragBtn?.removeEventListener("dragend", onDragEnd);
       wrap?.removeEventListener("mouseenter", clearHide);
@@ -286,7 +348,9 @@ export const BlockHandles = Extension.create({
       wrap?.remove();
       wrap = addBtn = dragBtn = null;
       hoverEl = null;
-      activePos = null;
+      // 注：不再手动清理 activePos / pendingPos / pendingDragSelection / dragStarted。
+      // 这些闭包变量随插件销毁后整个闭包被 GC，手动置 null 在 Turbopack +
+      // React StrictMode 双重渲染场景下可能触发 TDZ 相关 ReferenceError。
     };
 
     return [
@@ -308,6 +372,7 @@ export const BlockHandles = Extension.create({
           },
         },
         props: {
+          handleDrop: onDrop,
           decorations: (state) => {
             const { pos } = blockHandlesKey.getState(state) as { pos: number | null };
             if (pos == null) return DecorationSet.empty;

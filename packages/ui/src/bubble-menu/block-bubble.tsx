@@ -15,6 +15,10 @@ import { ColumnsActions } from "./block-actions/columns-actions";
 import { DetailsActions } from "./block-actions/details-actions";
 import { BlockTooltip } from "./block-actions/shared";
 
+/* 块级浮动工具栏（点击选中块触发，NodeSelection 驱动）。
+ * hover 触发的操作栏由各 NodeView 内部渲染（参考 columns 做法），
+ * 此处仅承载用户主动点击选中后的操作。 */
+
 function IconTrash() {
   return (
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">

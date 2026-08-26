@@ -37,6 +37,8 @@ export { SlashMenu } from "./slash-menu/slash-menu";
 export type { SlashMenuProps } from "./slash-menu/slash-menu";
 export { EmojiSuggestion, getEmojiSuggestionState } from "./emoji/emoji-suggestion";
 export { TextMenu } from "./bubble-menu/text-menu";
+export { ReadonlyTextMenu } from "./bubble-menu/readonly-text-menu";
+export type { ReadonlyTextMenuProps } from "./bubble-menu/readonly-text-menu";
 export { LinkBubble } from "./bubble-menu/link-bubble";
 export { LinkDialog, LinkDialogHost, openLinkDialog } from "./bubble-menu/link-dialog";
 export { BlockBubbleMenu } from "./bubble-menu/block-bubble";

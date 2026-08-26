@@ -11,8 +11,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useT, useEditorEditable } from "@tipkit/core";
 
 /* 多栏容器：含两个 column 子节点。
- * ReactNodeView 自带 hover 工具栏：鼠标悬停分栏时在顶部显示布局切换按钮，
- * 不依赖 NodeSelection，避免点击时内部文本被全选变灰。 */
+ * columns 不是 atom，自动设 NodeSelection 会把内部文本整块高亮变灰，
+ * 因此悬浮工具栏保留完整操作（布局切换 + 复制块 + 删除块）。 */
 
 export enum ColumnLayout {
   SidebarLeft = "sidebar-left",
@@ -56,19 +56,19 @@ function IconRightNarrow() {
   );
 }
 
-function IconTrash() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2.5 4h11M6.5 4V2.5h3V4M4 4l.6 9h6.8l.6-9M6.5 7v3.5M9.5 7v3.5" />
-    </svg>
-  );
-}
-
 function IconDuplicate() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
       <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" />
       <path d="M10.5 5.5v-1a1.5 1.5 0 0 0-1.5-1.5H4a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 4 11h1.5" />
+    </svg>
+  );
+}
+
+function IconTrash() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.5 4h11M6.5 4V2.5h3V4M4 4l.6 9h6.8l.6-9M6.5 7v3.5M9.5 7v3.5" />
     </svg>
   );
 }
@@ -89,22 +89,21 @@ function ColumnsView({ editor, node, getPos, updateAttributes, deleteNode }: Nod
     if (!isEditable) setHovered(false);
   }, [isEditable]);
 
-  const handleDelete = useCallback(() => {
-    if (!isEditable) return;
-    deleteNode();
-  }, [isEditable, deleteNode]);
-
   const handleDuplicate = useCallback(() => {
     if (!isEditable) return;
     const pos = getPos();
     if (typeof pos !== "number") return;
-    const nodeSize = node.nodeSize;
     editor
       .chain()
       .focus(undefined, { scrollIntoView: false })
-      .insertContentAt(pos + nodeSize, node.toJSON())
+      .insertContentAt(pos + node.nodeSize, node.toJSON())
       .run();
-  }, [editor, node, getPos]);
+  }, [editor, node, getPos, isEditable]);
+
+  const handleDelete = useCallback(() => {
+    if (!isEditable) return;
+    deleteNode();
+  }, [isEditable, deleteNode]);
 
   return (
     <NodeViewWrapper

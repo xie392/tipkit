@@ -91,7 +91,7 @@ export const Details = Node.create({
         if (v != null && typeof v === "string") dom.setAttribute(k, v);
       });
 
-      // ---- 悬停小工具栏（展开/折叠、复制、删除）----
+      // ---- 悬停工具栏（展开/折叠、复制、删除）----
       const toolbar = document.createElement("div");
       toolbar.className = "tk-details-toolbar";
       toolbar.contentEditable = "false";
@@ -102,7 +102,6 @@ export const Details = Node.create({
         btn.type = "button";
         btn.className = className;
         btn.innerHTML = html;
-        // 阻止 mousedown 默认行为，避免点击工具栏把编辑器焦点/选区弄丢
         btn.addEventListener("mousedown", (e) => e.preventDefault());
         return btn;
       };
@@ -117,7 +116,6 @@ export const Details = Node.create({
       toolbar.append(toggleBtn, sep, duplicateBtn, deleteBtn);
       wrap.append(toolbar, dom);
 
-      // 刷新 tooltip 文案：每次悬停/语言切换时重新读取最新 t，保证实时生效
       const refreshTips = () => {
         const t = getT();
         const toggleLabel = t(isOpen ? "details.collapse" : "details.expand");

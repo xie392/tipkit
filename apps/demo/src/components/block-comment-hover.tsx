@@ -95,10 +95,11 @@ export function BlockCommentHover({
       const to = posAtDom + node.nodeSize - 1;
       let text = el.textContent?.trim() ?? "";
       if (text.length > 80) text = text.slice(0, 80) + "…";
-      // 按钮在块内右上角，距离右边缘 12px，距离顶部 12px
+      // 按钮放到 ProseMirror 正文右外侧的 gutter 区（与评论锚点同位置），不压文字
+      const pmRect = pmDom.getBoundingClientRect();
       setPos({
-        x: rect.right - 28 - 12,
-        y: rect.top + 12,
+        x: pmRect.right - 28,
+        y: rect.top + 6,
         from: Math.min(from, to),
         to: Math.max(from, to),
         text: text || "(整块内容)",
