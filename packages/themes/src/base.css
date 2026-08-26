@@ -378,7 +378,8 @@
 
 /* hover / 选中态：描边 + 四角调整手柄（只在可编辑时生效，与 columns/details 统一 hover 交互） */
 .tk-image-block:hover .tk-image-block-img,
-.tk-image-block-wrap.is-selected .tk-image-block-img {
+.tk-image-block-wrap.is-selected .tk-image-block-img,
+.tk-image-block.ProseMirror-selectednode .tk-image-block-img {
   outline: 2px solid var(--tk-accent, #3b82f6);
   outline-offset: 0;
 }
@@ -394,11 +395,14 @@
   box-sizing: border-box;
   z-index: 2;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.12s;
 }
 .tk-image-block:hover .tk-image-block-handle,
-.tk-image-block-wrap.is-selected .tk-image-block-handle {
+.tk-image-block-wrap.is-selected .tk-image-block-handle,
+.tk-image-block.ProseMirror-selectednode .tk-image-block-handle {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .tk-image-block-handle.is-tl {
@@ -568,10 +572,13 @@
 }
 .tk-image-block-add-caption {
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.12s;
 }
-.tk-image-block:hover .tk-image-block-add-caption {
+.tk-image-block:hover .tk-image-block-add-caption,
+.tk-image-block.ProseMirror-selectednode .tk-image-block-add-caption {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .tk-image-block-caption[data-placeholder]:empty::before {
@@ -1275,14 +1282,17 @@
   z-index: 50;
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transition: opacity 0.12s, visibility 0.12s, transform 0.12s;
   transform: translateY(-2px);
 }
 /* hover 或选中时显示工具栏 */
 .tk-katex:hover .tk-katex-toolbar,
-.tk-katex.is-selected .tk-katex-toolbar {
+.tk-katex.is-selected .tk-katex-toolbar,
+.tk-katex.ProseMirror-selectednode .tk-katex-toolbar {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
   transform: translateY(0);
 }
 

@@ -732,6 +732,38 @@ body::after {
   -webkit-box-orient: vertical;
 }
 
+/* 作者信息（头像+名字） */
+.demo-comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.demo-comment-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--primary, #3b82f6);
+  flex-shrink: 0;
+}
+.demo-comment-avatar.sm { width: 16px; height: 16px; font-size: 9px; }
+.demo-comment-author {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foreground, #222);
+}
+.demo-comment-author.sm { font-size: 11.5px; }
+.demo-comment-mention {
+  color: var(--primary, #3b82f6);
+  font-weight: 500;
+}
+
 .demo-comment-text {
   font-size: 13px;
   color: var(--foreground, #222);
@@ -803,20 +835,43 @@ body::after {
   border-radius: 6px;
   font-size: 12.5px;
 }
-.demo-comment-reply-text {
+.demo-comment-reply-body {
   flex: 1;
+  min-width: 0;
+}
+.demo-comment-reply-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 2px;
+  flex-wrap: wrap;
+}
+.demo-comment-reply-to {
+  font-size: 11px;
+  color: var(--muted-foreground, #888);
+}
+.demo-comment-reply-text {
   color: var(--foreground, #222);
   line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-word;
+  font-size: 12px;
 }
-.demo-comment-reply .demo-comment-icon-btn {
-  width: 20px;
-  height: 20px;
-  opacity: 0;
+.demo-comment-reply-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
   flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
 }
-.demo-comment-reply:hover .demo-comment-icon-btn { opacity: 1; }
+.demo-comment-reply:hover .demo-comment-reply-actions { opacity: 1; }
+.demo-comment-reply-actions .demo-comment-icon-btn {
+  width: 22px;
+  height: 22px;
+}
+/* 编辑态时按钮组始终隐藏 */
+.demo-comment-reply:has(.demo-comment-edit) .demo-comment-reply-actions { display: none; }
 
 /* 回复输入框 */
 .demo-comment-reply-form {
@@ -824,6 +879,14 @@ body::after {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+.demo-comment-reply-target {
+  font-size: 11.5px;
+  color: var(--muted-foreground, #888);
+  padding: 4px 8px;
+  background: color-mix(in srgb, var(--primary, #3b82f6) 8%, transparent);
+  border-radius: 4px;
+  align-self: flex-start;
 }
 
 .demo-comment-composer {

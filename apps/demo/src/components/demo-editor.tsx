@@ -100,17 +100,25 @@ interface DemoReply {
   id: string;
   text: string;
   createdAt: number;
+  author: string;
+  /** 若该回复是回复另一条回复，则记录被回复的 replyId；直接回复主评论为 null */
+  parentReplyId: string | null;
+  /** 被回复人的名字（缓存展示用，避免查找） */
+  parentAuthor: string | null;
 }
 interface DemoComment {
   id: string;
   text: string;
   quote: string;
   createdAt: number;
+  author: string;
   replies?: DemoReply[];
 }
 
 /** 默认示例评论 id（与 DEMO_CONTENT 中 data-comment-id 对应） */
 const DEMO_COMMENT_ID = "c_demo_001";
+const DEMO_AUTHOR = "TipKit";
+const CURRENT_USER = "我";
 
 const DEMO_CONTENT = `
 <h1>TipKit 编辑器演示</h1>
@@ -178,6 +186,7 @@ export function DemoEditor({
           ? "选中任意一段文字，在弹出的气泡菜单中点击最右侧 💬 图标即可添加划词评论…"
           : "Select any text and tap 💬 in the bubble menu to add a comment…",
       createdAt: Date.now(),
+      author: DEMO_AUTHOR,
     },
   ]);
   const [pendingRange, setPendingRange] = useState<CommentRange | null>(null);
@@ -188,8 +197,12 @@ export function DemoEditor({
   const [mounted, setMounted] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
+  const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
+  const [editReplyDraft, setEditReplyDraft] = useState("");
   const [replyingId, setReplyingId] = useState<string | null>(null);
   const [replyDraft, setReplyDraft] = useState("");
+  /** 正在回复的目标：null = 回复主评论；{replyId, author} = 回复某条回复 */
+  const [replyTarget, setReplyTarget] = useState<{ replyId: string; author: string } | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -248,7 +261,13 @@ export function DemoEditor({
     if (!pendingRange || !draft.trim()) return;
     setComments((list) => [
       ...list,
-      { id: pendingRange.commentId, text: draft.trim(), quote: pendingRange.text, createdAt: Date.now() },
+      {
+        id: pendingRange.commentId,
+        text: draft.trim(),
+        quote: pendingRange.text,
+        createdAt: Date.now(),
+        author: CURRENT_USER,
+      },
     ]);
     setPendingRange(null);
     setDraft("");
@@ -308,30 +327,32 @@ export function DemoEditor({
   const startReply = (id: string) => {
     setReplyingId(id);
     setReplyDraft("");
+    setReplyTarget(null);
     setEditingId(null);
+    setEditingReplyId(null);
   };
   const submitReply = (id: string) => {
     const text = replyDraft.trim();
     if (!text) return;
+    const newReply: DemoReply = {
+      id: `r_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 5)}`,
+      text,
+      createdAt: Date.now(),
+      author: CURRENT_USER,
+      parentReplyId: replyTarget?.replyId ?? null,
+      parentAuthor: replyTarget?.author ?? null,
+    };
     setComments((list) =>
-      list.map((c) =>
-        c.id === id
-          ? {
-              ...c,
-              replies: [
-                ...(c.replies ?? []),
-                { id: `r_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 5)}`, text, createdAt: Date.now() },
-              ],
-            }
-          : c,
-      ),
+      list.map((c) => (c.id === id ? { ...c, replies: [...(c.replies ?? []), newReply] } : c)),
     );
     setReplyingId(null);
     setReplyDraft("");
+    setReplyTarget(null);
   };
   const cancelReply = () => {
     setReplyingId(null);
     setReplyDraft("");
+    setReplyTarget(null);
   };
   const removeReply = (commentId: string, replyId: string) => {
     setComments((list) =>
@@ -339,6 +360,38 @@ export function DemoEditor({
         c.id === commentId ? { ...c, replies: (c.replies ?? []).filter((r) => r.id !== replyId) } : c,
       ),
     );
+    if (editingReplyId === replyId) setEditingReplyId(null);
+  };
+
+  const startEditReply = (replyId: string, text: string) => {
+    setEditingReplyId(replyId);
+    setEditReplyDraft(text);
+  };
+  const saveEditReply = (commentId: string, replyId: string) => {
+    const text = editReplyDraft.trim();
+    if (!text) return;
+    setComments((list) =>
+      list.map((c) =>
+        c.id === commentId
+          ? { ...c, replies: (c.replies ?? []).map((r) => (r.id === replyId ? { ...r, text } : r)) }
+          : c,
+      ),
+    );
+    setEditingReplyId(null);
+    setEditReplyDraft("");
+  };
+  const cancelEditReply = () => {
+    setEditingReplyId(null);
+    setEditReplyDraft("");
+  };
+
+  /** 回复某条回复 = 扁平追加到主评论（飞书式，不做二级嵌套） */
+  const startReplyToReply = (commentId: string, parentReplyId: string, parentAuthor: string) => {
+    setReplyingId(commentId);
+    setReplyDraft("");
+    setReplyTarget({ replyId: parentReplyId, author: parentAuthor });
+    setEditingId(null);
+    setEditingReplyId(null);
   };
 
   const commentPanel = (
@@ -408,6 +461,10 @@ export function DemoEditor({
                 </div>
               ) : (
                 <>
+                  <div className="demo-comment-meta">
+                    <span className="demo-comment-avatar">{c.author.slice(0, 1)}</span>
+                    <span className="demo-comment-author">{c.author}</span>
+                  </div>
                   <div className="demo-comment-text">{c.text}</div>
                   <div className="demo-comment-item-actions" onClick={(e) => e.stopPropagation()}>
                     <button
@@ -443,15 +500,76 @@ export function DemoEditor({
                 <div className="demo-comment-replies" onClick={(e) => e.stopPropagation()}>
                   {c.replies.map((r) => (
                     <div key={r.id} className="demo-comment-reply">
-                      <div className="demo-comment-reply-text">{r.text}</div>
-                      <button
-                        type="button"
-                        className="demo-comment-icon-btn"
-                        title={lang === "zh" ? "删除回复" : "Delete reply"}
-                        onClick={() => removeReply(c.id, r.id)}
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
+                      {editingReplyId === r.id ? (
+                        <div className="demo-comment-edit" onClick={(e) => e.stopPropagation()}>
+                          <textarea
+                            autoFocus
+                            className="demo-comment-input"
+                            value={editReplyDraft}
+                            onChange={(e) => setEditReplyDraft(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) saveEditReply(c.id, r.id);
+                              if (e.key === "Escape") cancelEditReply();
+                            }}
+                          />
+                          <div className="demo-comment-actions">
+                            <button type="button" className="demo-comment-btn ghost" onClick={cancelEditReply}>
+                              {lang === "zh" ? "取消" : "Cancel"}
+                            </button>
+                            <button
+                              type="button"
+                              className="demo-comment-btn primary"
+                              onClick={() => saveEditReply(c.id, r.id)}
+                              disabled={!editReplyDraft.trim()}
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              {lang === "zh" ? "保存" : "Save"}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="demo-comment-reply-body">
+                            <div className="demo-comment-reply-meta">
+                              <span className="demo-comment-avatar sm">{r.author.slice(0, 1)}</span>
+                              <span className="demo-comment-author sm">{r.author}</span>
+                              {r.parentAuthor && (
+                                <span className="demo-comment-reply-to">
+                                  {lang === "zh" ? "回复" : "reply to"}{" "}
+                                  <span className="demo-comment-mention">@{r.parentAuthor}</span>
+                                </span>
+                              )}
+                            </div>
+                            <div className="demo-comment-reply-text">{r.text}</div>
+                          </div>
+                          <div className="demo-comment-reply-actions">
+                            <button
+                              type="button"
+                              className="demo-comment-icon-btn"
+                              title={lang === "zh" ? "回复" : "Reply"}
+                              onClick={() => startReplyToReply(c.id, r.id, r.author)}
+                            >
+                              <Reply className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              className="demo-comment-icon-btn"
+                              title={lang === "zh" ? "编辑" : "Edit"}
+                              onClick={() => startEditReply(r.id, r.text)}
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              className="demo-comment-icon-btn danger"
+                              title={lang === "zh" ? "删除" : "Delete"}
+                              onClick={() => removeReply(c.id, r.id)}
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -460,10 +578,24 @@ export function DemoEditor({
               {/* 回复输入框 */}
               {replyingId === c.id && (
                 <div className="demo-comment-reply-form" onClick={(e) => e.stopPropagation()}>
+                  {replyTarget && (
+                    <div className="demo-comment-reply-target">
+                      {lang === "zh" ? "回复" : "Replying to"}{" "}
+                      <span className="demo-comment-mention">@{replyTarget.author}</span>
+                    </div>
+                  )}
                   <textarea
                     autoFocus
                     className="demo-comment-input"
-                    placeholder={lang === "zh" ? "写下回复…" : "Write a reply…"}
+                    placeholder={
+                      replyTarget
+                        ? lang === "zh"
+                          ? `回复 @${replyTarget.author}…`
+                          : `Reply to @${replyTarget.author}…`
+                        : lang === "zh"
+                          ? "写下回复…"
+                          : "Write a reply…"
+                    }
                     value={replyDraft}
                     onChange={(e) => setReplyDraft(e.target.value)}
                     onKeyDown={(e) => {

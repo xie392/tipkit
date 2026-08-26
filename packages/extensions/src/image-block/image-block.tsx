@@ -1,7 +1,7 @@
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import Image from "@tiptap/extension-image";
 import type { NodeViewProps } from "@tiptap/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { useEditorEditable } from "@tipkit/core";
 import { ImagePreview } from "./image-preview";
 
@@ -188,6 +188,7 @@ function ImageBlockView(props: NodeViewProps) {
   const rafRef = useRef<number | null>(null);
   const [editingCaption, setEditingCaption] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
     if (!isEditable) setEditingCaption(false);
@@ -270,6 +271,7 @@ function ImageBlockView(props: NodeViewProps) {
   const wrapperAlign =
     align === "left" ? "tk-align-left" : align === "right" ? "tk-align-right" : "tk-align-center";
   const showHandles = isEditable;
+  const toolsVisible = showHandles && (hovered || selected);
 
   const onImageClick = (e: React.MouseEvent) => {
     if (isEditable) return;
@@ -277,11 +279,24 @@ function ImageBlockView(props: NodeViewProps) {
     setPreview(true);
   };
 
+  const hiddenStyle: CSSProperties = {
+    opacity: 0,
+    visibility: "hidden",
+    pointerEvents: "none",
+  };
+  const visibleStyle: CSSProperties = {
+    opacity: 1,
+    visibility: "visible",
+    pointerEvents: "auto",
+  };
+
   return (
     <NodeViewWrapper
-      className={`tk-image-block${isEditable ? "" : " is-readonly"}`}
+      className={`tk-image-block${isEditable ? "" : " is-readonly"}${hovered ? " is-hovered" : ""}`}
       data-align={align}
       data-selected={selected ? "true" : undefined}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
       <div
         ref={wrapRef}
@@ -304,7 +319,7 @@ function ImageBlockView(props: NodeViewProps) {
               title="拖拽调整大小"
               tabIndex={-1}
               onPointerDown={startResize("left")}
-              style={{ touchAction: "none" }}
+              style={{ touchAction: "none", ...(toolsVisible ? visibleStyle : hiddenStyle) }}
               className="tk-image-block-handle is-tl"
             />
             <span
@@ -313,7 +328,7 @@ function ImageBlockView(props: NodeViewProps) {
               title="拖拽调整大小"
               tabIndex={-1}
               onPointerDown={startResize("right")}
-              style={{ touchAction: "none" }}
+              style={{ touchAction: "none", ...(toolsVisible ? visibleStyle : hiddenStyle) }}
               className="tk-image-block-handle is-tr"
             />
             <span
@@ -322,7 +337,7 @@ function ImageBlockView(props: NodeViewProps) {
               title="拖拽调整大小"
               tabIndex={-1}
               onPointerDown={startResize("left")}
-              style={{ touchAction: "none" }}
+              style={{ touchAction: "none", ...(toolsVisible ? visibleStyle : hiddenStyle) }}
               className="tk-image-block-handle is-bl"
             />
             <span
@@ -331,7 +346,7 @@ function ImageBlockView(props: NodeViewProps) {
               title="拖拽调整大小"
               tabIndex={-1}
               onPointerDown={startResize("right")}
-              style={{ touchAction: "none" }}
+              style={{ touchAction: "none", ...(toolsVisible ? visibleStyle : hiddenStyle) }}
               className="tk-image-block-handle is-br"
             />
           </>
@@ -362,7 +377,11 @@ function ImageBlockView(props: NodeViewProps) {
         <button
           type="button"
           className={`tk-image-block-add-caption ${wrapperAlign}`}
-          style={{ width: `${effectiveWidth}%`, maxWidth: "100%" }}
+          style={{
+            width: `${effectiveWidth}%`,
+            maxWidth: "100%",
+            ...(toolsVisible ? visibleStyle : hiddenStyle),
+          }}
           onMouseDown={(e) => e.preventDefault()}
           onClick={(e) => {
             e.stopPropagation();
