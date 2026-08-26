@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { NodeSelection, TextSelection } from "@tiptap/pm/state";
 import { getActiveBlockPos } from "@tipkit/extensions";
-import { useT } from "@tipkit/core";
+import { useT, useEditorEditable } from "@tipkit/core";
 import {
   IconCopy,
   IconScissors,
@@ -69,6 +69,7 @@ function readActive(editor: Editor | null): ActiveBlock | null {
 
 export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
   const t = useT();
+  const isEditable = useEditorEditable(editor);
   const [open, setOpen] = useState(false);
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const [left, setLeft] = useState(0);
@@ -80,6 +81,13 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
   useLayoutEffect(() => {
     openRef.current = open;
   }, [open]);
+
+  useEffect(() => {
+    if (!isEditable) {
+      setOpen(false);
+      setSubmenu(null);
+    }
+  }, [isEditable]);
 
   useLayoutEffect(() => {
     if (!open || !anchor || !popRef.current) return;
@@ -159,7 +167,7 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
     };
   }, [editor, computeAnchor]);
 
-  if (!editor || !open) return null;
+  if (!editor || !isEditable || !open) return null;
 
   const active = readActive(editor);
   if (!active) return null;

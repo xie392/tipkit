@@ -6,7 +6,7 @@ import { createLowlight, common } from "lowlight";
 import type { NodeViewProps } from "@tiptap/react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useT } from "@tipkit/core";
+import { useT, useEditorEditable } from "@tipkit/core";
 
 const lowlight = createLowlight(common);
 
@@ -179,6 +179,7 @@ function IconTrash() {
 function CodeBlockView(props: NodeViewProps) {
   const { node, updateAttributes, deleteNode, editor } = props;
   const t = useT();
+  const isEditable = useEditorEditable(editor);
   const language = (node.attrs.language as string | null) ?? null;
   const dark = (node.attrs.theme as CodeBlockTheme) === "dark";
 
@@ -280,7 +281,7 @@ function CodeBlockView(props: NodeViewProps) {
   }, [langOpen, calcPosition]);
 
   useEffect(() => {
-    if (!editor.isEditable) return;
+    if (!isEditable) return;
     if (language || autoDetected || userSelectedAuto) return;
     const detected = detectLanguage(node.textContent);
     if (detected) {
@@ -288,7 +289,7 @@ function CodeBlockView(props: NodeViewProps) {
       setAutoDetected(true);
     }
     prevContentRef.current = node.textContent;
-  }, [node.textContent, language, autoDetected, userSelectedAuto, updateAttributes, editor.isEditable]);
+  }, [node.textContent, language, autoDetected, userSelectedAuto, updateAttributes, isEditable]);
 
   const copyCode = async () => {
     try {
@@ -299,6 +300,10 @@ function CodeBlockView(props: NodeViewProps) {
       // ignore
     }
   };
+
+  useEffect(() => {
+    if (!isEditable) setLangOpen(false);
+  }, [isEditable]);
 
   return (
     <NodeViewWrapper
@@ -313,7 +318,7 @@ function CodeBlockView(props: NodeViewProps) {
         contentEditable={false}
         onMouseDown={(e) => e.preventDefault()}
       >
-        {editor.isEditable && (
+        {isEditable && (
         <div className="tk-code-block-lang-wrap">
           <button
             ref={langBtnRef}
@@ -365,7 +370,7 @@ function CodeBlockView(props: NodeViewProps) {
         )}
 
         <div className="tk-code-block-actions">
-          {editor.isEditable && (
+          {isEditable && (
           <button
             type="button"
             className="tk-code-block-action-btn"
@@ -383,7 +388,7 @@ function CodeBlockView(props: NodeViewProps) {
           >
             {copied ? <IconCheck /> : <IconCopy />}
           </button>
-          {editor.isEditable && (
+          {isEditable && (
             <button
               type="button"
               className="tk-code-block-action-btn tk-code-block-action-danger"

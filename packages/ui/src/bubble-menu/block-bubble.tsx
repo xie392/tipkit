@@ -94,7 +94,8 @@ export function BlockBubbleMenu({ editor }: { editor: Editor | null }) {
   });
 
   const shouldShow = useCallback(
-    ({ state }: { state: EditorState; editor: Editor }) => {
+    ({ state, editor: ed }: { state: EditorState; editor: Editor }) => {
+      if (!ed.isEditable) return false;
       const sel = state.selection;
       if (!(sel instanceof NodeSelection)) return false;
       return SPECIFIC_TYPES.has(sel.node.type.name);

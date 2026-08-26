@@ -10,7 +10,7 @@ import {
   NodeViewContent,
   type NodeViewProps,
 } from "@tiptap/react";
-import { useT } from "@tipkit/core";
+import { useT, useEditorEditable } from "@tipkit/core";
 import { emojisToName } from "../emoji/emoji-data";
 
 /* Callout 提示框（迁移自 blog rich-text/ext/callout.tsx）。
@@ -170,6 +170,7 @@ export const Callout = TiptapNode.create({
 function CalloutView(props: NodeViewProps) {
   const { editor, node, updateAttributes, selected } = props;
   const t = useT();
+  const isEditable = useEditorEditable(editor);
   const attrs = node.attrs as { variant: CalloutVariant; emoji: string | null };
   const variant = attrs.variant ?? "info";
   const style = CALLOUT_VARIANTS[variant] ?? CALLOUT_VARIANTS.info;
@@ -309,6 +310,13 @@ function CalloutView(props: NodeViewProps) {
     return q ? emojisToName.filter((e) => e.name.includes(q)).slice(0, 60) : emojisToName.slice(0, 60);
   }, [emojiQuery]);
 
+  useEffect(() => {
+    if (!isEditable) {
+      setVariantOpen(false);
+      setEmojiOpen(false);
+    }
+  }, [isEditable]);
+
   const pickEmoji = (e: string) => {
     updateAttributes({ emoji: e });
     setEmojiOpen(false);
@@ -322,7 +330,7 @@ function CalloutView(props: NodeViewProps) {
       style={{ color: style.textColor, borderColor: style.borderColor, background: style.backgroundColor }}
     >
       <div className="tk-callout-head">
-        {editor.isEditable ? (
+        {isEditable ? (
           <button
             ref={emojiBtnRef}
             type="button"
@@ -342,7 +350,7 @@ function CalloutView(props: NodeViewProps) {
           </span>
         )}
       </div>
-      {editor.isEditable && emojiOpen &&
+      {isEditable && emojiOpen &&
         typeof document !== "undefined" &&
         createPortal(
           <div
@@ -380,7 +388,7 @@ function CalloutView(props: NodeViewProps) {
           document.body
         )}
       <NodeViewContent className="tk-callout-content" />
-      {editor.isEditable && (
+      {isEditable && (
         <div className="tk-callout-switcher">
           <button
             ref={variantBtnRef}

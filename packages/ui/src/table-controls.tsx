@@ -14,7 +14,7 @@ import {
   selectionCell,
 } from "@tiptap/pm/tables";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@tipkit/components";
-import { useT, type Translate } from "@tipkit/core";
+import { useT, useEditorEditable, type Translate } from "@tipkit/core";
 
 const PICKER_COLS = 8;
 const PICKER_ROWS = 6;
@@ -509,11 +509,17 @@ interface MenuItem {
 
 export function TableContextMenu({ editor }: { editor: Editor }) {
   const t = useT();
+  const isEditable = useEditorEditable(editor);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [adjusted, setAdjusted] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!isEditable) {
+      setPos(null);
+      setAdjusted(null);
+      return;
+    }
     const el = editor.view.dom as HTMLElement;
     const onContext = (e: MouseEvent) => {
       const target = e.target as HTMLElement;

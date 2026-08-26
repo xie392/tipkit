@@ -2,6 +2,7 @@ import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import Image from "@tiptap/extension-image";
 import type { NodeViewProps } from "@tiptap/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useEditorEditable } from "@tipkit/core";
 import { ImagePreview } from "./image-preview";
 
 /* ImageBlock 节点（迁移自 blog rich-text/ext/image-block/image-block.ts）。
@@ -176,6 +177,7 @@ export const ImageBlock = Image.extend({
 /** ImageBlock NodeView：图片 + 左右宽度拖拽手柄 + 就地 caption + 预览。视觉走主题。 */
 function ImageBlockView(props: NodeViewProps) {
   const { editor, node, updateAttributes, selected } = props;
+  const isEditable = useEditorEditable(editor);
   const attrs = node.attrs as unknown as ImageBlockAttrs;
   const { src, width, align, alt, caption, imageStyle = "none" } = attrs;
 
@@ -186,6 +188,10 @@ function ImageBlockView(props: NodeViewProps) {
   const rafRef = useRef<number | null>(null);
   const [editingCaption, setEditingCaption] = useState(false);
   const [preview, setPreview] = useState(false);
+
+  useEffect(() => {
+    if (!isEditable) setEditingCaption(false);
+  }, [isEditable]);
 
   useEffect(() => {
     const el = captionRef.current;
@@ -213,7 +219,7 @@ function ImageBlockView(props: NodeViewProps) {
 
   const startResize = useCallback(
     (side: "left" | "right") => (e: React.PointerEvent) => {
-      if (!editor.isEditable) return;
+      if (!isEditable) return;
       e.preventDefault();
       e.stopPropagation();
       // 指针捕获：窗口外松开时 pointerup 也能收到，避免监听器悬挂导致拖拽不结束
@@ -257,23 +263,23 @@ function ImageBlockView(props: NodeViewProps) {
       handle.addEventListener("pointerup", onUp);
       handle.addEventListener("pointercancel", onCancel);
     },
-    [editor.isEditable, width, updateAttributes],
+    [isEditable, width, updateAttributes],
   );
 
   const effectiveWidth = dragWidth ?? (Number(String(width).replace("%", "")) || 100);
   const wrapperAlign =
     align === "left" ? "tk-align-left" : align === "right" ? "tk-align-right" : "tk-align-center";
-  const showHandles = selected && editor.isEditable;
+  const showHandles = selected && isEditable;
 
   const onImageClick = (e: React.MouseEvent) => {
-    if (editor.isEditable) return;
+    if (isEditable) return;
     e.preventDefault();
     setPreview(true);
   };
 
   return (
     <NodeViewWrapper
-      className={`tk-image-block${editor.isEditable ? "" : " is-readonly"}`}
+      className={`tk-image-block${isEditable ? "" : " is-readonly"}`}
       data-align={align}
       data-selected={selected ? "true" : undefined}
     >
@@ -338,14 +344,14 @@ function ImageBlockView(props: NodeViewProps) {
       {(editingCaption || caption) && (
         <div
           ref={captionRef}
-          contentEditable={editor.isEditable && editingCaption}
+          contentEditable={isEditable && editingCaption}
           suppressContentEditableWarning
           data-placeholder="图片说明…"
           className={`tk-image-block-caption ${wrapperAlign}`}
           style={{ width: `${effectiveWidth}%`, maxWidth: "100%" }}
           onBlur={commitCaption}
           onClick={(e) => {
-            if (editor.isEditable && !editingCaption) {
+            if (isEditable && !editingCaption) {
               e.stopPropagation();
               setEditingCaption(true);
             }

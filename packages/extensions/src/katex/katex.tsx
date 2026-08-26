@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { mergeAttributes, Node, nodeInputRule } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
-import { useT } from "@tipkit/core";
+import { useT, useEditorEditable } from "@tipkit/core";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 
@@ -88,11 +88,15 @@ function KatexView(props: NodeViewProps) {
   const { editor, node, updateAttributes, selected } = props;
   const attrs = node.attrs as KatexAttrs;
   const text = attrs.text ?? "";
-  const isEditable = editor.isEditable;
+  const isEditable = useEditorEditable(editor);
   const t = useT();
   const [editing, setEditing] = useState(!text.trim());
   const [draft, setDraft] = useState(text);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (!isEditable) setEditing(false);
+  }, [isEditable]);
 
   useEffect(() => {
     if (editing) {

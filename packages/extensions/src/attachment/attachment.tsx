@@ -7,7 +7,7 @@ import {
   NodeViewWrapper,
   type NodeViewProps,
 } from "@tiptap/react";
-import { useEditorDeps, useT } from "@tipkit/core";
+import { useEditorDeps, useEditorEditable, useT } from "@tipkit/core";
 
 /* Attachment 附件（迁移自 blog rich-text/ext/attachment.tsx）。
  * 上传经 EditorDeps.uploadAttachment 注入（返回 AttachmentMeta），
@@ -162,7 +162,7 @@ function AttachmentView(props: NodeViewProps) {
   const { editor, node, updateAttributes, selected } = props;
   const attrs = node.attrs as AttachmentAttrs;
   const { fileName, fileSize, fileExt, url } = attrs;
-  const isEditable = editor.isEditable;
+  const isEditable = useEditorEditable(editor);
   const deps = useEditorDeps();
   const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);

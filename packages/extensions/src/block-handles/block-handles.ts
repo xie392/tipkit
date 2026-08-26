@@ -374,6 +374,13 @@ export const BlockHandles = Extension.create({
               view = updatedView;
               const statePos = getActiveBlockPos(updatedView.state);
               if (statePos !== activePos) activePos = statePos;
+              // 响应 editable 切换：只读时销毁手柄，可编辑时重建
+              if (updatedView.editable && !wrap) {
+                createUI();
+              } else if (!updatedView.editable && wrap) {
+                destroyUI();
+                return;
+              }
               if (
                 updatedView.state.doc !== prevState.doc &&
                 hoverEl &&

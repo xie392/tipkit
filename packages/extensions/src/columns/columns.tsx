@@ -7,8 +7,8 @@ import {
   NodeViewContent,
   type NodeViewProps,
 } from "@tiptap/react";
-import { useCallback, useState } from "react";
-import { useT } from "@tipkit/core";
+import { useCallback, useEffect, useState } from "react";
+import { useT, useEditorEditable } from "@tipkit/core";
 
 /* 多栏容器：含两个 column 子节点。
  * ReactNodeView 自带 hover 工具栏：鼠标悬停分栏时在顶部显示布局切换按钮，
@@ -81,16 +81,21 @@ const LAYOUTS: { value: ColumnLayout; labelKey: string; icon: React.ReactNode }[
 
 function ColumnsView({ editor, node, getPos, updateAttributes, deleteNode }: NodeViewProps) {
   const t = useT();
+  const isEditable = useEditorEditable(editor);
   const layout = (node.attrs.layout as ColumnLayout) ?? ColumnLayout.TwoColumn;
   const [hovered, setHovered] = useState(false);
 
+  useEffect(() => {
+    if (!isEditable) setHovered(false);
+  }, [isEditable]);
+
   const handleDelete = useCallback(() => {
-    if (!editor.isEditable) return;
+    if (!isEditable) return;
     deleteNode();
-  }, [editor.isEditable, deleteNode]);
+  }, [isEditable, deleteNode]);
 
   const handleDuplicate = useCallback(() => {
-    if (!editor.isEditable) return;
+    if (!isEditable) return;
     const pos = getPos();
     if (typeof pos !== "number") return;
     const nodeSize = node.nodeSize;
@@ -104,11 +109,11 @@ function ColumnsView({ editor, node, getPos, updateAttributes, deleteNode }: Nod
   return (
     <NodeViewWrapper
       className={`tk-columns-wrap layout-${layout}${hovered ? " is-hovered" : ""}`}
-      onMouseEnter={() => setHovered(true)}
+      onMouseEnter={() => isEditable && setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       data-type="columns"
     >
-      {hovered && editor.isEditable && (
+      {hovered && isEditable && (
         <div className="tk-columns-toolbar" contentEditable={false}>
           {LAYOUTS.map((l) => (
             <button

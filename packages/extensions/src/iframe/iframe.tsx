@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { mergeAttributes, Node, nodeInputRule } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
-import { useT } from "@tipkit/core";
+import { useT, useEditorEditable } from "@tipkit/core";
 
 /* Iframe 嵌入（迁移自 blog rich-text/ext/iframe.tsx）。
  * 属性：url / width / height；空 url 显示输入卡片，有 url 渲染 iframe，可拖拽改高度。 */
@@ -154,7 +154,7 @@ function IframeView(props: NodeViewProps) {
   const t = useT();
   const attrs = node.attrs as IframeAttrs;
   const { url, width, height } = attrs;
-  const isEditable = editor.isEditable;
+  const isEditable = useEditorEditable(editor);
 
   const [draftUrl, setDraftUrl] = useState(url ?? "");
   const [editing, setEditing] = useState(!url);
@@ -166,6 +166,10 @@ function IframeView(props: NodeViewProps) {
     setDraftUrl(url ?? "");
     if (url) setEditing(false);
   }, [url]);
+
+  useEffect(() => {
+    if (!isEditable) setEditing(false);
+  }, [isEditable]);
 
   useEffect(
     () => () => {
