@@ -78,3 +78,7 @@ export { BlockHandles, blockHandlesKey, getActiveBlockPos } from "./block-handle
 export { FileHandler } from "./file-handler/file-handler";
 export type { FileHandlerOptions } from "./file-handler/file-handler";
 export { emojisToName } from "./emoji/emoji-data";
+
+// Comment（划词评论）
+export { Comment } from "./comment/comment";
+export type { CommentOptions } from "./comment/comment";

@@ -34,4 +34,5 @@ export type {
   EditorDeps,
   ImageAttrs,
   IconRef,
+  CommentRange,
 } from "@tipkit/core";

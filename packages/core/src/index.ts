@@ -18,6 +18,7 @@ export type {
   AttachmentMeta,
   ImageAttrs,
   IconRef,
+  CommentRange,
 } from "./types";
 
 // i18n

@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { TipKitEditor } from "@tipkit/editor";
-import type { EditorDeps, IconRef } from "@tipkit/editor";
-import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensions";
+import type { EditorDeps, IconRef, CommentRange } from "@tipkit/editor";
+import { createBasicExtensions, createAdvancedExtensions, Comment } from "@tipkit/extensions";
 import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockBubbleMenu, BlockHandleMenu, TableControls } from "@tipkit/ui";
 import { useDemoLang } from "@/components/use-demo-lang";
 import type { DemoLang } from "@/components/site-lang-switch";
+import { BlockCommentHover } from "@/components/block-comment-hover";
 import { TooltipProvider } from "@tipkit/components";
 import {
   Bold,
@@ -39,17 +41,16 @@ import {
   Frame,
   Paperclip,
   Smile,
+  MessageSquare,
+  Send,
+  X,
   type LucideIcon,
 } from "lucide-react";
 
 /**
- * 演示编辑器：TipKitEditor + 数据驱动主题工具栏。
- *
- * 工具栏渲染由页面级 EditorToolbar（editor-toolbar.tsx）完成，
- * 它挂在页面 header 下方 sticky 工具条内；编辑器实例通过
- * onEditorReady 回传给页面。
- * 视觉样式由页面加载的主题 CSS（tk-theme-default / tk-theme-sketch）决定，
- * 组件本身只携带语义类名（tk-toolbar / tk-toolbar-btn）。
+ * 演示编辑器：TipKitEditor + 划词评论（飞书/语雀式右侧 sticky 面板）。
+ * - 面板紧贴文章白纸右侧，随页面滚动 sticky 定位，顶部对齐白纸
+ * - 编辑态/只读态都支持划词评论（TextMenu 在只读态仅显示评论按钮）
  */
 
 const iconMap: Record<IconRef, LucideIcon> = {
@@ -84,19 +85,28 @@ const iconMap: Record<IconRef, LucideIcon> = {
   Smile,
 };
 
-/** demo 图片上传：本地 blob 预览（消费方替换为真实上传） */
+/** demo 图片上传：本地 blob 预览 */
 const uploadImage = async (file: File): Promise<string> => URL.createObjectURL(file);
 
-/** 占位符双语 */
 const PLACEHOLDER: Record<DemoLang, string> = {
   zh: "输入 / 打开斜杠菜单，或直接粘贴 Markdown…",
   en: "Type / to open the slash menu, or paste Markdown…",
 };
 
-/** 示例内容：展示常见格式（HTML 由 ProseMirror 解析） */
+interface DemoComment {
+  id: string;
+  text: string;
+  quote: string;
+  createdAt: number;
+}
+
+/** 默认示例评论 id（与 DEMO_CONTENT 中 data-comment-id 对应） */
+const DEMO_COMMENT_ID = "c_demo_001";
+
 const DEMO_CONTENT = `
 <h1>TipKit 编辑器演示</h1>
 <p>这是一段 <strong>加粗</strong>、<em>斜体</em>、<s>删除线</s> 和 <code>行内代码</code> 的正文，试试 <mark>高亮</mark> 与 <u>下划线</u>，以及一个 <a href="https://tiptap.dev">外部链接</a>。</p>
+<p>👉 <span class="tk-comment" data-comment-id="${DEMO_COMMENT_ID}">选中任意一段文字，在弹出的气泡菜单中点击最右侧 💬 图标即可添加划词评论；写好的评论会保存在右侧悬浮面板里。</span>点击已高亮的文字可在面板中定位对应评论。</p>
 <h2>功能一览</h2>
 <ul>
   <li>输入 <code>/</code> 打开斜杠菜单，插入 21 种内容</li>
@@ -114,7 +124,6 @@ const DEMO_CONTENT = `
 <pre data-theme="light"><code class="language-typescript">import { TipKitEditor } from "@tipkit/editor";
 
 export default function App() {
-  // 同一套逻辑，多种皮肤，切换零成本
   return &lt;TipKitEditor className="tk-theme-sketch" /&gt;;
 }</code></pre>
 <h2>表格</h2>
@@ -126,25 +135,13 @@ export default function App() {
 <h2>高级节点</h2>
 <p>下面是各高级节点的渲染示例，可配合左侧 ⋮⋮ 手柄拖拽排序、点击块选中后浮动工具条操作。</p>
 <h3>提示框 Callout</h3>
-<div class="tk-callout" data-variant="info" data-emoji="💡"><div class="tk-callout-content"><p>这是一条<strong>信息提示</strong>：斜杠菜单输入 <code>/callout</code> 即可插入，支持切换 info / success / warning / danger 四种样式与自定义 emoji。</p></div></div>
-<div class="tk-callout" data-variant="success" data-emoji="✅"><div class="tk-callout-content"><p>成功提示：操作已完成。</p></div></div>
-<div class="tk-callout" data-variant="warning" data-emoji="⚠️"><div class="tk-callout-content"><p>警告提示：请注意边界情况。</p></div></div>
-<div class="tk-callout" data-variant="danger" data-emoji="🛑"><div class="tk-callout-content"><p>危险提示：此操作不可撤销。</p></div></div>
+<div class="tk-callout" data-variant="info" data-emoji="💡"><div class="tk-callout-content"><p>这是一条<strong>信息提示</strong>：斜杠菜单输入 <code>/callout</code> 即可插入。</p></div></div>
 <h3>数学公式 KaTeX</h3>
 <div class="tk-katex" data-text="E = mc^2"></div>
-<p>质能方程描述了质量与能量的关系；下面是求根公式：</p>
-<div class="tk-katex" data-text="\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}"></div>
 <h3>分栏 Columns</h3>
-<div data-type="columns" class="tk-columns layout-two-column"><div data-type="column" class="tk-column" data-position="left"><p><strong>左栏</strong></p><p>这里是第一列的内容，可以放任意块级元素：列表、代码块、图片等。</p><ul><li>分栏一</li><li>分栏二</li></ul></div><div data-type="column" class="tk-column" data-position="right"><p><strong>右栏</strong></p><p>这里是第二列。斜杠菜单可切换两栏 / 左窄右宽 / 左宽右窄布局。</p><blockquote><p>栏内引用块示例。</p></blockquote></div></div>
+<div data-type="columns" class="tk-columns layout-two-column"><div data-type="column" class="tk-column" data-position="left"><p><strong>左栏</strong></p><p>这里是第一列的内容。</p></div><div data-type="column" class="tk-column" data-position="right"><p><strong>右栏</strong></p><blockquote><p>栏内引用块示例。</p></blockquote></div></div>
 <h3>折叠块 Details</h3>
-<details data-type="details" class="tk-details" open="open"><summary data-type="summary" class="tk-details-summary">点击展开 / 收起：常见问题</summary><div data-type="details-content" class="tk-details-content"><p>折叠块默认展开，点击标题栏可收起。内部可以放任意块级内容。</p><ol><li>第一步内容</li><li>第二步内容</li><li>第三步内容</li></ol></div></details>
-<details data-type="details" class="tk-details"><summary data-type="summary" class="tk-details-summary">这是一个默认收起的折叠块</summary><div data-type="details-content" class="tk-details-content"><p>你展开我了 👋</p></div></details>
-<h3>页面目录 TOC</h3>
-<div data-type="table-of-content"></div>
-<h3>嵌入 Iframe</h3>
-<div class="tk-iframe" data-url="https://example.com" data-width="100%" data-height="320"></div>
-<h3>附件 Attachment</h3>
-<div class="tk-attachment" data-filename="项目设计文档.pdf" data-filesize="2048576" data-filetype="application/pdf" data-fileext="pdf" data-url="#"></div>
+<details data-type="details" class="tk-details" open="open"><summary data-type="summary" class="tk-details-summary">点击展开 / 收起：常见问题</summary><div data-type="details-content" class="tk-details-content"><ol><li>第一步内容</li><li>第二步内容</li></ol></div></details>
 `;
 
 export function DemoEditor({
@@ -153,50 +150,273 @@ export function DemoEditor({
   onEditorReady,
 }: {
   placeholder?: string;
-  /** 只读模式：关闭编辑交互（预览效果） */
   editable?: boolean;
-  /** 编辑器实例就绪后回传（供页面级工具栏使用） */
   onEditorReady?: (editor: Editor) => void;
 }) {
   const { lang, t } = useDemoLang();
-  const deps = useMemo<EditorDeps>(() => ({ uploadImage, t }), [t]);
+  const editorRef = useRef<Editor | null>(null);
+  const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
+
+  const [comments, setComments] = useState<DemoComment[]>(() => [
+    {
+      id: DEMO_COMMENT_ID,
+      text:
+        lang === "zh"
+          ? "👋 这是一条预置的示例评论，演示飞书/语雀式的划词评论效果。选中任意文字后点击气泡中的 💬 即可添加新评论，支持编辑态和只读态。"
+          : "👋 This is a demo inline comment. Select any text and tap 💬 in the bubble menu to add more — works in both edit and read-only mode.",
+      quote:
+        lang === "zh"
+          ? "选中任意一段文字，在弹出的气泡菜单中点击最右侧 💬 图标即可添加划词评论…"
+          : "Select any text and tap 💬 in the bubble menu to add a comment…",
+      createdAt: Date.now(),
+    },
+  ]);
+  const [pendingRange, setPendingRange] = useState<CommentRange | null>(null);
+  const pendingRangeRef = useRef<CommentRange | null>(null);
+  const [draft, setDraft] = useState("");
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    pendingRangeRef.current = pendingRange;
+  }, [pendingRange]);
+
+  const deps = useMemo<EditorDeps>(
+    () => ({
+      uploadImage,
+      t,
+      onCommentCreate: (range) => {
+        setPendingRange(range);
+        setDraft("");
+        setDrawerOpen(true);
+      },
+      onCommentClick: (commentId) => {
+        setActiveId(commentId);
+        setDrawerOpen(true);
+        setTimeout(() => {
+          const el = document.getElementById(`comment-${commentId}`);
+          el?.scrollIntoView({ behavior: "smooth", block: "center" });
+          el?.classList.add("is-flash");
+          setTimeout(() => el?.classList.remove("is-flash"), 1200);
+        }, 50);
+      },
+    }),
+    [t],
+  );
+
+  const commentExt = useMemo(
+    () =>
+      Comment.configure({
+        onCommentClick: (commentId) => {
+          deps.onCommentClick?.(commentId);
+        },
+      }),
+    [deps],
+  );
+
+  const submitComment = () => {
+    if (!pendingRange || !draft.trim()) return;
+    setComments((list) => [
+      ...list,
+      { id: pendingRange.commentId, text: draft.trim(), quote: pendingRange.text, createdAt: Date.now() },
+    ]);
+    setPendingRange(null);
+    setDraft("");
+  };
+
+  /** 对整段（块）添加评论：程序化设置选区 → 调用 setComment → 触发 onCommentCreate */
+  const handleBlockComment = (from: number, to: number, text: string) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.chain().focus().setTextSelection({ from, to }).setComment().run();
+    // setComment 执行后扩展会通过 deps.onCommentCreate 回调触发 setPendingRange；
+    // 兜底：若下一帧还没 pending，手动加 mark 并触发 pending
+    setTimeout(() => {
+      if (pendingRangeRef.current) return;
+      const commentId = `c_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+      editor.chain().focus().setTextSelection({ from, to }).setComment(commentId).run();
+      setPendingRange({ from, to, commentId, text });
+      setDraft("");
+    }, 30);
+  };
+
+  const cancelComment = () => {
+    if (pendingRange && editorRef.current) {
+      (editorRef.current.commands as unknown as { removeComment: (id: string) => boolean }).removeComment(pendingRange.commentId);
+    }
+    setPendingRange(null);
+    setDraft("");
+  };
+
+  const removeComment = (id: string) => {
+    if (editorRef.current) {
+      (editorRef.current.commands as unknown as { removeComment: (id: string) => boolean }).removeComment(id);
+    }
+    setComments((list) => list.filter((c) => c.id !== id));
+    if (activeId === id) setActiveId(null);
+  };
+
+  const commentPanel = (
+    <aside
+      className={`demo-comment-drawer${drawerOpen ? " is-open" : ""}`}
+      aria-hidden={!drawerOpen}
+    >
+      <div className="demo-comment-panel">
+        <div className="demo-comment-panel-header">
+          <MessageSquare className="w-4 h-4" />
+          <span>{lang === "zh" ? "划词评论" : "Comments"}</span>
+          <span className="demo-comment-count">{comments.length}</span>
+          <button
+            type="button"
+            className="demo-comment-close"
+            onClick={() => setDrawerOpen(false)}
+            aria-label={lang === "zh" ? "关闭" : "Close"}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {comments.length === 0 && !pendingRange && (
+          <div className="demo-comment-empty">
+            {lang === "zh"
+              ? "选中一段文字，点击气泡菜单里的 💬 按钮开始评论（只读模式也可用）"
+              : "Select text and tap 💬 in the bubble menu — works in read-only too"}
+          </div>
+        )}
+
+        <div className="demo-comment-list">
+          {comments.map((c) => (
+            <div
+              key={c.id}
+              id={`comment-${c.id}`}
+              className={`demo-comment-item${activeId === c.id ? " is-active" : ""}`}
+              onClick={() => deps.onCommentClick?.(c.id)}
+            >
+              <div className="demo-comment-quote">"{c.quote}"</div>
+              <div className="demo-comment-text">{c.text}</div>
+              <button
+                type="button"
+                className="demo-comment-del"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeComment(c.id);
+                }}
+                title={lang === "zh" ? "删除评论" : "Delete"}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {pendingRange && (
+          <div className="demo-comment-composer">
+            <div className="demo-comment-quote">"{pendingRange.text}"</div>
+            <textarea
+              autoFocus
+              className="demo-comment-input"
+              placeholder={lang === "zh" ? "写下你的评论…" : "Write a comment…"}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submitComment();
+                if (e.key === "Escape") cancelComment();
+              }}
+            />
+            <div className="demo-comment-actions">
+              <button type="button" className="demo-comment-btn ghost" onClick={cancelComment}>
+                {lang === "zh" ? "取消" : "Cancel"}
+              </button>
+              <button type="button" className="demo-comment-btn primary" onClick={submitComment} disabled={!draft.trim()}>
+                <Send className="w-3.5 h-3.5" />
+                {lang === "zh" ? "发表" : "Send"}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </aside>
+  );
 
   return (
-    <TipKitEditor
-      deps={deps}
-      content={DEMO_CONTENT}
-      editable={editable}
-      onCreate={(editor) => onEditorReady?.(editor)}
-      extensions={[
-        ...createBasicExtensions(),
-        ...createAdvancedExtensions({ tocScrollOffset: 120 }),
-      ]}
-      placeholder={placeholder ?? PLACEHOLDER[lang]}
-      className="max-w-4xl mx-auto"
-      onChange={(editor) => {
-        // demo：输出 HTML 便于观察序列化结果
-        console.log("[tipkit] html:", editor.getHTML().slice(0, 200));
-      }}
-    >
-      {(editor) =>
-        editor ? (
-          <TooltipProvider delayDuration={300}>
-            <SlashMenu editor={editor} onUploadImage={uploadImage} iconRenderer={renderSlashIcon} />
-            <EmojiSuggestion editor={editor} />
-            <TextMenu editor={editor} />
-            <LinkBubble editor={editor} />
-            <LinkDialogHost editor={editor} />
-            <BlockBubbleMenu editor={editor} />
-            <BlockHandleMenu editor={editor} />
-            <TableControls editor={editor} />
-          </TooltipProvider>
-        ) : null
-      }
-    </TipKitEditor>
+    <div className="demo-editor-layout">
+      <div className="demo-editor-article">
+        <TipKitEditor
+          deps={deps}
+          content={DEMO_CONTENT}
+          editable={editable}
+          onCreate={(editor) => {
+            editorRef.current = editor;
+            setEditorInstance(editor);
+            onEditorReady?.(editor);
+          }}
+          extensions={[
+            ...createBasicExtensions(),
+            commentExt,
+            ...createAdvancedExtensions({ tocScrollOffset: 120 }),
+          ]}
+          placeholder={placeholder ?? PLACEHOLDER[lang]}
+        >
+          {(editor) => {
+            if (editor) editorRef.current = editor;
+            return editor ? (
+              <TooltipProvider delayDuration={300}>
+                <SlashMenu editor={editor} onUploadImage={uploadImage} iconRenderer={renderSlashIcon} />
+                <EmojiSuggestion editor={editor} />
+                <TextMenu editor={editor} />
+                <LinkBubble editor={editor} />
+                <LinkDialogHost editor={editor} />
+                {editable && <BlockBubbleMenu editor={editor} />}
+                {editable && <BlockHandleMenu editor={editor} />}
+                <TableControls editor={editor} />
+              </TooltipProvider>
+            ) : null;
+          }}
+        </TipKitEditor>
+      </div>
+
+      {/* 中间 gutter：仅作空白占位 */}
+      <div className="demo-editor-gutter" />
+
+      {/* 只读模式 hover 块时显示的评论按钮（组件内部已用 Portal 挂到 body） */}
+      <BlockCommentHover
+        editor={editorInstance}
+        enabled={!editable}
+        onBlockComment={handleBlockComment}
+      />
+
+      {/* 评论抽屉 + FAB + 遮罩：Portal 到 body，避免 fixed 被祖先 transform 影响 */}
+      {typeof document !== "undefined" && createPortal(
+        <>
+          {/* 悬浮 FAB：抽屉未打开时显示 */}
+          {!drawerOpen && (
+            <button
+              type="button"
+              className="demo-comment-fab"
+              onClick={() => setDrawerOpen(true)}
+              aria-label={lang === "zh" ? "查看评论" : "View comments"}
+            >
+              <MessageSquare className="w-4 h-4" />
+              {comments.length > 0 && (
+                <span className="demo-comment-fab-badge">{comments.length}</span>
+              )}
+            </button>
+          )}
+
+          {/* 抽屉 */}
+          {commentPanel}
+
+          {/* 遮罩 */}
+          {drawerOpen && (
+            <div className="demo-comment-overlay" onClick={() => setDrawerOpen(false)} />
+          )}
+        </>,
+        document.body,
+      )}
+    </div>
   );
 }
 
-/** 斜杠菜单图标映射：lucide 图标名 → 组件 */
 function renderSlashIcon(icon: string) {
   const Icon = iconMap[icon as IconRef];
   return Icon ? <Icon className="w-4 h-4" /> : null;

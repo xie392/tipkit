@@ -62,6 +62,10 @@ export interface EditorDeps {
   renderKatex?: (tex: string, displayMode: boolean) => Promise<string>;
   /** i18n 翻译函数。不传时默认中文（zh 词典） */
   t?: Translate;
+  /** 评论创建回调：当选中文本创建评论时触发 */
+  onCommentCreate?: (range: CommentRange) => void;
+  /** 评论点击回调：当点击已有评论标记时触发 */
+  onCommentClick?: (commentId: string) => void;
 }
 
 export interface AttachmentMeta {
@@ -79,4 +83,12 @@ export interface ImageAttrs {
   align?: "left" | "center" | "right";
   style?: string;
   width?: number | string;
+}
+
+/** 评论范围标记：表示文档中一段文本关联的评论 */
+export interface CommentRange {
+  from: number;
+  to: number;
+  text: string;
+  commentId: string;
 }

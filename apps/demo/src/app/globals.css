@@ -157,13 +157,13 @@ body::after {
   display: flex;
   align-items: center;
   gap: 4px;
+  margin-left: auto;
 }
 
 .site-header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: auto;
 }
 
 .site-nav-link {
@@ -456,11 +456,383 @@ body::after {
   color: var(--primary);
 }
 
-/* ---------- 主区：仅编辑器 ---------- */
+/* ---------- 主区：内容区 960px 居中（与工具栏同宽），评论抽屉浮层不占布局空间 ---------- */
 .demo-main {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 24px 20px 72px;
+  padding: 24px 0 72px;
+}
+
+.demo-editor-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 960px);
+  justify-content: center;
+  align-items: start;
+}
+.demo-editor-article {
+  grid-column: 1;
+  min-width: 0;
+}
+.demo-editor-gutter {
+  display: none;
+}
+
+/* ---------- 评论抽屉（右侧滑入浮层） ---------- */
+.demo-comment-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.25);
+  z-index: 95;
+  animation: tk-fade-in 0.2s ease-out;
+}
+@keyframes tk-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.demo-comment-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 420px;
+  max-width: 90vw;
+  height: 100vh;
+  background: var(--card, #fff);
+  border-left: 1px solid var(--border, #e5e5e5);
+  box-shadow: -8px 0 24px rgb(0 0 0 / 0.08);
+  z-index: 100;
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  display: flex;
+  flex-direction: column;
+}
+.demo-comment-drawer.is-open {
+  transform: translateX(0);
+}
+
+/* 悬浮评论按钮：右侧固定，点击打开抽屉 */
+.demo-comment-fab {
+  position: fixed;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border, #e5e5e5);
+  background: var(--card, #fff);
+  color: var(--foreground, #222);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+  z-index: 70;
+  transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
+}
+.demo-comment-fab:hover {
+  transform: translateY(-50%) scale(1.06);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.16);
+}
+.demo-comment-fab.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) scale(0.8);
+}
+.demo-comment-fab-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--primary, #3b82f6);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--card, #fff);
+}
+
+.demo-comment-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px 20px 20px;
+}
+
+/* 只读模式块右侧评论按钮（显示在块内右上角，与左侧 + 号手柄对称） */
+.tk-block-comment-btn {
+  position: fixed;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border, #e5e5e5);
+  background: var(--card, #fff);
+  color: var(--muted-foreground, #888);
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  z-index: 60;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.12s;
+  padding: 0;
+  opacity: 0;
+  animation: tk-block-btn-in 0.15s ease-out forwards;
+}
+@keyframes tk-block-btn-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+.tk-block-comment-btn:hover {
+  color: var(--primary, #3b82f6);
+  border-color: color-mix(in srgb, var(--primary) 60%, var(--border));
+  background: color-mix(in srgb, var(--primary) 8%, var(--card));
+}
+
+.demo-editor-article .tk-editor {
+  width: 100%;
+}
+.demo-editor-article .ProseMirror {
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.demo-comment-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground, #111);
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border, #e5e5e5);
+  margin-bottom: 12px;
+}
+
+.demo-comment-close {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground, #888);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.demo-comment-close:hover {
+  background: var(--muted, #f3f4f6);
+  color: var(--foreground, #222);
+}
+
+.demo-comment-count {
+  margin-left: 4px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--muted, #f3f4f6);
+  color: var(--muted-foreground, #666);
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.demo-comment-empty {
+  padding: 36px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted-foreground, #888);
+  line-height: 1.7;
+}
+
+.demo-comment-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+  margin-right: -4px;
+}
+
+.demo-comment-list::-webkit-scrollbar { width: 4px; }
+.demo-comment-list::-webkit-scrollbar-thumb {
+  background: var(--border, #ddd);
+  border-radius: 4px;
+}
+
+.demo-comment-item {
+  position: relative;
+  padding: 10px 12px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: var(--muted, #f8f8f8);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.demo-comment-item:hover {
+  background: color-mix(in srgb, var(--accent, #f3f4f6) 70%, transparent);
+}
+.demo-comment-item.is-active {
+  border-color: var(--primary, #111);
+  background: color-mix(in srgb, var(--primary, #111) 5%, var(--card, #fff));
+}
+.demo-comment-item.is-flash {
+  animation: comment-flash 1.2s ease-out;
+}
+@keyframes comment-flash {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  30% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary, #111) 25%, transparent); }
+}
+
+.demo-comment-quote {
+  font-size: 12px;
+  color: var(--muted-foreground, #888);
+  border-left: 2px solid #fbbf24;
+  padding-left: 8px;
+  margin-bottom: 6px;
+  line-height: 1.5;
+  max-height: 3em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.demo-comment-text {
+  font-size: 13px;
+  color: var(--foreground, #222);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.demo-comment-del {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground, #999);
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+.demo-comment-item:hover .demo-comment-del { opacity: 1; }
+.demo-comment-del:hover {
+  background: color-mix(in srgb, var(--destructive, #dc2626) 10%, transparent);
+  color: var(--destructive, #dc2626);
+}
+
+.demo-comment-composer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border, #e5e5e5);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.demo-comment-input {
+  width: 100%;
+  min-height: 72px;
+  padding: 8px 10px;
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 6px;
+  background: var(--background, #fff);
+  color: var(--foreground, #222);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.demo-comment-input:focus {
+  border-color: var(--primary, #111);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary, #111) 15%, transparent);
+}
+
+.demo-comment-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.demo-comment-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.demo-comment-btn.ghost {
+  background: transparent;
+  color: var(--muted-foreground, #666);
+  border-color: var(--border, #e5e5e5);
+}
+.demo-comment-btn.ghost:hover {
+  background: var(--muted, #f3f4f6);
+  color: var(--foreground, #222);
+}
+.demo-comment-btn.primary {
+  background: var(--primary, #111);
+  color: var(--primary-foreground, #fff);
+}
+.demo-comment-btn.primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary, #111) 85%, #000);
+}
+.demo-comment-btn.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 响应式：小屏内容区加边距，FAB 移到右下角 */
+@media (max-width: 960px) {
+  .demo-editor-layout {
+    padding: 0 16px;
+  }
+}
+@media (max-width: 768px) {
+  .demo-main { padding: 16px 0 48px; }
+  .demo-comment-drawer { width: 90vw; }
+  .demo-comment-fab {
+    right: 16px;
+    top: auto;
+    bottom: 80px;
+    transform: none;
+  }
+  .demo-comment-fab:hover {
+    transform: scale(1.06);
+  }
+  .demo-comment-fab.is-hidden {
+    transform: scale(0.8);
+  }
 }
 
 /* ============================================================

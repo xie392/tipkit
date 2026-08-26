@@ -166,6 +166,7 @@ export const zh: Messages = {
   "text.strike": "删除线",
   "text.code": "行内代码",
   "text.link": "链接",
+  "text.comment": "评论",
 
   /* ── 块浮动菜单 ── */
   "block.duplicate": "复制块",
@@ -266,6 +267,8 @@ export const zh: Messages = {
   /* ── 折叠块操作 ── */
   "details.collapse": "折叠",
   "details.expand": "展开",
+  "details.duplicate": "复制折叠块",
+  "details.delete": "删除折叠块",
 
   /* ── 表格控制 ── */
   "table.mergeCells": "合并单元格",

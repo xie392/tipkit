@@ -166,6 +166,7 @@ export const en: Messages = {
   "text.strike": "Strikethrough",
   "text.code": "Inline Code",
   "text.link": "Link",
+  "text.comment": "Comment",
 
   /* ── Block bubble ── */
   "block.duplicate": "Duplicate block",
@@ -266,6 +267,8 @@ export const en: Messages = {
   /* ── Details actions ── */
   "details.collapse": "Collapse",
   "details.expand": "Expand",
+  "details.duplicate": "Duplicate block",
+  "details.delete": "Delete block",
 
   /* ── Table controls ── */
   "table.mergeCells": "Merge cells",
