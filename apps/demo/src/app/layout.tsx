@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Caveat, Patrick_Hand } from "next/font/google";
 import "./globals.css";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_KEYWORDS } from "@/lib/site";
+import { ThemeScript } from "@/components/theme-script";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -52,16 +52,11 @@ const patrick = Patrick_Hand({
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-CN" className={`${caveat.variable} ${patrick.variable}`} suppressHydrationWarning>
-      <head>
-        <Script
-          id="tipkit-theme-init"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('tipkit-site-theme');var v=['default','sketch','dark'].indexOf(t)>=0?t:'default';document.documentElement.classList.add('tk-theme-'+v);}catch(e){document.documentElement.classList.add('tk-theme-default');}})();`,
-          }}
-        />
-      </head>
-      <body>{children}</body>
+      <head />
+      <body>
+        <ThemeScript />
+        {children}
+      </body>
     </html>
   );
 }

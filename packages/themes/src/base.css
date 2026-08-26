@@ -376,13 +376,13 @@
   cursor: zoom-in;
 }
 
-/* 选中态：描边直接画在图片上，四角手柄贴在图片四角 */
+/* hover / 选中态：描边 + 四角调整手柄（只在可编辑时生效，与 columns/details 统一 hover 交互） */
+.tk-image-block:hover .tk-image-block-img,
 .tk-image-block-wrap.is-selected .tk-image-block-img {
   outline: 2px solid var(--tk-accent, #3b82f6);
   outline-offset: 0;
 }
 
-/* 选中态：无整圈边框，仅在四角显示调整手柄 */
 .tk-image-block-handle {
   position: absolute;
   width: 10px;
@@ -393,6 +393,12 @@
   background: #fff;
   box-sizing: border-box;
   z-index: 2;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.tk-image-block:hover .tk-image-block-handle,
+.tk-image-block-wrap.is-selected .tk-image-block-handle {
+  opacity: 1;
 }
 
 .tk-image-block-handle.is-tl {
@@ -559,6 +565,13 @@
   font-size: 12px;
   color: var(--muted-foreground, #888);
   text-align: center;
+}
+.tk-image-block-add-caption {
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.tk-image-block:hover .tk-image-block-add-caption {
+  opacity: 1;
 }
 
 .tk-image-block-caption[data-placeholder]:empty::before {
@@ -1249,9 +1262,8 @@
 }
 .tk-katex-toolbar {
   position: absolute;
-  top: -10px;
-  right: 8px;
-  transform: translateY(-100%);
+  top: 4px;
+  right: 4px;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -1261,11 +1273,17 @@
   border: 1px solid var(--border, #e0e0e0);
   box-shadow: 0 4px 20px rgb(0 0 0 / 0.14);
   z-index: 50;
-  animation: tk-toolbar-in 0.12s ease-out;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s, visibility 0.12s, transform 0.12s;
+  transform: translateY(-2px);
 }
-@keyframes tk-toolbar-in {
-  from { opacity: 0; transform: translateY(calc(-100% + 4px)); }
-  to { opacity: 1; transform: translateY(-100%); }
+/* hover 或选中时显示工具栏 */
+.tk-katex:hover .tk-katex-toolbar,
+.tk-katex.is-selected .tk-katex-toolbar {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 /* 提示框 Callout：base 层只放布局，视觉由主题覆盖 */

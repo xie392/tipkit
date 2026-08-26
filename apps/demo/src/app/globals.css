@@ -612,28 +612,31 @@ body::after {
   font-size: 14px;
   font-weight: 600;
   color: var(--foreground, #111);
-  padding-bottom: 12px;
+  padding: 4px 4px 12px 0;
+  margin: 0 -4px 12px;
   border-bottom: 1px solid var(--border, #e5e5e5);
-  margin-bottom: 12px;
 }
 
 .demo-comment-close {
   margin-left: auto;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: none;
   background: transparent;
   color: var(--muted-foreground, #888);
-  border-radius: 6px;
+  border-radius: 50%;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
 }
 .demo-comment-close:hover {
   background: var(--muted, #f3f4f6);
   color: var(--foreground, #222);
+}
+.demo-comment-close:active {
+  transform: scale(0.92);
 }
 
 .demo-comment-count {
@@ -699,6 +702,22 @@ body::after {
   30% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary, #111) 25%, transparent); }
 }
 
+/* 正文评论锚点高亮闪烁 */
+.tk-comment.is-comment-flash {
+  animation: tk-anchor-flash 1.4s ease-out;
+  border-radius: 3px;
+}
+@keyframes tk-anchor-flash {
+  0%, 100% {
+    background: var(--tk-comment-hover-bg, rgb(251 191 36 / 0.15));
+    box-shadow: 0 0 0 0 transparent;
+  }
+  30% {
+    background: color-mix(in srgb, var(--primary, #3b82f6) 22%, transparent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary, #3b82f6) 25%, transparent);
+  }
+}
+
 .demo-comment-quote {
   font-size: 12px;
   color: var(--muted-foreground, #888);
@@ -719,29 +738,92 @@ body::after {
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
+  padding-right: 0;
 }
 
-.demo-comment-del {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 22px;
-  height: 22px;
+/* 评论项右下角操作按钮组（hover 显示） */
+.demo-comment-item-actions {
   display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+  margin-top: 6px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.demo-comment-item:hover .demo-comment-item-actions,
+.demo-comment-item.is-active .demo-comment-item-actions {
+  opacity: 1;
+}
+.demo-comment-icon-btn {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   border: none;
   background: transparent;
   color: var(--muted-foreground, #999);
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s, background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
-.demo-comment-item:hover .demo-comment-del { opacity: 1; }
-.demo-comment-del:hover {
+.demo-comment-icon-btn:hover {
+  background: var(--muted, #f3f4f6);
+  color: var(--foreground, #222);
+}
+.demo-comment-icon-btn.danger:hover {
   background: color-mix(in srgb, var(--destructive, #dc2626) 10%, transparent);
   color: var(--destructive, #dc2626);
+}
+
+/* 编辑态 */
+.demo-comment-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* 回复列表 */
+.demo-comment-replies {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border, #eee);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.demo-comment-reply {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--muted, #f3f4f6) 80%, transparent);
+  border-radius: 6px;
+  font-size: 12.5px;
+}
+.demo-comment-reply-text {
+  flex: 1;
+  color: var(--foreground, #222);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.demo-comment-reply .demo-comment-icon-btn {
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+  flex-shrink: 0;
+}
+.demo-comment-reply:hover .demo-comment-icon-btn { opacity: 1; }
+
+/* 回复输入框 */
+.demo-comment-reply-form {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .demo-comment-composer {

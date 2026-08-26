@@ -183,7 +183,6 @@ function ImageBlockView(props: NodeViewProps) {
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const captionRef = useRef<HTMLDivElement | null>(null);
-  const [hovered, setHovered] = useState(false);
   const [dragWidth, setDragWidth] = useState<number | null>(null);
   const dragWidthRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -270,7 +269,7 @@ function ImageBlockView(props: NodeViewProps) {
   const effectiveWidth = dragWidth ?? (Number(String(width).replace("%", "")) || 100);
   const wrapperAlign =
     align === "left" ? "tk-align-left" : align === "right" ? "tk-align-right" : "tk-align-center";
-  const showHandles = (hovered || selected) && isEditable;
+  const showHandles = isEditable;
 
   const onImageClick = (e: React.MouseEvent) => {
     if (isEditable) return;
@@ -280,15 +279,13 @@ function ImageBlockView(props: NodeViewProps) {
 
   return (
     <NodeViewWrapper
-      className={`tk-image-block${isEditable ? "" : " is-readonly"}${hovered ? " is-hovered" : ""}`}
+      className={`tk-image-block${isEditable ? "" : " is-readonly"}`}
       data-align={align}
       data-selected={selected ? "true" : undefined}
-      onMouseEnter={() => isEditable && setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
       <div
         ref={wrapRef}
-        className={`tk-image-block-wrap ${wrapperAlign}${showHandles ? " is-selected" : ""}`}
+        className={`tk-image-block-wrap ${wrapperAlign}${selected ? " is-selected" : ""}`}
         style={{ width: `${effectiveWidth}%`, maxWidth: "100%" }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}

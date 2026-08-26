@@ -44,6 +44,9 @@ import {
   MessageSquare,
   Send,
   X,
+  Pencil,
+  Reply,
+  Check,
   type LucideIcon,
 } from "lucide-react";
 
@@ -93,11 +96,17 @@ const PLACEHOLDER: Record<DemoLang, string> = {
   en: "Type / to open the slash menu, or paste Markdown…",
 };
 
+interface DemoReply {
+  id: string;
+  text: string;
+  createdAt: number;
+}
 interface DemoComment {
   id: string;
   text: string;
   quote: string;
   createdAt: number;
+  replies?: DemoReply[];
 }
 
 /** 默认示例评论 id（与 DEMO_CONTENT 中 data-comment-id 对应） */
@@ -176,6 +185,15 @@ export function DemoEditor({
   const [draft, setDraft] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState("");
+  const [replyingId, setReplyingId] = useState<string | null>(null);
+  const [replyDraft, setReplyDraft] = useState("");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     pendingRangeRef.current = pendingRange;
@@ -193,12 +211,24 @@ export function DemoEditor({
       onCommentClick: (commentId) => {
         setActiveId(commentId);
         setDrawerOpen(true);
+        // 1) 面板内评论项滚动到可视区并闪烁
         setTimeout(() => {
           const el = document.getElementById(`comment-${commentId}`);
           el?.scrollIntoView({ behavior: "smooth", block: "center" });
           el?.classList.add("is-flash");
-          setTimeout(() => el?.classList.remove("is-flash"), 1200);
-        }, 50);
+          setTimeout(() => el?.classList.remove("is-flash"), 1400);
+        }, 80);
+        // 2) 正文锚点滚动到可视区并闪烁
+        setTimeout(() => {
+          const editor = editorRef.current;
+          const view = editor?.view;
+          if (!view) return;
+          const anchor = view.dom.querySelector<HTMLElement>(`[data-comment-id="${commentId}"]`);
+          if (!anchor) return;
+          anchor.scrollIntoView({ behavior: "smooth", block: "center" });
+          anchor.classList.add("is-comment-flash");
+          setTimeout(() => anchor.classList.remove("is-comment-flash"), 1400);
+        }, 80);
       },
     }),
     [t],
@@ -254,6 +284,61 @@ export function DemoEditor({
     }
     setComments((list) => list.filter((c) => c.id !== id));
     if (activeId === id) setActiveId(null);
+    if (editingId === id) setEditingId(null);
+    if (replyingId === id) setReplyingId(null);
+  };
+
+  const startEdit = (c: DemoComment) => {
+    setEditingId(c.id);
+    setEditDraft(c.text);
+    setReplyingId(null);
+  };
+  const saveEdit = (id: string) => {
+    const text = editDraft.trim();
+    if (!text) return;
+    setComments((list) => list.map((c) => (c.id === id ? { ...c, text } : c)));
+    setEditingId(null);
+    setEditDraft("");
+  };
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditDraft("");
+  };
+
+  const startReply = (id: string) => {
+    setReplyingId(id);
+    setReplyDraft("");
+    setEditingId(null);
+  };
+  const submitReply = (id: string) => {
+    const text = replyDraft.trim();
+    if (!text) return;
+    setComments((list) =>
+      list.map((c) =>
+        c.id === id
+          ? {
+              ...c,
+              replies: [
+                ...(c.replies ?? []),
+                { id: `r_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 5)}`, text, createdAt: Date.now() },
+              ],
+            }
+          : c,
+      ),
+    );
+    setReplyingId(null);
+    setReplyDraft("");
+  };
+  const cancelReply = () => {
+    setReplyingId(null);
+    setReplyDraft("");
+  };
+  const removeReply = (commentId: string, replyId: string) => {
+    setComments((list) =>
+      list.map((c) =>
+        c.id === commentId ? { ...c, replies: (c.replies ?? []).filter((r) => r.id !== replyId) } : c,
+      ),
+    );
   };
 
   const commentPanel = (
@@ -293,18 +378,115 @@ export function DemoEditor({
               onClick={() => deps.onCommentClick?.(c.id)}
             >
               <div className="demo-comment-quote">"{c.quote}"</div>
-              <div className="demo-comment-text">{c.text}</div>
-              <button
-                type="button"
-                className="demo-comment-del"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeComment(c.id);
-                }}
-                title={lang === "zh" ? "删除评论" : "Delete"}
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
+
+              {editingId === c.id ? (
+                <div className="demo-comment-edit" onClick={(e) => e.stopPropagation()}>
+                  <textarea
+                    autoFocus
+                    className="demo-comment-input"
+                    value={editDraft}
+                    onChange={(e) => setEditDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) saveEdit(c.id);
+                      if (e.key === "Escape") cancelEdit();
+                    }}
+                  />
+                  <div className="demo-comment-actions">
+                    <button type="button" className="demo-comment-btn ghost" onClick={cancelEdit}>
+                      {lang === "zh" ? "取消" : "Cancel"}
+                    </button>
+                    <button
+                      type="button"
+                      className="demo-comment-btn primary"
+                      onClick={() => saveEdit(c.id)}
+                      disabled={!editDraft.trim()}
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      {lang === "zh" ? "保存" : "Save"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="demo-comment-text">{c.text}</div>
+                  <div className="demo-comment-item-actions" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      className="demo-comment-icon-btn"
+                      title={lang === "zh" ? "回复" : "Reply"}
+                      onClick={() => startReply(c.id)}
+                    >
+                      <Reply className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      className="demo-comment-icon-btn"
+                      title={lang === "zh" ? "编辑" : "Edit"}
+                      onClick={() => startEdit(c)}
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      className="demo-comment-icon-btn danger"
+                      title={lang === "zh" ? "删除" : "Delete"}
+                      onClick={() => removeComment(c.id)}
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* 回复列表 */}
+              {c.replies && c.replies.length > 0 && (
+                <div className="demo-comment-replies" onClick={(e) => e.stopPropagation()}>
+                  {c.replies.map((r) => (
+                    <div key={r.id} className="demo-comment-reply">
+                      <div className="demo-comment-reply-text">{r.text}</div>
+                      <button
+                        type="button"
+                        className="demo-comment-icon-btn"
+                        title={lang === "zh" ? "删除回复" : "Delete reply"}
+                        onClick={() => removeReply(c.id, r.id)}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 回复输入框 */}
+              {replyingId === c.id && (
+                <div className="demo-comment-reply-form" onClick={(e) => e.stopPropagation()}>
+                  <textarea
+                    autoFocus
+                    className="demo-comment-input"
+                    placeholder={lang === "zh" ? "写下回复…" : "Write a reply…"}
+                    value={replyDraft}
+                    onChange={(e) => setReplyDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submitReply(c.id);
+                      if (e.key === "Escape") cancelReply();
+                    }}
+                  />
+                  <div className="demo-comment-actions">
+                    <button type="button" className="demo-comment-btn ghost" onClick={cancelReply}>
+                      {lang === "zh" ? "取消" : "Cancel"}
+                    </button>
+                    <button
+                      type="button"
+                      className="demo-comment-btn primary"
+                      onClick={() => submitReply(c.id)}
+                      disabled={!replyDraft.trim()}
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      {lang === "zh" ? "回复" : "Reply"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -386,7 +568,7 @@ export function DemoEditor({
       />
 
       {/* 评论抽屉 + FAB + 遮罩：Portal 到 body，避免 fixed 被祖先 transform 影响 */}
-      {typeof document !== "undefined" && createPortal(
+      {mounted && createPortal(
         <>
           {/* 悬浮 FAB：抽屉未打开时显示 */}
           {!drawerOpen && (
