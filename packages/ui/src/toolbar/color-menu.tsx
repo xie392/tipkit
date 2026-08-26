@@ -129,7 +129,7 @@ export function ColorMenu({ editor, mode, t }: ColorMenuProps & { t?: Translate 
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <ToolbarBtn active={open}>
+            <ToolbarBtn active={open} className="tk-w-8 tk-h-8">
               {isText ? <Palette className="tk-icon-md" /> : <Highlighter className="tk-icon-md" />}
             </ToolbarBtn>
           </DropdownMenuTrigger>

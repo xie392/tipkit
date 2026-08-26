@@ -26,7 +26,7 @@ export function AlignMenu({ editor, t }: { editor: Editor; t?: Translate }) {
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <ToolbarBtn title={tr("toolbar.align")} active={open}>
+            <ToolbarBtn title={tr("toolbar.align")} active={open} className="tk-w-8 tk-h-8">
               <ActiveIcon className="tk-icon-md" />
             </ToolbarBtn>
           </DropdownMenuTrigger>

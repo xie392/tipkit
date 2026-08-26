@@ -415,6 +415,7 @@ function CodeBlockView(props: NodeViewProps) {
 export const CustomCodeBlock = CodeBlockLowlight.configure({
   lowlight,
   defaultLanguage: null,
+  enableTabIndentation: true,
 }).extend({
   addAttributes() {
     return {

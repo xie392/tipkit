@@ -42,7 +42,7 @@ export function BlockStyleMenu({ editor, t }: { editor: Editor; t?: Translate })
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <ToolbarBtn title={tr("toolbar.blockStyle")} className="tk-w-fit tk-px-2">
+            <ToolbarBtn title={tr("toolbar.blockStyle")} className="tk-h-8 tk-w-fit tk-px-2">
               <span className="tk-flex tk-items-center tk-gap-1 tk-text-12px">
                 <ActiveIcon className="tk-icon-md" />
                 <span className="tk-truncate">{tr(activeStyle.labelKey)}</span>

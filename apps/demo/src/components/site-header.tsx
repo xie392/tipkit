@@ -43,11 +43,13 @@ export function SiteHeader() {
             );
           })}
         </nav>
-        <SiteThemeSwitch />
-        <SiteLangSwitch />
-        <Link href={`${docsPrefix}/docs`} className="site-header-cta">
-          {c.cta}
-        </Link>
+        <div className="site-header-actions">
+          <SiteThemeSwitch />
+          <SiteLangSwitch />
+          <Link href={`${docsPrefix}/docs`} className="site-header-cta">
+            {c.cta}
+          </Link>
+        </div>
       </div>
     </header>
   );
