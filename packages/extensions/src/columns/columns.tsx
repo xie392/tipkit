@@ -119,7 +119,8 @@ function ColumnsView({ editor, node, getPos, updateAttributes, deleteNode }: Nod
             <button
               key={l.value}
               type="button"
-              title={t(l.labelKey)}
+              data-tip={t(l.labelKey)}
+              aria-label={t(l.labelKey)}
               className={`tk-ct-btn${layout === l.value ? " is-active" : ""}`}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => updateAttributes({ layout: l.value })}
@@ -130,7 +131,8 @@ function ColumnsView({ editor, node, getPos, updateAttributes, deleteNode }: Nod
           <span className="tk-ct-sep" />
           <button
             type="button"
-            title={t("block.duplicate")}
+            data-tip={t("block.duplicate")}
+            aria-label={t("block.duplicate")}
             className="tk-ct-btn"
             onMouseDown={(e) => e.preventDefault()}
             onClick={handleDuplicate}
@@ -139,7 +141,8 @@ function ColumnsView({ editor, node, getPos, updateAttributes, deleteNode }: Nod
           </button>
           <button
             type="button"
-            title={t("block.delete")}
+            data-tip={t("block.delete")}
+            aria-label={t("block.delete")}
             className="tk-ct-btn is-danger"
             onMouseDown={(e) => e.preventDefault()}
             onClick={handleDelete}

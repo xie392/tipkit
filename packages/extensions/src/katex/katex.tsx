@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { mergeAttributes, Node, nodeInputRule } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { useT, useEditorEditable } from "@tipkit/core";
+import { Pencil, Trash2, Copy } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 
@@ -85,11 +86,12 @@ export const Katex = Node.create({
 });
 
 function KatexView(props: NodeViewProps) {
-  const { editor, node, updateAttributes, selected } = props;
+  const { editor, node, updateAttributes, selected, deleteNode } = props;
   const attrs = node.attrs as KatexAttrs;
   const text = attrs.text ?? "";
   const isEditable = useEditorEditable(editor);
   const t = useT();
+  const [hovered, setHovered] = useState(false);
   const [editing, setEditing] = useState(!text.trim());
   const [draft, setDraft] = useState(text);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -139,11 +141,27 @@ function KatexView(props: NodeViewProps) {
     setEditing(false);
   };
 
+  const handleDuplicate = () => {
+    const { $from } = editor.state.selection;
+    const pos = $from.pos;
+    editor
+      .chain()
+      .insertContentAt(pos + node.nodeSize, {
+        type: "katex",
+        attrs: { text },
+      })
+      .run();
+  };
+
+  const showToolbar = (hovered || selected) && isEditable && !editing;
+
   return (
     <NodeViewWrapper
-      className={`tk-katex${selected ? " is-selected" : ""}`}
+      className={`tk-katex${selected ? " is-selected" : ""}${hovered ? " is-hovered" : ""}`}
       data-empty={!text.trim() ? "true" : "false"}
       contentEditable={false}
+      onMouseEnter={() => isEditable && setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
       {editing ? (
         <div className="tk-katex-editor">
@@ -180,6 +198,40 @@ function KatexView(props: NodeViewProps) {
         </div>
       ) : (
         <div className="tk-katex-display" onDoubleClick={isEditable ? openEditor : undefined}>
+          {showToolbar && (
+            <div className="tk-katex-toolbar">
+              <button
+                type="button"
+                data-tip={t("katex.edit")}
+                aria-label={t("katex.edit")}
+                className="tk-ct-btn"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={openEditor}
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                data-tip={t("block.duplicate")}
+                aria-label={t("block.duplicate")}
+                className="tk-ct-btn"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleDuplicate}
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                data-tip={t("block.delete")}
+                aria-label={t("block.delete")}
+                className="tk-ct-btn is-danger"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={deleteNode}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
           {text.trim() ? (
             <span dangerouslySetInnerHTML={{ __html: html }} />
           ) : (

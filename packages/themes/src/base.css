@@ -1241,6 +1241,33 @@
   margin-top: 6px;
 }
 
+/* 公式 hover 工具栏（与 columns/details 风格统一） */
+.tk-katex-display {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.tk-katex-toolbar {
+  position: absolute;
+  top: -10px;
+  right: 8px;
+  transform: translateY(-100%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-radius: 10px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  box-shadow: 0 4px 20px rgb(0 0 0 / 0.14);
+  z-index: 50;
+  animation: tk-toolbar-in 0.12s ease-out;
+}
+@keyframes tk-toolbar-in {
+  from { opacity: 0; transform: translateY(calc(-100% + 4px)); }
+  to { opacity: 1; transform: translateY(-100%); }
+}
+
 /* 提示框 Callout：base 层只放布局，视觉由主题覆盖 */
 .tk-callout {
   position: relative;
@@ -1526,6 +1553,54 @@
   color: #ef4444;
 }
 
+/* 折叠块工具栏按钮 tooltip（纯 CSS，黑底白字与 Radix Tooltip 同风格） */
+.tk-ct-btn[data-tip] {
+  position: relative;
+}
+
+.tk-ct-btn[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #171717;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s, visibility 0.12s;
+}
+
+.tk-ct-btn[data-tip]::before {
+  content: "";
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  border: 5px solid transparent;
+  border-top: none;
+  border-bottom-color: #171717;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s, visibility 0.12s;
+}
+
+.tk-ct-btn[data-tip]:hover::after,
+.tk-ct-btn[data-tip]:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
 .tk-ct-sep {
   width: 1px;
   height: 18px;
@@ -1599,6 +1674,35 @@
 
 .tk-details-content > :last-child {
   margin-bottom: 0;
+}
+
+/* 折叠块悬停工具栏（展开/折叠、复制、删除） */
+.tk-details-wrap {
+  position: relative;
+}
+
+.tk-details-wrap.is-hovered {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
+  border-radius: 8px;
+}
+
+.tk-details-toolbar {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  z-index: 10;
+  display: none;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 8px;
+  background: var(--card, #fff);
+  box-shadow: 0 4px 20px rgb(0 0 0 / 0.14);
+}
+
+.tk-details-wrap.is-hovered .tk-details-toolbar {
+  display: flex;
 }
 
 /* 目录 */
@@ -2736,4 +2840,20 @@
 .tk-code-block-lang-dropdown::-webkit-scrollbar-thumb:hover,
 .tk-context-menu::-webkit-scrollbar-thumb:hover {
   background: var(--tk-scrollbar-thumb-hover, rgb(0 0 0 / 0.4));
+}
+
+/* ============================================================
+ * Comment（划词评论）高亮：布局层，颜色由主题 CSS 变量提供
+ * ============================================================ */
+.tk-comment {
+  cursor: pointer;
+  border-bottom: 2px solid var(--tk-comment-color, #fbbf24);
+  background: var(--tk-comment-bg, transparent);
+  border-radius: 2px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tk-comment:hover {
+  background: var(--tk-comment-hover-bg, rgb(251 191 36 / 0.15));
+  border-bottom-color: var(--tk-comment-hover-color, #f59e0b);
 }
