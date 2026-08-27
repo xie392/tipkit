@@ -376,13 +376,14 @@
   cursor: zoom-in;
 }
 
-/* 选中态：描边直接画在图片上，四角手柄贴在图片四角 */
-.tk-image-block-wrap.is-selected .tk-image-block-img {
+/* hover / 选中态：描边 + 四角调整手柄（只在可编辑时生效，与 columns/details 统一 hover 交互） */
+.tk-image-block:hover .tk-image-block-img,
+.tk-image-block-wrap.is-selected .tk-image-block-img,
+.tk-image-block.ProseMirror-selectednode .tk-image-block-img {
   outline: 2px solid var(--tk-accent, #3b82f6);
   outline-offset: 0;
 }
 
-/* 选中态：无整圈边框，仅在四角显示调整手柄 */
 .tk-image-block-handle {
   position: absolute;
   width: 10px;
@@ -393,6 +394,15 @@
   background: #fff;
   box-sizing: border-box;
   z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+.tk-image-block:hover .tk-image-block-handle,
+.tk-image-block-wrap.is-selected .tk-image-block-handle,
+.tk-image-block.ProseMirror-selectednode .tk-image-block-handle {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .tk-image-block-handle.is-tl {
@@ -560,6 +570,16 @@
   color: var(--muted-foreground, #888);
   text-align: center;
 }
+.tk-image-block-add-caption {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+.tk-image-block:hover .tk-image-block-add-caption,
+.tk-image-block.ProseMirror-selectednode .tk-image-block-add-caption {
+  opacity: 1;
+  pointer-events: auto;
+}
 
 .tk-image-block-caption[data-placeholder]:empty::before {
   content: attr(data-placeholder);
@@ -572,31 +592,74 @@
   margin: 1em 0;
   border-radius: 10px;
   font-size: 0.9em;
+  display: flex;
+  flex-direction: column;
 }
 
 .tk-code-block-toolbar {
-  position: absolute;
-  right: 8px;
-  top: 8px;
+  position: relative;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 4px 6px;
-  border-radius: 8px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.tk-code-block:hover .tk-code-block-toolbar,
-.tk-code-block:focus-within .tk-code-block-toolbar,
-.tk-code-block[data-toolbar-open="true"] .tk-code-block-toolbar {
+  padding: 6px 12px;
+  border-radius: 10px 10px 0 0;
+  /* 工具栏作为代码块头部始终常显，避免移出后头部内容不可读 */
   opacity: 1;
   pointer-events: auto;
+}
+
+/* 只读模式：不显示 header，改在右上角浮层一个复制按钮，hover 时显示 */
+.tk-code-block-copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 6px;
+  background: var(--popover, #fff);
+  color: var(--muted-foreground, #656d76);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s, background 0.15s, color 0.15s;
+}
+.tk-code-block-copy-btn:hover {
+  background: rgb(0 0 0 / 0.05);
+  color: var(--foreground, #24292f);
+}
+.tk-code-block:hover .tk-code-block-copy-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tk-code-block-dark .tk-code-block-copy-btn {
+  background: #161b22;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  color: #9d9d9d;
+}
+.tk-code-block-dark .tk-code-block-copy-btn:hover {
+  background: rgb(255 255 255 / 0.1);
+  color: #fff;
+}
+
+/* 只读模式（无 header 工具栏）：代码块整体四角圆角、顶部补回边框 */
+.tk-code-block[data-editable="false"] .tk-code-block-pre {
+  border-radius: 10px;
+}
+.tk-code-block-dark[data-editable="false"] .tk-code-block-pre {
+  border-top: 1px solid #21262d;
+}
+.tk-code-block-light[data-editable="false"] .tk-code-block-pre {
+  border-top: 1px solid #d0d7de;
 }
 
 .tk-code-block-lang-wrap {
@@ -685,7 +748,8 @@
   margin: 0;
   overflow-x: auto;
   padding: 16px;
-  border-radius: 10px;
+  border-radius: 0 0 10px 10px;
+  border-top: none;
 }
 
 .tk-code-block-pre code {
@@ -705,6 +769,7 @@
   background: #0d1117;
   color: #e6edf3;
   border: 1px solid #21262d;
+  border-top: none;
   caret-color: #e6edf3;
 }
 
@@ -716,6 +781,7 @@
 .tk-code-block-dark .tk-code-block-toolbar {
   background: #161b22;
   border: 1px solid rgb(255 255 255 / 0.12);
+  border-bottom: none;
   color: #9d9d9d;
 }
 
@@ -818,11 +884,13 @@
   background: #f6f8fa;
   color: #24292f;
   border: 1px solid #d0d7de;
+  border-top: none;
 }
 
 .tk-code-block-light .tk-code-block-toolbar {
   background: #ffffff;
   border: 1px solid #d0d7de;
+  border-bottom: none;
   color: #656d76;
 }
 
@@ -1191,13 +1259,13 @@
   text-align: center;
   padding: 8px 0;
   border-radius: 8px;
+  position: relative;
 }
 
-/* 公式选中：用淡色背景代替外框，与块激活风格一致 */
-.tk-katex.is-selected,
-.tk-editor .ProseMirror-selectednode.tk-katex {
-  outline: none;
-  background: color-mix(in srgb, var(--tk-accent, #3b82f6) 12%, transparent);
+/* 公式：悬停显示小边框（与折叠块/分栏一致）；不再用选中灰底 */
+.tk-katex.is-hovered {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
+  border-radius: 8px;
 }
 
 .tk-katex-placeholder,
@@ -1241,6 +1309,44 @@
   margin-top: 6px;
 }
 
+/* 公式块：居中展示；只读模式右上角显示复制源码按钮（风格同 code-block 复制按钮） */
+.tk-katex-display {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.tk-katex-copy-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 6px;
+  background: var(--popover, #fff);
+  color: var(--muted-foreground, #656d76);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s, visibility 0.12s, background 0.15s, color 0.15s;
+}
+.tk-katex-copy-btn:hover {
+  background: rgb(0 0 0 / 0.05);
+  color: var(--foreground, #24292f);
+}
+.tk-katex.is-readonly:hover .tk-katex-copy-btn,
+.tk-katex:hover .tk-katex-copy-btn {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
 /* 提示框 Callout：base 层只放布局，视觉由主题覆盖 */
 .tk-callout {
   position: relative;
@@ -1255,6 +1361,11 @@
 .tk-callout.ProseMirror-selectednode {
   outline: none;
   box-shadow: none;
+}
+
+/* 悬停小边框（与折叠块/分栏一致） */
+.tk-callout.is-hovered {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
 }
 
 .tk-callout-content {
@@ -1481,11 +1592,8 @@
   min-width: 0;
 }
 
-.tk-columns-toolbar {
-  position: absolute;
-  top: -38px;
-  left: 50%;
-  transform: translateX(-50%);
+.tk-columns-toolbar,
+.tk-ct-toolbar {
   display: flex;
   align-items: center;
   gap: 2px;
@@ -1494,7 +1602,38 @@
   background: var(--popover, #fff);
   border: 1px solid var(--border, #e0e0e0);
   box-shadow: 0 4px 20px rgb(0 0 0 / 0.14);
+}
+
+/* ============================================================
+ * 通用 hover 工具栏（块级元素）
+ * 定位与显隐：由 useToolbarVisibility（hover-intent）+ useToolbarPlacement 控制。
+ * 桥接区仅用于把工具栏定位到块上方/下方，pointer-events:none 使其不拦截点击，
+ * 避免遮挡块上方文字导致无法点击聚焦。工具栏本身仅在可见时接收指针。
+ * ============================================================ */
+.tk-ct-toolbar-bridge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
   z-index: 50;
+}
+.tk-ct-toolbar-bridge.is-top { top: -64px; }
+.tk-ct-toolbar-bridge.is-bottom { top: auto; bottom: -64px; }
+.tk-ct-toolbar-bridge.is-visible { opacity: 1; }
+
+.tk-ct-toolbar-bridge .tk-ct-toolbar {
+  position: static;
+  transform: none;
+  pointer-events: none;
+}
+.tk-ct-toolbar-bridge.is-visible .tk-ct-toolbar {
+  pointer-events: auto;
 }
 
 .tk-ct-btn {
@@ -1524,6 +1663,54 @@
 .tk-ct-btn.is-danger:hover {
   background: color-mix(in srgb, #ef4444 12%, transparent);
   color: #ef4444;
+}
+
+/* 折叠块工具栏按钮 tooltip（纯 CSS，黑底白字与 Radix Tooltip 同风格） */
+.tk-ct-btn[data-tip] {
+  position: relative;
+}
+
+.tk-ct-btn[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #171717;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s, visibility 0.12s;
+}
+
+.tk-ct-btn[data-tip]::before {
+  content: "";
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  border: 5px solid transparent;
+  border-top: none;
+  border-bottom-color: #171717;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s, visibility 0.12s;
+}
+
+.tk-ct-btn[data-tip]:hover::after,
+.tk-ct-btn[data-tip]:hover::before {
+  opacity: 1;
+  visibility: visible;
 }
 
 .tk-ct-sep {
@@ -1601,7 +1788,27 @@
   margin-bottom: 0;
 }
 
+/* 折叠块悬停工具栏（展开/折叠、复制、删除） */
+.tk-details-wrap {
+  position: relative;
+}
+
+.tk-details-wrap.is-hovered {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
+  border-radius: 8px;
+}
+
 /* 目录 */
+.tk-toc-wrap {
+  position: relative;
+}
+
+/* 悬停小边框（与折叠块/分栏一致） */
+.tk-toc-wrap.is-hovered {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
+  border-radius: 8px;
+}
+
 .tk-toc {
   margin: 0.75em 0;
   border: 1px solid var(--border, #ddd);
@@ -1653,6 +1860,12 @@
   margin: 0.75em 0;
   position: relative;
   overflow-anchor: none;
+}
+
+/* 悬停小边框（与折叠块/分栏一致） */
+.tk-iframe.is-hovered {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
+  border-radius: 8px;
 }
 
 .tk-iframe-inner {
@@ -1741,6 +1954,13 @@
 /* 附件 */
 .tk-attachment {
   margin: 0.75em 0;
+  position: relative;
+}
+
+/* 悬停小边框（与折叠块/分栏一致） */
+.tk-attachment.is-hovered {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
+  border-radius: 10px;
 }
 
 .tk-att-card {
@@ -2736,4 +2956,415 @@
 .tk-code-block-lang-dropdown::-webkit-scrollbar-thumb:hover,
 .tk-context-menu::-webkit-scrollbar-thumb:hover {
   background: var(--tk-scrollbar-thumb-hover, rgb(0 0 0 / 0.4));
+}
+
+/* ============================================================
+ * Comment（划词评论）高亮：布局层，颜色由主题 CSS 变量提供
+ * ============================================================ */
+.tk-comment {
+  cursor: pointer;
+  border-bottom: 2px solid var(--tk-comment-color, #fbbf24);
+  background: var(--tk-comment-bg, transparent);
+  border-radius: 2px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tk-comment:hover {
+  background: var(--tk-comment-hover-bg, rgb(251 191 36 / 0.15));
+  border-bottom-color: var(--tk-comment-hover-color, #f59e0b);
+}
+
+/* ============================================================
+ * 状态标签 Status（Confluence /status 风格内联标签）
+ * 背景色来自节点 data-color（内联 style，随节点存储），
+ * 其余视觉全部在本层定义。
+ * ============================================================ */
+.tk-status {
+  display: inline-block;
+  vertical-align: baseline;
+  border-radius: 4px;
+  padding: 0.15em 0.5em;
+  font-size: 0.875em;
+  line-height: 1.4;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid rgb(0 0 0 / 0.08);
+  color: #1f2937;
+}
+
+.tk-status.is-selected {
+  outline: 2px solid var(--tk-accent, currentColor);
+  outline-offset: 1px;
+}
+
+/* 状态标签编辑面板（原生 DOM 弹层，fixed 定位到 body） */
+.tk-status-popover {
+  position: fixed;
+  z-index: 9999;
+  min-width: 200px;
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.16), 0 2px 6px rgb(0 0 0 / 0.06);
+  color: var(--foreground, #1f2937);
+  font-size: 13px;
+}
+
+.tk-status-popover-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tk-status-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  font-size: 13px;
+  border: 1px solid var(--border, #d0d0d0);
+  border-radius: 6px;
+  background: var(--background, #fff);
+  color: var(--foreground, #1f2937);
+  outline: none;
+}
+
+.tk-status-input:focus {
+  border-color: var(--primary, #2563eb);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary, #2563eb) 18%, transparent);
+}
+
+.tk-status-colors {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tk-status-colors-label {
+  font-size: 11px;
+  color: var(--muted-foreground, #71717a);
+}
+
+.tk-status-swatches {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tk-status-swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid rgb(0 0 0 / 0.1);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  color: rgb(0 0 0 / 0.6);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.tk-status-swatch:hover {
+  transform: scale(1.1);
+}
+
+.tk-status-swatch.is-selected {
+  box-shadow: 0 0 0 2px var(--primary, #2563eb);
+}
+
+.tk-status-popover-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border, #eee);
+}
+
+.tk-status-delete {
+  border: none;
+  background: transparent;
+  color: var(--destructive, #dc2626);
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tk-status-delete:hover {
+  background: color-mix(in srgb, var(--destructive, #dc2626) 10%, transparent);
+}
+
+/* ============================================================
+ * 画板 Canvas（布局 + 颜色走 CSS 变量）
+ * ============================================================ */
+.tk-canvas-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 0.75em 0;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--card, #fff);
+}
+
+.tk-canvas-board {
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  touch-action: none;
+  cursor: default;
+  user-select: none;
+}
+
+.tk-canvas-board.is-editable {
+  cursor: crosshair;
+}
+
+.tk-canvas-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tk-canvas-shape {
+  pointer-events: none;
+}
+
+.tk-canvas-grid-line {
+  stroke: var(--border, #e5e7eb);
+  stroke-width: 1;
+}
+
+.tk-canvas-grid {
+  pointer-events: none;
+}
+
+.tk-canvas-selection {
+  fill: color-mix(in srgb, var(--tk-accent, #3b82f6) 15%, transparent);
+  stroke: var(--tk-accent, #3b82f6);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
+.tk-canvas-boxsel {
+  fill: color-mix(in srgb, var(--tk-accent, #3b82f6) 12%, transparent);
+  stroke: var(--tk-accent, #3b82f6);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
+/* 工具栏 */
+.tk-canvas-toolbar {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+}
+
+.tk-canvas-toolbar-left {
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+}
+
+.tk-canvas-toolbar-top {
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+.tk-canvas-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted-foreground, #6b7280);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.tk-canvas-tool:hover {
+  background: var(--accent, #f0f0f0);
+  color: var(--foreground, #222);
+}
+
+.tk-canvas-tool.is-active {
+  background: color-mix(in srgb, var(--tk-accent, #3b82f6) 16%, transparent);
+  color: var(--tk-accent, #3b82f6);
+}
+
+.tk-canvas-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 2px;
+  background: var(--border, #e0e0e0);
+}
+
+/* 风格下拉触发器：图标 + 当前风格名 + 箭头，比普通工具按钮稍宽 */
+.tk-canvas-style-trigger {
+  gap: 4px;
+  width: auto;
+  padding: 0 8px;
+}
+.tk-canvas-style-trigger .tk-canvas-style-label {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.tk-canvas-style-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  color: var(--tk-accent, #3b82f6);
+}
+
+.tk-canvas-zoom-label {
+  min-width: 42px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted-foreground, #6b7280);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.tk-canvas-text-input {
+  position: absolute;
+  min-width: 40px;
+  border: 1px dashed var(--tk-accent, #3b82f6);
+  border-radius: 2px;
+  background: transparent;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--foreground, #222);
+  padding: 0 2px;
+  outline: none;
+}
+
+/* 选中元素时的浮动样式工具栏（虚线/端点/填充/图层），复用 .tk-canvas-tool 按钮 */
+.tk-canvas-element-toolbar {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-radius: 10px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+}
+
+/* 画板网页内全屏容器：撑满整个浏览器视口（保留标签页/地址栏，非系统全屏） */
+.tk-canvas-frame {
+  position: relative;
+}
+.tk-canvas-frame.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  background: var(--background, #fff);
+}
+.tk-canvas-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.tk-canvas-frame.is-fullscreen .tk-canvas-board {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 全屏顶部 header：明确展示退出全屏入口 */
+.tk-canvas-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 12px 0 16px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  background: var(--card, #fff);
+  color: var(--foreground, #222);
+  font-size: 14px;
+  font-weight: 600;
+  user-select: none;
+}
+.tk-canvas-header-exit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 6px;
+  background: var(--popover, #fff);
+  color: var(--foreground, #222);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.tk-canvas-header-exit:hover {
+  background: var(--accent, #f0f0f0);
+}
+.tk-canvas-header-exit svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* 元素缩放手柄（屏幕坐标系，尺寸恒定） */
+.tk-canvas-resize-handle {
+  fill: #fff;
+  stroke: var(--tk-accent, #3b82f6);
+  stroke-width: 1.5;
+  pointer-events: auto;
+  cursor: nwse-resize;
+}
+.tk-canvas-resize-handle[data-corner="tr"],
+.tk-canvas-resize-handle[data-corner="bl"] {
+  cursor: nesw-resize;
+}
+
+/* 旋转手柄：选中元素顶边中点的圆点 + 连接线 */
+.tk-canvas-rotate-line {
+  stroke: var(--tk-accent, #3b82f6);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  pointer-events: none;
+}
+.tk-canvas-rotate-handle {
+  fill: #fff;
+  stroke: var(--tk-accent, #3b82f6);
+  stroke-width: 1.5;
+  pointer-events: auto;
+  cursor: grab;
+}
+.tk-canvas-rotate-handle:active {
+  cursor: grabbing;
 }

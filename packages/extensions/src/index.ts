@@ -65,6 +65,8 @@ export type { CodeBlockTheme, CodeLanguage } from "./code-block/code-block";
 // M3：高级节点
 export { Katex } from "./katex/katex";
 export type { KatexAttrs } from "./katex/katex";
+export { Status } from "./status/status";
+export type { StatusAttrs } from "./status/status";
 export { Callout, CALLOUT_VARIANTS } from "./callout/callout";
 export type { CalloutVariant } from "./callout/callout";
 export { Columns, Column, ColumnLayout } from "./columns/columns";
@@ -78,3 +80,12 @@ export { BlockHandles, blockHandlesKey, getActiveBlockPos } from "./block-handle
 export { FileHandler } from "./file-handler/file-handler";
 export type { FileHandlerOptions } from "./file-handler/file-handler";
 export { emojisToName } from "./emoji/emoji-data";
+
+// Comment（划词评论）
+export { Comment } from "./comment/comment";
+export type { CommentOptions } from "./comment/comment";
+
+// Canvas（画板）
+export { Canvas } from "./canvas/canvas";
+export type { CanvasAttrs } from "./canvas/canvas";
+export type { CanvasShape, CanvasView, CanvasTool, Point, Bounds } from "./canvas/canvas-types";

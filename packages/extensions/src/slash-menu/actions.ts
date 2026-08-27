@@ -240,6 +240,22 @@ export function getInsertActions({
       },
     },
     {
+      id: "status",
+      group: "basic",
+      label: tr("slash.status.label"),
+      description: tr("slash.status.description"),
+      aliases: ["zhuangtai", "status", "label"],
+      icon: "Badge",
+      available: true,
+      previewTitle: tr("slash.status.previewTitle"),
+      preview:
+        '<div style="background:#fff;border-radius:6px;padding:16px;display:flex;align-items:center;justify-content:center"><span style="display:inline-block;background:#ffcccc;border-radius:4px;padding:2px 8px;font-size:11px;color:#111">待处理</span></div>',
+      run: () => {
+        prepareInsert();
+        editor.chain().focus().setStatus().run();
+      },
+    },
+    {
       id: "blockquote",
       group: "basic",
       label: tr("slash.blockquote.label"),
@@ -460,6 +476,22 @@ export function getInsertActions({
       run: () => {
         prepareInsert();
         editor.chain().focus().insertContent(":").run();
+      },
+    },
+    {
+      id: "canvas",
+      group: "structure",
+      label: tr("slash.canvas.label"),
+      description: tr("slash.canvas.description"),
+      aliases: ["huaban", "canvas", "whiteboard", "draw"],
+      icon: "Brush",
+      available: true,
+      previewTitle: tr("slash.canvas.previewTitle"),
+      preview:
+        '<div style="background:#fff;border-radius:6px;padding:12px"><div style="border:1px solid #e5e7eb;border-radius:6px;height:72px;position:relative;overflow:hidden;background:linear-gradient(135deg,#f8fafc,#eef2f7)"><div style="position:absolute;left:6px;top:6px;width:20px;height:20px;border:1.5px solid #2563eb;border-radius:3px"></div><div style="position:absolute;left:40px;top:10px;width:26px;height:16px;border:1.5px solid #9ca3af;border-radius:3px"></div><div style="position:absolute;left:14px;top:34px;width:36px;height:1.5px;background:#2563eb;transform:rotate(-12deg)"></div><div style="position:absolute;left:52px;top:44px;width:1.5px;height:14px;background:#9ca3af"></div></div></div>',
+      run: () => {
+        prepareInsert();
+        editor.chain().focus().setCanvas().run();
       },
     },
   ];

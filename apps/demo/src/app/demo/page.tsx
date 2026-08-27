@@ -29,7 +29,7 @@ export default function DemoPage() {
         </div>
       </div>
 
-      {/* 主区：仅编辑器 */}
+      {/* 主区：仅编辑器（居中） */}
       <main className="demo-main tk-reveal" style={{ animationDelay: "0.16s" }}>
         <DemoEditor onEditorReady={setEditor} editable={!readOnly} />
       </main>

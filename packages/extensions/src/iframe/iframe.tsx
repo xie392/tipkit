@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { mergeAttributes, Node, nodeInputRule } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
-import { useT } from "@tipkit/core";
+import { useT, useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
 
 /* Iframe 嵌入（迁移自 blog rich-text/ext/iframe.tsx）。
  * 属性：url / width / height；空 url 显示输入卡片，有 url 渲染 iframe，可拖拽改高度。 */
@@ -149,16 +149,43 @@ function disableScrollAnchoring(): () => void {
   };
 }
 
+function IconEdit() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11.5 2.5a1.5 1.5 0 0 1 2 2l-8 8L2 12.5l.5-3.5 8-8z" />
+    </svg>
+  );
+}
+function IconCopy() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" />
+      <path d="M10.5 5.5v-1a1.5 1.5 0 0 0-1.5-1.5H4a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 4 11h1.5" />
+    </svg>
+  );
+}
+function IconTrash() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.5 4h11M6.5 4V2.5h3V4M4 4l.6 9h6.8l.6-9M6.5 7v3.5M9.5 7v3.5" />
+    </svg>
+  );
+}
+
 function IframeView(props: NodeViewProps) {
-  const { editor, node, updateAttributes, selected } = props;
+  const { editor, node, updateAttributes, selected, getPos, deleteNode } = props;
   const t = useT();
   const attrs = node.attrs as IframeAttrs;
   const { url, width, height } = attrs;
-  const isEditable = editor.isEditable;
+  const isEditable = useEditorEditable(editor);
 
   const [draftUrl, setDraftUrl] = useState(url ?? "");
   const [editing, setEditing] = useState(!url);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const placement = useToolbarPlacement(rootRef);
+  const { visible, show, hide } = useToolbarVisibility();
+  const [hovered, setHovered] = useState(false);
   const dragHRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
 
@@ -166,6 +193,10 @@ function IframeView(props: NodeViewProps) {
     setDraftUrl(url ?? "");
     if (url) setEditing(false);
   }, [url]);
+
+  useEffect(() => {
+    if (!isEditable) setEditing(false);
+  }, [isEditable]);
 
   useEffect(
     () => () => {
@@ -228,11 +259,73 @@ function IframeView(props: NodeViewProps) {
     [height, isEditable, updateAttributes],
   );
 
+  const handleDuplicate = useCallback(() => {
+    if (!isEditable) return;
+    const pos = getPos();
+    if (typeof pos !== "number") return;
+    editor
+      .chain()
+      .focus(undefined, { scrollIntoView: false })
+      .insertContentAt(pos + node.nodeSize, node.toJSON())
+      .run();
+  }, [editor, node, getPos, isEditable]);
+
   return (
     <NodeViewWrapper
-      className={`tk-iframe${selected ? " is-selected" : ""}`}
+      ref={rootRef}
+      className={`tk-iframe tk-hover-toolbar${isEditable ? " is-editable" : ""}${hovered ? " is-hovered" : ""}${selected ? " is-selected" : ""}`}
       data-has-url={url ? "true" : "false"}
+      onMouseEnter={() => {
+        if (isEditable) setHovered(true);
+        show();
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        hide();
+      }}
     >
+      {isEditable && url && !editing && (
+        <div
+          className={`tk-ct-toolbar-bridge ${placement === "bottom" ? "is-bottom" : "is-top"}${visible ? " is-visible" : ""}`}
+          contentEditable={false}
+          onMouseEnter={show}
+          onMouseLeave={hide}
+        >
+          <div className="tk-ct-toolbar">
+            <button
+              type="button"
+              data-tip={t("iframeView.editLink")}
+              aria-label={t("iframeView.editLink")}
+              className="tk-ct-btn"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => setEditing(true)}
+            >
+              <IconEdit />
+            </button>
+            <span className="tk-ct-sep" />
+            <button
+              type="button"
+              data-tip={t("iframeView.duplicate")}
+              aria-label={t("iframeView.duplicate")}
+              className="tk-ct-btn"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleDuplicate}
+            >
+              <IconCopy />
+            </button>
+            <button
+              type="button"
+              data-tip={t("iframeView.delete")}
+              aria-label={t("iframeView.delete")}
+              className="tk-ct-btn is-danger"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={deleteNode}
+            >
+              <IconTrash />
+            </button>
+          </div>
+        </div>
+      )}
       {url && !editing ? (
         <div ref={wrapRef} className="tk-iframe-inner" style={{ width, height }}>
           <iframe

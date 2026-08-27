@@ -38,6 +38,12 @@
   --tk-scrollbar-thumb: rgba(49, 48, 46, 0.35);
   --tk-scrollbar-thumb-hover: rgba(49, 48, 46, 0.55);
 
+  /* 评论高亮（手绘风：马克笔底纹） */
+  --tk-comment-color: #d97706;
+  --tk-comment-bg: rgba(251, 191, 36, 0.35);
+  --tk-comment-hover-bg: rgba(251, 191, 36, 0.55);
+  --tk-comment-hover-color: #b45309;
+
   /* 手绘描边 / 阴影（blog DESIGN.md token） */
   --tk-sketch-line: rgba(49, 48, 46, 0.75);
   --tk-sketch-line-soft: rgba(49, 48, 46, 0.45);
@@ -76,6 +82,12 @@
   --tk-sketch-line-hair: rgba(230, 227, 221, 0.55);
   --tk-sketch-shadow: rgba(0, 0, 0, 0.55);
   --tk-sketch-shadow-soft: rgba(0, 0, 0, 0.4);
+
+  /* 评论高亮（手绘暗色） */
+  --tk-comment-color: #fbbf24;
+  --tk-comment-bg: rgba(251, 191, 36, 0.28);
+  --tk-comment-hover-bg: rgba(251, 191, 36, 0.45);
+  --tk-comment-hover-color: #fde68a;
 }
 
 /* ---------- 手绘边框 / 阴影工具（blog sketch-border / sketch-shadow） ---------- */
@@ -474,10 +486,13 @@
 }
 
 /* ---------- 代码块 ---------- */
-/* 注意：工具栏尺寸小，不能套用 255px 大差值圆角（会裁切内容），用小型不规则圆角 */
+/* 注意：工具栏尺寸小，不能套用 255px 大差值圆角（会裁切内容），用小型不规则圆角。
+ * 工具栏与 pre 上下相接，圆角只保留在最外缘（工具栏上、pre 下），相接处不留圆角/边框，
+ * 使整体看起来是一个块。 */
 .tk-theme-sketch .tk-code-block-toolbar {
   border: 1.5px solid var(--tk-sketch-line);
-  border-radius: 10px 7px 11px 8px;
+  border-bottom: none;
+  border-radius: 12px 10px 0 0;
   box-shadow: 2px 2px 0 var(--tk-sketch-shadow);
   background: var(--card);
 }
@@ -509,8 +524,28 @@
 
 .tk-theme-sketch .tk-code-block-pre {
   border: 1.5px solid var(--tk-sketch-line-soft);
-  border-radius: 12px 10px 14px 11px;
+  border-top: none;
+  border-radius: 0 0 14px 11px;
   box-shadow: 3px 3px 0 var(--tk-sketch-shadow);
+}
+
+/* 只读模式（无 header）：pre 补回顶部圆角与边框，整体一致 */
+.tk-theme-sketch .tk-code-block[data-editable="false"] .tk-code-block-pre {
+  border-top: 1.5px solid var(--tk-sketch-line-soft);
+  border-radius: 12px 10px 14px 11px;
+}
+
+/* 只读模式右上角复制按钮：跟随 sketch 风格 */
+.tk-theme-sketch .tk-code-block-copy-btn {
+  border: 1.5px solid var(--tk-sketch-line);
+  border-radius: 6px 4px 7px 5px;
+  box-shadow: 1.5px 1.5px 0 var(--tk-sketch-shadow);
+  background: var(--popover);
+  color: var(--muted-foreground);
+}
+.tk-theme-sketch .tk-code-block-copy-btn:hover {
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
 }
 
 .tk-theme-sketch .tk-code-block-lang-dropdown,

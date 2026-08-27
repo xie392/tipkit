@@ -99,6 +99,9 @@ export const en: Messages = {
   "slash.taskList.label": "Task List",
   "slash.taskList.description": "Checkable to-do items",
   "slash.taskList.previewTitle": "Tasks",
+  "slash.status.label": "Status",
+  "slash.status.description": "Insert a colored status label",
+  "slash.status.previewTitle": "Status",
   "slash.blockquote.label": "Quote",
   "slash.blockquote.description": "Block quote",
   "slash.blockquote.previewTitle": "Block Quote",
@@ -139,12 +142,20 @@ export const en: Messages = {
   "slash.emoji.label": "Insert Emoji",
   "slash.emoji.description": "Type : or click to browse",
   "slash.emoji.previewTitle": "Emoji",
+  "slash.canvas.label": "Canvas",
+  "slash.canvas.description": "Insert a free-drawing canvas",
+  "slash.canvas.previewTitle": "Canvas",
 
   /* ── Slash menu UI ── */
   "slash.noMatch": "No matching commands",
   "slash.closeMenu": "Close menu",
   "slash.searchPlaceholder": "Search content to insert",
   "slash.insertEmpty": "No matching content",
+
+  /* ── Status label ── */
+  "status.textPlaceholder": "Enter status text",
+  "status.selectColor": "Choose color",
+  "status.delete": "Delete",
 
   /* ── Link dialog ── */
   "link.editTitle": "Edit Link",
@@ -166,6 +177,7 @@ export const en: Messages = {
   "text.strike": "Strikethrough",
   "text.code": "Inline Code",
   "text.link": "Link",
+  "text.comment": "Comment",
 
   /* ── Block bubble ── */
   "block.duplicate": "Duplicate block",
@@ -231,6 +243,9 @@ export const en: Messages = {
   "iframeView.embed": "Embed",
   "iframeView.dragResize": "Drag to resize height",
   "iframeView.changeLink": "Change URL",
+  "iframeView.editLink": "Edit link",
+  "iframeView.duplicate": "Duplicate",
+  "iframeView.delete": "Delete",
 
   /* ── Katex actions ── */
   "katex.formula": "Formula",
@@ -266,6 +281,8 @@ export const en: Messages = {
   /* ── Details actions ── */
   "details.collapse": "Collapse",
   "details.expand": "Expand",
+  "details.duplicate": "Duplicate block",
+  "details.delete": "Delete block",
 
   /* ── Table controls ── */
   "table.mergeCells": "Merge cells",
@@ -320,6 +337,40 @@ export const en: Messages = {
   "katex.placeholder": "Enter LaTeX formula, e.g. \\frac{1}{2} or e^{i\\pi}+1=0",
   "katex.emptyPlaceholder": "+ Enter math formula",
   "katex.renderError": "Formula render error: ",
+
+  /* ── Canvas ── */
+  "canvas.select": "Select",
+  "canvas.hand": "Hand",
+  "canvas.brush": "Brush",
+  "canvas.pencil": "Pencil",
+  "canvas.text": "Text",
+  "canvas.rect": "Rectangle",
+  "canvas.circle": "Circle",
+  "canvas.arrow": "Arrow",
+  "canvas.line": "Line",
+  "canvas.image": "Image",
+  "canvas.boxSelect": "Box select",
+  "canvas.zoomIn": "Zoom in",
+  "canvas.zoomOut": "Zoom out",
+  "canvas.fullscreen": "Fullscreen",
+  "canvas.exitFullscreen": "Exit fullscreen",
+  "canvas.title": "Canvas",
+  "canvas.snap": "Snap to grid",
+  "canvas.export": "Export as image",
+  "canvas.style.auto": "Style: follow theme",
+  "canvas.style.clean": "Style: clean",
+  "canvas.style.sketch": "Style: hand-drawn",
+  "canvas.dash": "Dashed",
+  "canvas.head.none": "No head",
+  "canvas.head.arrow": "Arrow head",
+  "canvas.head.dot": "Dot head",
+  "canvas.fill.none": "No fill",
+  "canvas.fill.solid": "Solid fill",
+  "canvas.fill.hachure": "Hachure fill",
+  "canvas.zTop": "Bring to front",
+  "canvas.zUp": "Bring forward",
+  "canvas.zDown": "Send backward",
+  "canvas.zBottom": "Send to back",
 
   /* ── Placeholder ── */
   "placeholder.default": "Start writing…",

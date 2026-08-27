@@ -7,7 +7,7 @@ import {
   NodeViewWrapper,
   type NodeViewProps,
 } from "@tiptap/react";
-import { useEditorDeps, useT } from "@tipkit/core";
+import { useEditorDeps, useEditorEditable, useT, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
 
 /* Attachment 附件（迁移自 blog rich-text/ext/attachment.tsx）。
  * 上传经 EditorDeps.uploadAttachment 注入（返回 AttachmentMeta），
@@ -162,10 +162,14 @@ function AttachmentView(props: NodeViewProps) {
   const { editor, node, updateAttributes, selected } = props;
   const attrs = node.attrs as AttachmentAttrs;
   const { fileName, fileSize, fileExt, url } = attrs;
-  const isEditable = editor.isEditable;
+  const isEditable = useEditorEditable(editor);
   const deps = useEditorDeps();
   const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const placement = useToolbarPlacement(rootRef);
+  const { visible, show, hide } = useToolbarVisibility();
+  const [hovered, setHovered] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
 
@@ -211,6 +215,16 @@ function AttachmentView(props: NodeViewProps) {
     document.body.appendChild(a);
     a.click();
     a.remove();
+  };
+
+  const handleDuplicate = () => {
+    const pos = props.getPos();
+    if (typeof pos !== "number") return;
+    props.editor
+      .chain()
+      .focus(undefined, { scrollIntoView: false })
+      .insertContentAt(pos + props.node.nodeSize, props.node.toJSON())
+      .run();
   };
 
   const displayName = fileName && fileExt ? `${fileName}.${fileExt}` : fileName ?? t("attachmentView.unnamed");
@@ -264,11 +278,102 @@ function AttachmentView(props: NodeViewProps) {
     );
   }
 
+  function IconUpload() {
+    return (
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 11V3M5 5.5L8 3l3 2.5" />
+        <path d="M2.5 10v2a1.5 1.5 0 0 0 1.5 1.5h8a1.5 1.5 0 0 0 1.5-1.5v-2" />
+      </svg>
+    );
+  }
+  function IconDownload() {
+    return (
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 3v8M5 7.5L8 11l3-3.5" />
+        <path d="M2.5 10v2a1.5 1.5 0 0 0 1.5 1.5h8a1.5 1.5 0 0 0 1.5-1.5v-2" />
+      </svg>
+    );
+  }
+  function IconCopy() {
+    return (
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" />
+        <path d="M10.5 5.5v-1a1.5 1.5 0 0 0-1.5-1.5H4a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 4 11h1.5" />
+      </svg>
+    );
+  }
+  function IconTrash() {
+    return (
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2.5 4h11M6.5 4V2.5h3V4M4 4l.6 9h6.8l.6-9M6.5 7v3.5M9.5 7v3.5" />
+      </svg>
+    );
+  }
+
   return (
     <NodeViewWrapper
-      className={`tk-attachment${selected ? " is-selected" : ""}`}
+      ref={rootRef}
+      className={`tk-attachment tk-hover-toolbar${isEditable ? " is-editable" : ""}${hovered ? " is-hovered" : ""}${selected ? " is-selected" : ""}`}
       data-has-url={url ? "true" : "false"}
+      onMouseEnter={() => {
+        if (isEditable) setHovered(true);
+        show();
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        hide();
+      }}
     >
+      {isEditable && url && (
+        <div
+          className={`tk-ct-toolbar-bridge ${placement === "bottom" ? "is-bottom" : "is-top"}${visible ? " is-visible" : ""}`}
+          contentEditable={false}
+          onMouseEnter={show}
+          onMouseLeave={hide}
+        >
+          <div className="tk-ct-toolbar">
+            <button
+              type="button"
+              className="tk-ct-btn"
+              data-tip={t("attachment.reupload")}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={selectFile}
+            >
+              <IconUpload />
+            </button>
+            <span className="tk-ct-sep" />
+            <button
+              type="button"
+              className="tk-ct-btn"
+              data-tip={t("attachment.download")}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={triggerDownload}
+            >
+              <IconDownload />
+            </button>
+            <span className="tk-ct-sep" />
+            <button
+              type="button"
+              className="tk-ct-btn"
+              data-tip={t("block.duplicate")}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleDuplicate}
+            >
+              <IconCopy />
+            </button>
+            <span className="tk-ct-sep" />
+            <button
+              type="button"
+              className="tk-ct-btn"
+              data-tip={t("block.delete")}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => props.deleteNode()}
+            >
+              <IconTrash />
+            </button>
+          </div>
+        </div>
+      )}
       {content}
       <input ref={inputRef} type="file" className="tk-hidden" onChange={handleFile} />
     </NodeViewWrapper>

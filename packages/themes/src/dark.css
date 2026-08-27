@@ -36,6 +36,12 @@
   --tk-font-body: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   --tk-scrollbar-thumb: rgb(255 255 255 / 0.25);
   --tk-scrollbar-thumb-hover: rgb(255 255 255 / 0.42);
+
+  /* 评论高亮（暗色下用更深的黄底） */
+  --tk-comment-color: #fbbf24;
+  --tk-comment-bg: rgb(251 191 36 / 0.2);
+  --tk-comment-hover-bg: rgb(251 191 36 / 0.35);
+  --tk-comment-hover-color: #fde68a;
 }
 
 /* 编辑器容器：暗色下边框/背景跟随变量 */

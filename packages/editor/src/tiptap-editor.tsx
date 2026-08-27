@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { EditorContent } from "@tiptap/react";
 import type { Editor } from "@tiptap/react";
 import { EditorProvider, useTipKitEditor } from "@tipkit/core";
@@ -18,6 +19,9 @@ import { createBasicExtensions } from "@tipkit/extensions";
  * </TipKitEditor>
  * ```
  */
+/** 原生 NodeView 读取注入 i18n 的扩展接口（TipKitEditor 挂载 __tipkitT） */
+export type TipKitEditorInstance = Editor & { __tipkitT?: Translate };
+
 export interface TipKitEditorProps {
   deps: EditorDeps;
   /** 追加扩展（在基础集合之上）；传 [] 可禁用基础集合 */
@@ -55,10 +59,25 @@ export function TipKitEditor({
     contentType,
     placeholder,
     onUpdate: onChange,
-    onCreate,
+    // 编辑器初始化（NodeView 创建前）就挂上注入的 i18n
+    onCreate: (e) => {
+      (e as TipKitEditorInstance).__tipkitT = deps.t;
+      onCreate?.(e);
+    },
     immediatelyRender,
     editable,
   });
+
+  // 原生 NodeView（如折叠块 details）无法用 React context 读 deps，
+  // 这里把注入的 t 挂到 editor 实例供其读取，保持 i18n 单一来源。
+  // 语言切换时同步更新，并派发 tipkit:langChange 事件，原生 NodeView 监听后刷新 tooltip 等文案。
+  useEffect(() => {
+    if (!editor) return;
+    (editor as TipKitEditorInstance).__tipkitT = deps.t;
+    if (editor.view?.dom) {
+      editor.view.dom.dispatchEvent(new CustomEvent("tipkit:langChange"));
+    }
+  }, [editor, deps.t]);
 
   return (
     <EditorProvider deps={deps}>

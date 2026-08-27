@@ -5,6 +5,10 @@
  */
 export { useTipKitEditor } from "./use-editor";
 export type { UseTipKitEditorOptions } from "./use-editor";
+export { useEditorEditable } from "./use-editor-editable";
+export { useToolbarPlacement } from "./use-toolbar-placement";
+export type { ToolbarPlacement } from "./use-toolbar-placement";
+export { useToolbarVisibility } from "./use-toolbar-visibility";
 export { EditorProvider, useEditorDeps, useT } from "./context";
 export { createSerializer } from "./serialization";
 export type { TipKitSerializer } from "./serialization";
@@ -17,6 +21,7 @@ export type {
   AttachmentMeta,
   ImageAttrs,
   IconRef,
+  CommentRange,
 } from "./types";
 
 // i18n

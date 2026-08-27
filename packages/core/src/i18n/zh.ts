@@ -99,6 +99,9 @@ export const zh: Messages = {
   "slash.taskList.label": "任务列表",
   "slash.taskList.description": "带复选框的待办事项",
   "slash.taskList.previewTitle": "待办任务",
+  "slash.status.label": "设置状态",
+  "slash.status.description": "插入一个彩色状态标签",
+  "slash.status.previewTitle": "设置状态",
   "slash.blockquote.label": "引用",
   "slash.blockquote.description": "块引用",
   "slash.blockquote.previewTitle": "引用块",
@@ -139,12 +142,20 @@ export const zh: Messages = {
   "slash.emoji.label": "插入 emoji",
   "slash.emoji.description": "输入 : 触发或点此浏览",
   "slash.emoji.previewTitle": "Emoji 表情",
+  "slash.canvas.label": "画板",
+  "slash.canvas.description": "插入可自由绘制的画板",
+  "slash.canvas.previewTitle": "画板",
 
   /* ── 斜杠菜单 UI ── */
   "slash.noMatch": "没有匹配的命令",
   "slash.closeMenu": "关闭菜单",
   "slash.searchPlaceholder": "搜索要插入的内容",
   "slash.insertEmpty": "没有匹配的内容",
+
+  /* ── 状态标签 ── */
+  "status.textPlaceholder": "输入状态文字",
+  "status.selectColor": "选择颜色",
+  "status.delete": "删除",
 
   /* ── 链接对话框 ── */
   "link.editTitle": "编辑链接",
@@ -166,6 +177,7 @@ export const zh: Messages = {
   "text.strike": "删除线",
   "text.code": "行内代码",
   "text.link": "链接",
+  "text.comment": "评论",
 
   /* ── 块浮动菜单 ── */
   "block.duplicate": "复制块",
@@ -231,6 +243,9 @@ export const zh: Messages = {
   "iframeView.embed": "嵌入",
   "iframeView.dragResize": "拖拽调整高度",
   "iframeView.changeLink": "改链接",
+  "iframeView.editLink": "编辑链接",
+  "iframeView.duplicate": "复制",
+  "iframeView.delete": "删除",
 
   /* ── 公式操作 ── */
   "katex.formula": "公式",
@@ -266,6 +281,8 @@ export const zh: Messages = {
   /* ── 折叠块操作 ── */
   "details.collapse": "折叠",
   "details.expand": "展开",
+  "details.duplicate": "复制折叠块",
+  "details.delete": "删除折叠块",
 
   /* ── 表格控制 ── */
   "table.mergeCells": "合并单元格",
@@ -320,6 +337,40 @@ export const zh: Messages = {
   "katex.placeholder": "输入 LaTeX 公式，如 \\frac{1}{2} 或 e^{i\\pi}+1=0",
   "katex.emptyPlaceholder": "+ 输入数学公式",
   "katex.renderError": "公式渲染失败：",
+
+  /* ── 画板 ── */
+  "canvas.select": "选择",
+  "canvas.hand": "抓手",
+  "canvas.brush": "画笔",
+  "canvas.pencil": "铅笔",
+  "canvas.text": "文本",
+  "canvas.rect": "矩形",
+  "canvas.circle": "圆形",
+  "canvas.arrow": "箭头",
+  "canvas.line": "连线",
+  "canvas.image": "图片",
+  "canvas.boxSelect": "框选",
+  "canvas.zoomIn": "放大",
+  "canvas.zoomOut": "缩小",
+  "canvas.fullscreen": "全屏",
+  "canvas.exitFullscreen": "退出全屏",
+  "canvas.title": "画板",
+  "canvas.snap": "网格吸附",
+  "canvas.export": "导出为图片",
+  "canvas.style.auto": "风格：跟随主题",
+  "canvas.style.clean": "风格：清晰",
+  "canvas.style.sketch": "风格：手绘",
+  "canvas.dash": "虚线",
+  "canvas.head.none": "无端点",
+  "canvas.head.arrow": "箭头端点",
+  "canvas.head.dot": "圆点端点",
+  "canvas.fill.none": "无填充",
+  "canvas.fill.solid": "实心填充",
+  "canvas.fill.hachure": "斜线填充",
+  "canvas.zTop": "置顶",
+  "canvas.zUp": "上移一层",
+  "canvas.zDown": "下移一层",
+  "canvas.zBottom": "置底",
 
   /* ── 占位符 ── */
   "placeholder.default": "写下点什么…",

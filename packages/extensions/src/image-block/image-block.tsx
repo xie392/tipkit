@@ -1,7 +1,8 @@
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import Image from "@tiptap/extension-image";
 import type { NodeViewProps } from "@tiptap/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
 import { ImagePreview } from "./image-preview";
 
 /* ImageBlock 节点（迁移自 blog rich-text/ext/image-block/image-block.ts）。
@@ -175,17 +176,55 @@ export const ImageBlock = Image.extend({
 
 /** ImageBlock NodeView：图片 + 左右宽度拖拽手柄 + 就地 caption + 预览。视觉走主题。 */
 function ImageBlockView(props: NodeViewProps) {
-  const { editor, node, updateAttributes, selected } = props;
+  const { editor, node, updateAttributes, selected, getPos, deleteNode } = props;
+  const isEditable = useEditorEditable(editor);
   const attrs = node.attrs as unknown as ImageBlockAttrs;
   const { src, width, align, alt, caption, imageStyle = "none" } = attrs;
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const placement = useToolbarPlacement(rootRef);
+  const { visible, show, hide } = useToolbarVisibility();
   const captionRef = useRef<HTMLDivElement | null>(null);
   const [dragWidth, setDragWidth] = useState<number | null>(null);
   const dragWidthRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
   const [editingCaption, setEditingCaption] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [styleOpen, setStyleOpen] = useState(false);
+  const styleWrapRef = useRef<HTMLDivElement | null>(null);
+
+  const STYLE_OPTIONS: { value: ImageStyleType; label: string }[] = [
+    { value: "none", label: "无样式" },
+    { value: "border", label: "边框" },
+    { value: "shadow", label: "阴影" },
+    { value: "border-shadow", label: "边框 + 阴影" },
+  ];
+  const currentStyle = (attrs.imageStyle as ImageStyleType) || "none";
+
+  // 样式下拉：点击外部或 Esc 关闭
+  useEffect(() => {
+    if (!styleOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (styleWrapRef.current && !styleWrapRef.current.contains(e.target as Node)) {
+        setStyleOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setStyleOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [styleOpen]);
+
+  useEffect(() => {
+    if (!isEditable) setEditingCaption(false);
+  }, [isEditable]);
 
   useEffect(() => {
     const el = captionRef.current;
@@ -211,9 +250,38 @@ function ImageBlockView(props: NodeViewProps) {
     updateAttributes({ caption: text.trim() ? text : null });
   };
 
+  const replaceImage = useCallback(() => {
+    if (!isEditable) return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target?.result as string;
+        updateAttributes({ src: dataUrl });
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }, [isEditable, updateAttributes]);
+
+  const handleDuplicate = useCallback(() => {
+    if (!isEditable) return;
+    const pos = getPos();
+    if (typeof pos !== "number") return;
+    editor
+      .chain()
+      .focus(undefined, { scrollIntoView: false })
+      .insertContentAt(pos + node.nodeSize, node.toJSON())
+      .run();
+  }, [editor, node, getPos, isEditable]);
+
   const startResize = useCallback(
     (side: "left" | "right") => (e: React.PointerEvent) => {
-      if (!editor.isEditable) return;
+      if (!isEditable) return;
       e.preventDefault();
       e.stopPropagation();
       // 指针捕获：窗口外松开时 pointerup 也能收到，避免监听器悬挂导致拖拽不结束
@@ -257,29 +325,157 @@ function ImageBlockView(props: NodeViewProps) {
       handle.addEventListener("pointerup", onUp);
       handle.addEventListener("pointercancel", onCancel);
     },
-    [editor.isEditable, width, updateAttributes],
+    [isEditable, width, updateAttributes],
   );
 
   const effectiveWidth = dragWidth ?? (Number(String(width).replace("%", "")) || 100);
   const wrapperAlign =
     align === "left" ? "tk-align-left" : align === "right" ? "tk-align-right" : "tk-align-center";
-  const showHandles = selected && editor.isEditable;
+  const showHandles = isEditable;
+  const toolsVisible = showHandles && (hovered || selected);
 
   const onImageClick = (e: React.MouseEvent) => {
-    if (editor.isEditable) return;
+    if (isEditable) return;
     e.preventDefault();
     setPreview(true);
   };
 
+  const hiddenStyle: CSSProperties = {
+    opacity: 0,
+    visibility: "hidden",
+    pointerEvents: "none",
+  };
+  const visibleStyle: CSSProperties = {
+    opacity: 1,
+    visibility: "visible",
+    pointerEvents: "auto",
+  };
+
   return (
     <NodeViewWrapper
-      className={`tk-image-block${editor.isEditable ? "" : " is-readonly"}`}
+      ref={rootRef}
+      className={`tk-image-block tk-hover-toolbar${isEditable ? " is-editable" : " is-readonly"}${hovered ? " is-hovered" : ""}`}
       data-align={align}
       data-selected={selected ? "true" : undefined}
+      onMouseEnter={() => {
+        setHovered(true);
+        show();
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        hide();
+      }}
     >
+      {isEditable && (
+        <div
+          className={`tk-ct-toolbar-bridge ${placement === "bottom" ? "is-bottom" : "is-top"}${visible ? " is-visible" : ""}`}
+          contentEditable={false}
+          onMouseEnter={show}
+          onMouseLeave={hide}
+        >
+          <div className="tk-ct-toolbar">
+            <button
+              type="button"
+              data-tip="替换图片"
+              aria-label="替换图片"
+              className="tk-ct-btn"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={replaceImage}
+            >
+              <IconUpload />
+            </button>
+            <span className="tk-ct-sep" />
+            <div className="tk-block-action-dropdown" ref={styleWrapRef}>
+              <button
+                type="button"
+                data-tip="设置样式"
+                aria-label="设置样式"
+                className={`tk-ct-btn${styleOpen ? " is-active" : ""}`}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setStyleOpen((v) => !v)}
+              >
+                <IconStyle />
+              </button>
+              {styleOpen && (
+                <div
+                  className="tk-block-action-menu"
+                  contentEditable={false}
+                  style={{ minWidth: 132 }}
+                >
+                  {STYLE_OPTIONS.map((o) => (
+                    <button
+                      key={o.value}
+                      type="button"
+                      className={`tk-block-action-item${currentStyle === o.value ? " is-active" : ""}`}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        updateAttributes({ imageStyle: o.value });
+                        setStyleOpen(false);
+                      }}
+                    >
+                      <span className="tk-image-style-option">{o.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button
+              type="button"
+              data-tip="左对齐"
+              aria-label="左对齐"
+              className={`tk-ct-btn${align === "left" ? " is-active" : ""}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => updateAttributes({ align: "left" })}
+            >
+              <IconAlignLeft />
+            </button>
+            <button
+              type="button"
+              data-tip="居中"
+              aria-label="居中"
+              className={`tk-ct-btn${align === "center" ? " is-active" : ""}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => updateAttributes({ align: "center" })}
+            >
+              <IconAlignCenter />
+            </button>
+            <button
+              type="button"
+              data-tip="右对齐"
+              aria-label="右对齐"
+              className={`tk-ct-btn${align === "right" ? " is-active" : ""}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => updateAttributes({ align: "right" })}
+            >
+              <IconAlignRight />
+            </button>
+            <span className="tk-ct-sep" />
+            <button
+              type="button"
+              data-tip="复制"
+              aria-label="复制"
+              className="tk-ct-btn"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleDuplicate}
+            >
+              <IconDuplicate />
+            </button>
+            <button
+              type="button"
+              data-tip="删除"
+              aria-label="删除"
+              className="tk-ct-btn is-danger"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => deleteNode()}
+            >
+              <IconTrash />
+            </button>
+          </div>
+        </div>
+      )}
       <div
         ref={wrapRef}
-        className={`tk-image-block-wrap ${wrapperAlign}${showHandles ? " is-selected" : ""}`}
+        className={`tk-image-block-wrap ${wrapperAlign}${selected ? " is-selected" : ""}`}
         style={{ width: `${effectiveWidth}%`, maxWidth: "100%" }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -298,7 +494,7 @@ function ImageBlockView(props: NodeViewProps) {
               title="拖拽调整大小"
               tabIndex={-1}
               onPointerDown={startResize("left")}
-              style={{ touchAction: "none" }}
+              style={{ touchAction: "none", ...(toolsVisible ? visibleStyle : hiddenStyle) }}
               className="tk-image-block-handle is-tl"
             />
             <span
@@ -307,7 +503,7 @@ function ImageBlockView(props: NodeViewProps) {
               title="拖拽调整大小"
               tabIndex={-1}
               onPointerDown={startResize("right")}
-              style={{ touchAction: "none" }}
+              style={{ touchAction: "none", ...(toolsVisible ? visibleStyle : hiddenStyle) }}
               className="tk-image-block-handle is-tr"
             />
             <span
@@ -316,7 +512,7 @@ function ImageBlockView(props: NodeViewProps) {
               title="拖拽调整大小"
               tabIndex={-1}
               onPointerDown={startResize("left")}
-              style={{ touchAction: "none" }}
+              style={{ touchAction: "none", ...(toolsVisible ? visibleStyle : hiddenStyle) }}
               className="tk-image-block-handle is-bl"
             />
             <span
@@ -325,7 +521,7 @@ function ImageBlockView(props: NodeViewProps) {
               title="拖拽调整大小"
               tabIndex={-1}
               onPointerDown={startResize("right")}
-              style={{ touchAction: "none" }}
+              style={{ touchAction: "none", ...(toolsVisible ? visibleStyle : hiddenStyle) }}
               className="tk-image-block-handle is-br"
             />
           </>
@@ -338,14 +534,14 @@ function ImageBlockView(props: NodeViewProps) {
       {(editingCaption || caption) && (
         <div
           ref={captionRef}
-          contentEditable={editor.isEditable && editingCaption}
+          contentEditable={isEditable && editingCaption}
           suppressContentEditableWarning
           data-placeholder="图片说明…"
           className={`tk-image-block-caption ${wrapperAlign}`}
           style={{ width: `${effectiveWidth}%`, maxWidth: "100%" }}
           onBlur={commitCaption}
           onClick={(e) => {
-            if (editor.isEditable && !editingCaption) {
+            if (isEditable && !editingCaption) {
               e.stopPropagation();
               setEditingCaption(true);
             }
@@ -356,7 +552,11 @@ function ImageBlockView(props: NodeViewProps) {
         <button
           type="button"
           className={`tk-image-block-add-caption ${wrapperAlign}`}
-          style={{ width: `${effectiveWidth}%`, maxWidth: "100%" }}
+          style={{
+            width: `${effectiveWidth}%`,
+            maxWidth: "100%",
+            ...(toolsVisible ? visibleStyle : hiddenStyle),
+          }}
           onMouseDown={(e) => e.preventDefault()}
           onClick={(e) => {
             e.stopPropagation();
@@ -369,6 +569,77 @@ function ImageBlockView(props: NodeViewProps) {
 
       {preview && <ImagePreview src={src} alt={alt} onClose={() => setPreview(false)} />}
     </NodeViewWrapper>
+  );
+}
+
+/* ---- 内联图标组件 ---- */
+
+function IconUpload() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 2v8M5 5l3-3 3 3" />
+      <path d="M2 10v3a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3" />
+    </svg>
+  );
+}
+
+function IconStyle() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="12" height="10" rx="1.5" />
+      <circle cx="5.5" cy="6.5" r="1" />
+      <path d="M4.5 12.5 8 9l4 3.5" />
+    </svg>
+  );
+}
+
+function IconAlignLeft() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+      <line x1="2" y1="3" x2="14" y2="3" />
+      <line x1="2" y1="7" x2="9" y2="7" />
+      <line x1="2" y1="11" x2="14" y2="11" />
+      <line x1="2" y1="15" x2="9" y2="15" />
+    </svg>
+  );
+}
+
+function IconAlignCenter() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+      <line x1="2" y1="3" x2="14" y2="3" />
+      <line x1="3.5" y1="7" x2="12.5" y2="7" />
+      <line x1="2" y1="11" x2="14" y2="11" />
+      <line x1="3.5" y1="15" x2="12.5" y2="15" />
+    </svg>
+  );
+}
+
+function IconAlignRight() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+      <line x1="2" y1="3" x2="14" y2="3" />
+      <line x1="7" y1="7" x2="14" y2="7" />
+      <line x1="2" y1="11" x2="14" y2="11" />
+      <line x1="7" y1="15" x2="14" y2="15" />
+    </svg>
+  );
+}
+
+function IconDuplicate() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" />
+      <path d="M10.5 5.5v-1a1.5 1.5 0 0 0-1.5-1.5H4a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 4 11h1.5" />
+    </svg>
+  );
+}
+
+function IconTrash() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.5 4h11M6.5 4V2.5h3V4M4 4l.6 9h6.8l.6-9M6.5 7v3.5M9.5 7v3.5" />
+    </svg>
   );
 }
 

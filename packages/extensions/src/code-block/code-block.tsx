@@ -6,7 +6,7 @@ import { createLowlight, common } from "lowlight";
 import type { NodeViewProps } from "@tiptap/react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useT } from "@tipkit/core";
+import { useT, useEditorEditable } from "@tipkit/core";
 
 const lowlight = createLowlight(common);
 
@@ -179,6 +179,7 @@ function IconTrash() {
 function CodeBlockView(props: NodeViewProps) {
   const { node, updateAttributes, deleteNode, editor } = props;
   const t = useT();
+  const isEditable = useEditorEditable(editor);
   const language = (node.attrs.language as string | null) ?? null;
   const dark = (node.attrs.theme as CodeBlockTheme) === "dark";
 
@@ -280,7 +281,7 @@ function CodeBlockView(props: NodeViewProps) {
   }, [langOpen, calcPosition]);
 
   useEffect(() => {
-    if (!editor.isEditable) return;
+    if (!isEditable) return;
     if (language || autoDetected || userSelectedAuto) return;
     const detected = detectLanguage(node.textContent);
     if (detected) {
@@ -288,7 +289,7 @@ function CodeBlockView(props: NodeViewProps) {
       setAutoDetected(true);
     }
     prevContentRef.current = node.textContent;
-  }, [node.textContent, language, autoDetected, userSelectedAuto, updateAttributes, editor.isEditable]);
+  }, [node.textContent, language, autoDetected, userSelectedAuto, updateAttributes, isEditable]);
 
   const copyCode = async () => {
     try {
@@ -300,6 +301,10 @@ function CodeBlockView(props: NodeViewProps) {
     }
   };
 
+  useEffect(() => {
+    if (!isEditable) setLangOpen(false);
+  }, [isEditable]);
+
   return (
     <NodeViewWrapper
       as="div"
@@ -307,13 +312,14 @@ function CodeBlockView(props: NodeViewProps) {
       data-theme={dark ? "dark" : "light"}
       data-language={language ?? undefined}
       data-toolbar-open={langOpen ? "true" : undefined}
+      data-editable={isEditable ? "true" : "false"}
     >
+      {isEditable && (
       <div
         className="tk-code-block-toolbar"
         contentEditable={false}
         onMouseDown={(e) => e.preventDefault()}
       >
-        {editor.isEditable && (
         <div className="tk-code-block-lang-wrap">
           <button
             ref={langBtnRef}
@@ -362,10 +368,8 @@ function CodeBlockView(props: NodeViewProps) {
               document.body
             )}
         </div>
-        )}
 
         <div className="tk-code-block-actions">
-          {editor.isEditable && (
           <button
             type="button"
             className="tk-code-block-action-btn"
@@ -374,7 +378,6 @@ function CodeBlockView(props: NodeViewProps) {
           >
             {dark ? <IconSun /> : <IconMoon />}
           </button>
-          )}
           <button
             type="button"
             className="tk-code-block-action-btn"
@@ -383,18 +386,17 @@ function CodeBlockView(props: NodeViewProps) {
           >
             {copied ? <IconCheck /> : <IconCopy />}
           </button>
-          {editor.isEditable && (
-            <button
-              type="button"
-              className="tk-code-block-action-btn tk-code-block-action-danger"
-              onClick={() => deleteNode()}
-              title={t("codeBlock.delete")}
-            >
-              <IconTrash />
-            </button>
-          )}
+          <button
+            type="button"
+            className="tk-code-block-action-btn tk-code-block-action-danger"
+            onClick={() => deleteNode()}
+            title={t("codeBlock.delete")}
+          >
+            <IconTrash />
+          </button>
         </div>
       </div>
+      )}
 
       <pre className="tk-code-block-pre">
         <NodeViewContent
@@ -403,6 +405,17 @@ function CodeBlockView(props: NodeViewProps) {
           style={{ whiteSpace: "pre" }}
         />
       </pre>
+
+      {!isEditable && (
+        <button
+          type="button"
+          className="tk-code-block-copy-btn"
+          onClick={copyCode}
+          title={t("codeBlock.copy")}
+        >
+          {copied ? <IconCheck /> : <IconCopy />}
+        </button>
+      )}
     </NodeViewWrapper>
   );
 }
@@ -410,6 +423,7 @@ function CodeBlockView(props: NodeViewProps) {
 export const CustomCodeBlock = CodeBlockLowlight.configure({
   lowlight,
   defaultLanguage: null,
+  enableTabIndentation: true,
 }).extend({
   addAttributes() {
     return {

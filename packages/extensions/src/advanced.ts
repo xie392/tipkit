@@ -10,6 +10,7 @@ import { Iframe } from "./iframe/iframe";
 import { Attachment } from "./attachment/attachment";
 import { BlockHandles } from "./block-handles/block-handles";
 import { FileHandler } from "./file-handler/file-handler";
+import { Status } from "./status/status";
 
 export interface AdvancedExtensionsOptions {
   /**
@@ -71,5 +72,6 @@ function buildAdvancedExtensions(toc: AnyExtension): AnyExtension[] {
     Attachment,
     BlockHandles,
     FileHandler,
+    Status,
   ];
 }

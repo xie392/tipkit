@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
     "@tipkit/components",
     "@tipkit/editor",
   ],
+  allowedDevOrigins: ['10.195.133.147'],
 };
 
 export default nextConfig;

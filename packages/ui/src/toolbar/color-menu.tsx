@@ -25,6 +25,7 @@ const GRAY_SCALE = [
   "#e8e8e8",
   "#f0f0f0",
   "#ffffff",
+  "__clear__",
 ];
 
 const HUES: { name: string; text: string[]; highlight: string[] }[] = [
@@ -65,11 +66,12 @@ function saveRecent(mode: "text" | "highlight", color: string) {
 }
 
 function Swatch({ color, active, onClick, title }: { color: string; active?: boolean; onClick?: () => void; title?: string }) {
+  const isClear = color === "__clear__";
   return (
     <button
       type="button"
-      title={title ?? color}
-      aria-label={title ?? color}
+      title={title ?? (isClear ? "清除颜色" : color)}
+      aria-label={title ?? (isClear ? "清除颜色" : color)}
       className="tk-flex tk-icon-lg tk-items-center tk-justify-center tk-rounded-sm tk-transition-transform tk-hover-scale-110"
       onMouseDown={(e) => {
         e.preventDefault();
@@ -80,10 +82,21 @@ function Swatch({ color, active, onClick, title }: { color: string; active?: boo
         onClick?.();
       }}
     >
-      <span
-        className={`tk-block tk-icon-md tk-rounded-3px tk-border tk-border-border${active ? " tk-swatch-active" : ""}`}
-        style={{ backgroundColor: color }}
-      />
+      {isClear ? (
+        <span
+          className={`tk-block tk-icon-md tk-rounded-3px tk-border tk-border-border tk-overflow-hidden${active ? " tk-swatch-active" : ""}`}
+          style={{
+            backgroundImage:
+              "linear-gradient(135deg, transparent 43%, #ef4444 43%, #ef4444 57%, transparent 57%)",
+            backgroundColor: "#ffffff",
+          }}
+        />
+      ) : (
+        <span
+          className={`tk-block tk-icon-md tk-rounded-3px tk-border tk-border-border${active ? " tk-swatch-active" : ""}`}
+          style={{ backgroundColor: color }}
+        />
+      )}
     </button>
   );
 }
@@ -101,6 +114,10 @@ export function ColorMenu({ editor, mode, t }: ColorMenuProps & { t?: Translate 
     : (editor.getAttributes("highlight").color as string | undefined);
 
   const applyColor = (color: string) => {
+    if (color === "__clear__") {
+      clear();
+      return;
+    }
     if (isText) {
       editor.chain().focus().setColor(color).run();
     } else {
@@ -129,7 +146,7 @@ export function ColorMenu({ editor, mode, t }: ColorMenuProps & { t?: Translate 
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <ToolbarBtn active={open}>
+            <ToolbarBtn active={open} className="tk-w-8 tk-h-8">
               {isText ? <Palette className="tk-icon-md" /> : <Highlighter className="tk-icon-md" />}
             </ToolbarBtn>
           </DropdownMenuTrigger>
@@ -138,12 +155,12 @@ export function ColorMenu({ editor, mode, t }: ColorMenuProps & { t?: Translate 
       </Tooltip>
       <DropdownMenuContent align="start" className="tk-w-56 tk-p-2">
         {/* 灰阶 */}
-        <div className="tk-mb-2 tk-flex tk-flex-wrap tk-gap-0-5">
+        <div className="tk-mb-2 tk-flex tk-gap-1">
           {GRAY_SCALE.map((color) => (
             <Swatch
               key={color}
               color={color}
-              active={active === color.toLowerCase()}
+              active={color === "__clear__" ? !activeColor : active === color.toLowerCase()}
               onClick={() => applyColor(color)}
             />
           ))}
@@ -169,7 +186,7 @@ export function ColorMenu({ editor, mode, t }: ColorMenuProps & { t?: Translate 
         {recent.length > 0 && (
           <div className="tk-mt-2 tk-border-t tk-border-border tk-pt-2">
             <div className="tk-mb-1 tk-text-11px tk-opacity-50">{tr("toolbar.recentColors")}</div>
-            <div className="tk-flex tk-flex-wrap tk-gap-0-5">
+            <div className="tk-flex tk-gap-1">
               {recent.map((color) => (
                 <Swatch
                   key={color}

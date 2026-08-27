@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Github } from "lucide-react";
 import { SiteThemeSwitch } from "@/components/site-theme-switch";
 import { SiteLangSwitch } from "@/components/site-lang-switch";
 import { useDemoLang, useDocsPathPrefix } from "@/components/use-demo-lang";
@@ -43,11 +44,23 @@ export function SiteHeader() {
             );
           })}
         </nav>
-        <SiteThemeSwitch />
-        <SiteLangSwitch />
-        <Link href={`${docsPrefix}/docs`} className="site-header-cta">
-          {c.cta}
-        </Link>
+        <div className="site-header-actions">
+          <a
+            href="https://github.com/xie392/tipkit"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="site-header-github"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <Github className="w-4 h-4" />
+          </a>
+          <SiteThemeSwitch />
+          <SiteLangSwitch />
+          <Link href={`${docsPrefix}/docs`} className="site-header-cta">
+            {c.cta}
+          </Link>
+        </div>
       </div>
     </header>
   );

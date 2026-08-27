@@ -21,23 +21,13 @@ cpSync(srcDir, distDir, {
   },
 });
 
-// 3. 读取 base.css
-const baseCss = readFileSync(resolve(srcDir, "base.css"), "utf-8");
+// 3. 复制 base.css（独立导出保留）
+writeFileSync(resolve(distDir, "base.css"), readFileSync(resolve(srcDir, "base.css"), "utf-8"));
 
-// 4. 将 base.css 写入 dist/base.css（独立导出保留）
-writeFileSync(resolve(distDir, "base.css"), baseCss);
-
-// 5. 处理各主题 CSS：内联 base.css，去除 @import 行
+// 4. 处理各主题 CSS：保留 @import "./base.css"，不内联，避免被多次导入时重复规则覆盖
 const themeFiles = ["default.css", "sketch.css", "dark.css"];
 
 for (const file of themeFiles) {
   const themeSource = readFileSync(resolve(srcDir, file), "utf-8");
-
-  const withoutImport = themeSource
-    .replace(/^@import\s+["']\.\/base\.css["']\s*;?\s*\n?/, "")
-    .trimStart();
-
-  const combined = `${baseCss}\n\n${withoutImport}`;
-
-  writeFileSync(resolve(distDir, file), combined);
+  writeFileSync(resolve(distDir, file), themeSource);
 }

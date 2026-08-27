@@ -50,7 +50,7 @@ export function FontFamilyPicker({ editor, t }: { editor: Editor; t?: Translate 
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <ToolbarBtn title={tr("toolbar.fontFamily")} className="tk-w-fit tk-px-2">
+            <ToolbarBtn title={tr("toolbar.fontFamily")} className="tk-h-8 tk-w-fit tk-px-2">
               <span className="tk-flex tk-items-center tk-gap-1 tk-text-12px">
                 <Type className="tk-icon-md" />
                 <span className="tk-max-w-60px tk-truncate">
@@ -97,7 +97,7 @@ export function FontSizePicker({ editor, t }: { editor: Editor; t?: Translate })
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <ToolbarBtn title={tr("toolbar.fontSize")} className="tk-w-fit tk-px-2">
+            <ToolbarBtn title={tr("toolbar.fontSize")} className="tk-h-8 tk-w-fit tk-px-2">
               <span className="tk-flex tk-items-center tk-gap-1 tk-text-12px">
                 <span className="tk-max-w-40px tk-truncate">{current || tr("toolbar.fontSize")}</span>
                 <ChevronDown className="tk-icon-sm tk-opacity-60" />
