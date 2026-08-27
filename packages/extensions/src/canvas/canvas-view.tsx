@@ -1,13 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { useEditorEditable, useEditorDeps, useT } from "@tipkit/core";
 import { CanvasToolbar, ExitFullscreenIcon } from "./canvas-toolbar";
 import { CanvasBoard } from "./canvas-board";
-import type { CanvasShape, CanvasTool, CanvasView } from "./canvas-types";
+import type { CanvasShape, CanvasStyle, CanvasTool, CanvasView } from "./canvas-types";
 import { createShapeId } from "./canvas-types";
+import { shapesToSvg, svgToPng } from "./canvas-svg";
 
 /**
  * 画板 NodeView：独占整行的带边框容器。
@@ -19,9 +20,16 @@ export function CanvasView({ node, editor, updateAttributes }: NodeViewProps) {
   const isEditable = useEditorEditable(editor);
   const deps = useEditorDeps();
   const t = useT();
+  const frameRef = useRef<HTMLDivElement | null>(null);
   const [tool, setTool] = useState<CanvasTool>("select");
   const [view, setView] = useState<CanvasView>({ x: 0, y: 0, zoom: 1 });
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [sketchTheme, setSketchTheme] = useState(false);
+
+  // 主题联动：进入时检测是否位于 .tk-theme-sketch（草图主题 -> 默认手绘）
+  useEffect(() => {
+    if (frameRef.current) setSketchTheme(!!frameRef.current.closest(".tk-theme-sketch"));
+  }, []);
 
   // 网页内全屏：状态切换（非系统 Fullscreen API），全屏时锁定页面滚动
   useEffect(() => {
@@ -40,6 +48,10 @@ export function CanvasView({ node, editor, updateAttributes }: NodeViewProps) {
   const width = (node.attrs.width as number) || 800;
   const height = (node.attrs.height as number) || 450;
   const shapes = (node.attrs.shapes as CanvasShape[]) || [];
+  const style = (node.attrs.style as CanvasStyle) || "auto";
+  const snap = !!node.attrs.snap;
+  // 风格解析：sketch=强制手绘 / clean=强制清晰 / auto=跟随主题
+  const rough = style === "sketch" ? true : style === "clean" ? false : sketchTheme;
 
   const handleChange = useCallback(
     (next: CanvasShape[]) => {
@@ -47,6 +59,30 @@ export function CanvasView({ node, editor, updateAttributes }: NodeViewProps) {
     },
     [updateAttributes],
   );
+
+  const setStyle = useCallback(
+    (s: CanvasStyle) => {
+      updateAttributes({ style: s });
+    },
+    [updateAttributes],
+  );
+
+  const toggleSnap = useCallback(() => {
+    updateAttributes({ snap: !node.attrs.snap });
+  }, [updateAttributes, node.attrs.snap]);
+
+  const handleExport = useCallback(async () => {
+    try {
+      const svg = shapesToSvg(shapes, width, height, rough);
+      const dataUrl = await svgToPng(svg, width, height, 2);
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = "canvas.png";
+      a.click();
+    } catch {
+      /* 忽略导出失败 */
+    }
+  }, [shapes, width, height, rough]);
 
   const handleImage = useCallback(() => {
     const input = document.createElement("input");
@@ -70,7 +106,7 @@ export function CanvasView({ node, editor, updateAttributes }: NodeViewProps) {
 
   // 全屏时用 Portal 挂到 body，避免祖先 transform/overflow 裁剪 fixed 元素
   const frame = (
-    <div className={`tk-canvas-frame${isFullscreen ? " is-fullscreen" : ""}`}>
+    <div ref={frameRef} className={`tk-canvas-frame${isFullscreen ? " is-fullscreen" : ""}`}>
       {isFullscreen && (
         <div className="tk-canvas-header">
           <span className="tk-canvas-header-title">{t("canvas.title")}</span>
@@ -96,6 +132,11 @@ export function CanvasView({ node, editor, updateAttributes }: NodeViewProps) {
             onImage={handleImage}
             isFullscreen={isFullscreen}
             onToggleFullscreen={toggleFullscreen}
+            style={style}
+            onStyleChange={setStyle}
+            snap={snap}
+            onToggleSnap={toggleSnap}
+            onExport={handleExport}
           />
         )}
         <CanvasBoard
@@ -105,6 +146,8 @@ export function CanvasView({ node, editor, updateAttributes }: NodeViewProps) {
           tool={tool}
           editable={isEditable}
           view={view}
+          rough={rough}
+          snap={snap}
           onViewChange={setView}
           onChange={handleChange}
         />

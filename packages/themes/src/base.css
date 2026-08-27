@@ -3218,6 +3218,25 @@
   background: var(--border, #e0e0e0);
 }
 
+/* 风格下拉触发器：图标 + 当前风格名 + 箭头，比普通工具按钮稍宽 */
+.tk-canvas-style-trigger {
+  gap: 4px;
+  width: auto;
+  padding: 0 8px;
+}
+.tk-canvas-style-trigger .tk-canvas-style-label {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.tk-canvas-style-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  color: var(--tk-accent, #3b82f6);
+}
+
 .tk-canvas-zoom-label {
   min-width: 42px;
   text-align: center;
@@ -3238,6 +3257,23 @@
   color: var(--foreground, #222);
   padding: 0 2px;
   outline: none;
+}
+
+/* 选中元素时的浮动样式工具栏（虚线/端点/填充/图层），复用 .tk-canvas-tool 按钮 */
+.tk-canvas-element-toolbar {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-radius: 10px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
 }
 
 /* 画板网页内全屏容器：撑满整个浏览器视口（保留标签页/地址栏，非系统全屏） */

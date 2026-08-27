@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { CanvasShape, CanvasTool, CanvasView, Point, Bounds } from "./canvas-types";
-import { createShapeId, screenToCanvas, pointInShape, boxIntersectsShape, getShapeBounds, getShapeCenter, rotatePoint, translateShape, DEFAULT_TEXT_COLOR, DEFAULT_FONT_SIZE } from "./canvas-types";
+import { createShapeId, screenToCanvas, pointInShape, boxIntersectsShape, getShapeBounds, getShapeCenter, rotatePoint, translateShape, DEFAULT_TEXT_COLOR, DEFAULT_FONT_SIZE, type CanvasFillStyle, type CanvasHead } from "./canvas-types";
+import { toRoughHtml } from "./canvas-rough";
 import {
   DRAW_TOOLS,
   clamp,
@@ -13,11 +14,17 @@ import {
   isValidDraft,
   computeNewBounds,
   resizeShapeByBox,
+  reorderShapes,
+  type ZDirection,
 } from "./canvas-tools";
+import { CanvasElementToolbar } from "./canvas-element-toolbar";
 
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 3;
 const WHEEL_STEP = 1.1;
+const SNAP_GRID = 8;
+
+const isRealColor = (c?: string): c is string => !!c && c !== "none" && c !== "transparent";
 
 type Mode =
   | { kind: "idle" }
@@ -35,11 +42,15 @@ interface Props {
   tool: CanvasTool;
   editable: boolean;
   view: CanvasView;
+  /** 是否手绘渲染（rough） */
+  rough: boolean;
+  /** 是否网格吸附 */
+  snap: boolean;
   onViewChange: (v: CanvasView) => void;
   onChange: (shapes: CanvasShape[]) => void;
 }
 
-export function CanvasBoard({ shapes, width, height, tool, editable, view, onViewChange, onChange }: Props) {
+export function CanvasBoard({ shapes, width, height, tool, editable, view, rough, snap, onViewChange, onChange }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const gridIdRef = useRef(`tk-canvas-grid-${Math.random().toString(36).slice(2, 8)}`);
 
@@ -102,28 +113,37 @@ export function CanvasBoard({ shapes, width, height, tool, editable, view, onVie
   const getCanvasPoint = useCallback(
     (clientX: number, clientY: number): Point => {
       const rect = containerRef.current!.getBoundingClientRect();
-      return screenToCanvas(clientX - rect.left, clientY - rect.top, view);
+      const p = screenToCanvas(clientX - rect.left, clientY - rect.top, view);
+      if (snap) return { x: Math.round(p.x / SNAP_GRID) * SNAP_GRID, y: Math.round(p.y / SNAP_GRID) * SNAP_GRID };
+      return p;
     },
-    [view],
+    [view, snap],
   );
 
-  const handleWheel = useCallback(
-    (e: React.WheelEvent) => {
-      if (!editable) return;
-      e.preventDefault();
-      e.stopPropagation();
-      const el = containerRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const sx = e.clientX - rect.left;
-      const sy = e.clientY - rect.top;
-      const factor = e.deltaY < 0 ? WHEEL_STEP : 1 / WHEEL_STEP;
-      const newZoom = clamp(view.zoom * factor, MIN_ZOOM, MAX_ZOOM);
-      const k = newZoom / view.zoom;
-      onViewChange({ x: sx - (sx - view.x) * k, y: sy - (sy - view.y) * k, zoom: newZoom });
-    },
-    [editable, view, onViewChange],
-  );
+  // 滚轮缩放：用原生非 passive 监听，确保 preventDefault 生效，阻止页面/外层滚动条跟着滚动
+  const wheelHandlerRef = useRef<(e: WheelEvent) => void>(() => {});
+  wheelHandlerRef.current = (e: WheelEvent) => {
+    if (!editable) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const sx = e.clientX - rect.left;
+    const sy = e.clientY - rect.top;
+    const factor = e.deltaY < 0 ? WHEEL_STEP : 1 / WHEEL_STEP;
+    const newZoom = clamp(view.zoom * factor, MIN_ZOOM, MAX_ZOOM);
+    const k = newZoom / view.zoom;
+    onViewChange({ x: sx - (sx - view.x) * k, y: sy - (sy - view.y) * k, zoom: newZoom });
+  };
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const handler = (e: WheelEvent) => wheelHandlerRef.current(e);
+    el.addEventListener("wheel", handler, { passive: false });
+    return () => el.removeEventListener("wheel", handler);
+  }, []);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -312,26 +332,88 @@ export function CanvasBoard({ shapes, width, height, tool, editable, view, onVie
     setTextDraft((td) => (td ? { ...td, value: e.target.value } : td));
   }, []);
 
-  const renderShape = (s: CanvasShape) => {
-    let inner: React.ReactNode = null;
+  // 对选中元素做样式变更
+  const mutateSelected = useCallback(
+    (fn: (s: CanvasShape) => CanvasShape) => {
+      const next = workingRef.current.map((s) => (selectedRef.current.has(s.id) ? fn(s) : s));
+      commit(next);
+    },
+    [commit],
+  );
+
+  const toggleDash = useCallback(() => {
+    mutateSelected((s) => ({ ...s, dash: !s.dash }));
+  }, [mutateSelected]);
+
+  const setHead = useCallback(
+    (head: CanvasHead) => {
+      mutateSelected((s) => (s.type === "line" || s.type === "arrow" ? { ...s, head } : s));
+    },
+    [mutateSelected],
+  );
+
+  const setFill = useCallback(
+    (fillStyle: CanvasFillStyle) => {
+      mutateSelected((s) => (s.type === "rect" || s.type === "circle" || s.type === "path" ? { ...s, fillStyle } : s));
+    },
+    [mutateSelected],
+  );
+
+  const zMove = useCallback(
+    (dir: ZDirection) => {
+      const next = reorderShapes(workingRef.current, selectedRef.current, dir);
+      setSelectedBoth(new Set());
+      commit(next);
+    },
+    [commit, setSelectedBoth],
+  );
+
+  const selectedShapes = working.filter((s) => selected.has(s.id));
+
+  const renderCleanShape = (s: CanvasShape): React.ReactNode => {
+    const dashArr = s.dash ? "8 6" : undefined;
+    // 清晰模式下 fill：solid/hachure 都用填充色实心（hachure 主要服务于手绘主题）
+    const fillFor = (stroke: string, fill: string): string => (s.fillStyle === "none" || !s.fillStyle ? "none" : isRealColor(fill) ? fill : stroke);
     switch (s.type) {
-      case "rect":
-        inner = <rect className="tk-canvas-shape" x={s.x} y={s.y} width={s.w} height={s.h} fill={s.fill} stroke={s.stroke} strokeWidth={s.strokeWidth} />;
-        break;
-      case "circle":
-        inner = <circle className="tk-canvas-shape" cx={s.x} cy={s.y} r={s.r} fill={s.fill} stroke={s.stroke} strokeWidth={s.strokeWidth} />;
-        break;
-      case "line":
-        inner = <line className="tk-canvas-shape" x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2} stroke={s.stroke} strokeWidth={s.strokeWidth} />;
-        break;
-      case "arrow":
-        inner = (
+      case "rect": {
+        const stroke = s.stroke;
+        return <rect className="tk-canvas-shape" x={s.x} y={s.y} width={s.w} height={s.h} fill={fillFor(stroke, s.fill)} stroke={stroke} strokeWidth={s.strokeWidth} strokeDasharray={dashArr} />;
+      }
+      case "circle": {
+        const stroke = s.stroke;
+        return <circle className="tk-canvas-shape" cx={s.x} cy={s.y} r={s.r} fill={fillFor(stroke, s.fill)} stroke={stroke} strokeWidth={s.strokeWidth} strokeDasharray={dashArr} />;
+      }
+      case "line": {
+        const stroke = s.stroke;
+        const line = <line className="tk-canvas-shape" x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2} stroke={stroke} strokeWidth={s.strokeWidth} strokeDasharray={dashArr} />;
+        const head = s.head || "none";
+        if (head === "arrow")
+          return (
+            <g className="tk-canvas-shape">
+              {line}
+              <polygon points={arrowHead(s.x1, s.y1, s.x2, s.y2)} fill={stroke} />
+            </g>
+          );
+        if (head === "dot") {
+          const r = Math.max(s.strokeWidth, 4);
+          return (
+            <g className="tk-canvas-shape">
+              {line}
+              <circle cx={s.x2} cy={s.y2} r={r} fill={stroke} />
+            </g>
+          );
+        }
+        return line;
+      }
+      case "arrow": {
+        const stroke = s.stroke;
+        return (
           <g className="tk-canvas-shape">
-            <line x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2} stroke={s.stroke} strokeWidth={s.strokeWidth} />
-            <polygon points={arrowHead(s.x1, s.y1, s.x2, s.y2)} fill={s.stroke} />
+            <line x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2} stroke={stroke} strokeWidth={s.strokeWidth} strokeDasharray={dashArr} />
+            <polygon points={arrowHead(s.x1, s.y1, s.x2, s.y2)} fill={stroke} />
           </g>
         );
-        break;
+      }
       case "path": {
         const d =
           s.points.length > 1
@@ -340,30 +422,34 @@ export function CanvasBoard({ shapes, width, height, tool, editable, view, onVie
                 .map((p) => `${p.x} ${p.y}`)
                 .join(" L ")}`
             : "";
-        inner = <path className="tk-canvas-shape" d={d} fill="none" stroke={s.stroke} strokeWidth={s.strokeWidth} strokeLinecap="round" strokeLinejoin="round" />;
-        break;
+        return <path className="tk-canvas-shape" d={d} fill="none" stroke={s.stroke} strokeWidth={s.strokeWidth} strokeDasharray={dashArr} strokeLinecap="round" strokeLinejoin="round" />;
       }
       case "text":
-        inner = (
+        return (
           <text className="tk-canvas-shape" x={s.x} y={s.y} fontSize={s.fontSize} fill={s.color} style={{ userSelect: "none" }}>
             {s.text}
           </text>
         );
-        break;
       case "image":
-        inner = <image className="tk-canvas-shape" x={s.x} y={s.y} width={s.w} height={s.h} href={s.src} preserveAspectRatio="xMidYMid meet" />;
-        break;
+        return <image className="tk-canvas-shape" x={s.x} y={s.y} width={s.w} height={s.h} href={s.src} preserveAspectRatio="xMidYMid meet" />;
     }
+  };
+
+  const renderShape = (s: CanvasShape) => {
     const rot = s.rotation || 0;
-    if (rot) {
-      const c = getShapeCenter(s);
-      return (
-        <g key={s.id} transform={`rotate(${rot} ${c.x} ${c.y})`}>
-          {inner}
-        </g>
-      );
+    const c = getShapeCenter(s);
+    const transform = rot ? `rotate(${rot} ${c.x} ${c.y})` : undefined;
+    // 手绘模式：rect/circle/line/arrow/path 用手绘渲染，text/image 走清晰
+    if (rough && s.type !== "text" && s.type !== "image") {
+      const html = toRoughHtml(s);
+      if (html) return <g key={s.id} transform={transform} dangerouslySetInnerHTML={{ __html: html }} />;
     }
-    return <g key={s.id}>{inner}</g>;
+    const inner = renderCleanShape(s);
+    return (
+      <g key={s.id} transform={transform}>
+        {inner}
+      </g>
+    );
   };
 
   const renderSelection = () =>
@@ -463,7 +549,6 @@ export function CanvasBoard({ shapes, width, height, tool, editable, view, onVie
         setDraft(null);
         setBoxSel(null);
       }}
-      onWheel={handleWheel}
       onKeyDown={handleKeyDown}
     >
       <svg className="tk-canvas-svg" width={width} height={height}>
@@ -489,6 +574,17 @@ export function CanvasBoard({ shapes, width, height, tool, editable, view, onVie
         )}
         {renderResizeHandles()}
       </svg>
+
+      {editable && selected.size > 0 && (
+        <CanvasElementToolbar
+          shapes={selectedShapes}
+          dashActive={selectedShapes.some((s) => s.dash)}
+          onToggleDash={toggleDash}
+          onSetHead={setHead}
+          onSetFill={setFill}
+          onZ={zMove}
+        />
+      )}
 
       {textScreen && (
         <input

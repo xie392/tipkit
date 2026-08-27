@@ -1,8 +1,12 @@
 "use client";
 
 import React from "react";
+import {
+  Tooltip, TooltipTrigger, TooltipContent, TooltipProvider,
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+} from "@tipkit/components";
 import { useT } from "@tipkit/core";
-import type { CanvasTool } from "./canvas-types";
+import type { CanvasTool, CanvasStyle } from "./canvas-types";
 
 /* 画板工具栏：左侧垂直（绘制工具）+ 顶部悬浮（抓手/框选/缩放）。
  * 仅负责布局与激活态，颜色全部走 themes 的 .tk-canvas-* 样式。 */
@@ -11,23 +15,32 @@ interface ToolButtonProps {
   active?: boolean;
   label: string;
   icon: React.ReactNode;
+  side?: "top" | "right" | "bottom" | "left";
   onClick: () => void;
 }
 
-function ToolButton({ active, label, icon, onClick }: ToolButtonProps) {
+function ToolButton({ active, label, icon, side = "right", onClick }: ToolButtonProps) {
   return (
-    <button
-      type="button"
-      className={`tk-canvas-tool${active ? " is-active" : ""}`}
-      data-tip={label}
-      aria-label={label}
-      title={label}
-      onMouseDown={(e) => e.preventDefault()}
-      onClick={onClick}
-    >
-      {icon}
-    </button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className={`tk-canvas-tool${active ? " is-active" : ""}`}
+          aria-label={label}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={onClick}
+        >
+          {icon}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side={side}>{label}</TooltipContent>
+    </Tooltip>
   );
+}
+
+/** 顶部工具栏按钮：带 tooltip，默认在下方 */
+function TopToolButton({ active, label, icon, onClick }: Omit<ToolButtonProps, "side">) {
+  return <ToolButton active={active} label={label} icon={icon} side="bottom" onClick={onClick} />;
 }
 
 const ICON_PROPS = {
@@ -153,6 +166,40 @@ const ExitFullscreenIcon = () => (
 );
 export { ExitFullscreenIcon };
 
+const StyleIcon = () => (
+  <svg {...ICON_PROPS}>
+    <path d="M3 17l11-11a2.1 2.1 0 0 1 3-3l1 1a2.1 2.1 0 0 1-3 3L5 18l-2 1z" />
+  </svg>
+);
+
+const CaretDownIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 9l6 6 6-6" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 6L9 17l-5-5" />
+  </svg>
+);
+
+const MagnetIcon = () => (
+  <svg {...ICON_PROPS}>
+    <path d="M6 15l-3 3a1.5 1.5 0 0 0 0 2.1l.9.9a1.5 1.5 0 0 0 2.1 0l3-3" />
+    <path d="M18 15l3 3a1.5 1.5 0 0 1 0 2.1l-.9.9a1.5 1.5 0 0 1-2.1 0l-3-3" />
+    <path d="M12 3a6 6 0 0 0-6 6v6h4v-6a2 2 0 1 1 4 0v6h4V9a6 6 0 0 0-6-6z" />
+  </svg>
+);
+
+const DownloadIcon = () => (
+  <svg {...ICON_PROPS}>
+    <path d="M12 3v12" />
+    <path d="M7 10l5 5 5-5" />
+    <path d="M4 19h16" />
+  </svg>
+);
+
 /** 图标渲染：CanvasTool -> ReactNode */
 export const CANVAS_TOOL_ICONS: Record<string, React.ReactNode> = {
   select: <SelectIcon />,
@@ -180,6 +227,14 @@ export interface CanvasToolbarProps {
   onImage: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
+  /** 渲染风格 */
+  style: CanvasStyle;
+  onStyleChange: (s: CanvasStyle) => void;
+  /** 网格吸附 */
+  snap: boolean;
+  onToggleSnap: () => void;
+  /** 导出 PNG */
+  onExport: () => void;
 }
 
 const LEFT_TOOLS: CanvasTool[] = [
@@ -209,7 +264,9 @@ const TOOL_KEY: Record<string, string> = {
   box: "canvas.boxSelect",
 };
 
-export function CanvasToolbar({ tool, onToolChange, zoom, onZoomIn, onZoomOut, onImage, isFullscreen, onToggleFullscreen }: CanvasToolbarProps) {
+const STYLE_ORDER: CanvasStyle[] = ["auto", "clean", "sketch"];
+
+export function CanvasToolbar({ tool, onToolChange, zoom, onZoomIn, onZoomOut, onImage, isFullscreen, onToggleFullscreen, style, onStyleChange, snap, onToggleSnap, onExport }: CanvasToolbarProps) {
   const t = useT();
 
   const handleTool = (t2: CanvasTool) => {
@@ -221,7 +278,7 @@ export function CanvasToolbar({ tool, onToolChange, zoom, onZoomIn, onZoomOut, o
   };
 
   return (
-    <>
+    <TooltipProvider delayDuration={200}>
       {/* 左侧垂直工具栏 */}
       <div className="tk-canvas-toolbar tk-canvas-toolbar-left" contentEditable={false}>
         {LEFT_TOOLS.map((t2) => (
@@ -237,52 +294,73 @@ export function CanvasToolbar({ tool, onToolChange, zoom, onZoomIn, onZoomOut, o
 
       {/* 顶部悬浮工具栏 */}
       <div className="tk-canvas-toolbar tk-canvas-toolbar-top" contentEditable={false}>
-        <ToolButton
+        <TopToolButton
           active={tool === "hand"}
           label={t("canvas.hand")}
           icon={CANVAS_TOOL_ICONS.hand}
           onClick={() => onToolChange("hand")}
         />
-        <ToolButton
+        <TopToolButton
           active={tool === "box"}
           label={t("canvas.boxSelect")}
           icon={CANVAS_TOOL_ICONS.box}
           onClick={() => onToolChange("box")}
         />
         <span className="tk-canvas-sep" />
-        <button
-          type="button"
-          className="tk-canvas-tool"
-          aria-label={t("canvas.zoomOut")}
-          title={t("canvas.zoomOut")}
-          onMouseDown={(e) => e.preventDefault()}
+        <TopToolButton
+          label={t("canvas.zoomOut")}
+          icon={CANVAS_TOOL_ICONS.zoomOut}
           onClick={onZoomOut}
-        >
-          {CANVAS_TOOL_ICONS.zoomOut}
-        </button>
+        />
         <span className="tk-canvas-zoom-label">{Math.round(zoom * 100)}%</span>
-        <button
-          type="button"
-          className="tk-canvas-tool"
-          aria-label={t("canvas.zoomIn")}
-          title={t("canvas.zoomIn")}
-          onMouseDown={(e) => e.preventDefault()}
+        <TopToolButton
+          label={t("canvas.zoomIn")}
+          icon={CANVAS_TOOL_ICONS.zoomIn}
           onClick={onZoomIn}
-        >
-          {CANVAS_TOOL_ICONS.zoomIn}
-        </button>
+        />
         <span className="tk-canvas-sep" />
-        <button
-          type="button"
-          className="tk-canvas-tool"
-          aria-label={isFullscreen ? t("canvas.exitFullscreen") : t("canvas.fullscreen")}
-          title={isFullscreen ? t("canvas.exitFullscreen") : t("canvas.fullscreen")}
-          onMouseDown={(e) => e.preventDefault()}
+        <TopToolButton
+          active={snap}
+          label={t("canvas.snap")}
+          icon={<MagnetIcon />}
+          onClick={onToggleSnap}
+        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="tk-canvas-tool tk-canvas-style-trigger"
+              aria-label={t(`canvas.style.${style}`)}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <StyleIcon />
+              <span className="tk-canvas-style-label">{t(`canvas.style.${style}`)}</span>
+              <CaretDownIcon />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="bottom" align="center" className="tk-w-40">
+            {STYLE_ORDER.map((s) => (
+              <DropdownMenuItem key={s} onSelect={() => onStyleChange(s)}>
+                <span className="tk-canvas-style-check">
+                  {style === s && <CheckIcon />}
+                </span>
+                <span className="tk-flex-1">{t(`canvas.style.${s}`)}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <TopToolButton
+          label={t("canvas.export")}
+          icon={<DownloadIcon />}
+          onClick={onExport}
+        />
+        <span className="tk-canvas-sep" />
+        <TopToolButton
+          label={isFullscreen ? t("canvas.exitFullscreen") : t("canvas.fullscreen")}
+          icon={isFullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}
           onClick={onToggleFullscreen}
-        >
-          {isFullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}
-        </button>
+        />
       </div>
-    </>
+    </TooltipProvider>
   );
 }

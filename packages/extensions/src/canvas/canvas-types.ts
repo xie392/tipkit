@@ -28,15 +28,33 @@ export interface CanvasView {
   zoom: number;
 }
 
+/** 填充样式 */
+export type CanvasFillStyle = "none" | "solid" | "hachure";
+/** 线条端点样式 */
+export type CanvasHead = "none" | "arrow" | "dot";
+/** 画板整体绘制风格 */
+export type CanvasStyle = "auto" | "clean" | "sketch";
+
+/** 元素通用可选样式字段 */
+interface ShapeStyle {
+  rotation?: number;
+  /** 是否虚线描边 */
+  dash?: boolean;
+  /** 填充样式 */
+  fillStyle?: CanvasFillStyle;
+  /** 线条端点样式（line/arrow） */
+  head?: CanvasHead;
+}
+
 /** 绘制元素联合类型 */
 export type CanvasShape =
-  | { id: string; type: "rect"; x: number; y: number; w: number; h: number; fill: string; stroke: string; strokeWidth: number; rotation?: number }
-  | { id: string; type: "circle"; x: number; y: number; r: number; fill: string; stroke: string; strokeWidth: number; rotation?: number }
-  | { id: string; type: "line"; x1: number; y1: number; x2: number; y2: number; stroke: string; strokeWidth: number; rotation?: number }
-  | { id: string; type: "arrow"; x1: number; y1: number; x2: number; y2: number; stroke: string; strokeWidth: number; rotation?: number }
-  | { id: string; type: "path"; points: Point[]; stroke: string; strokeWidth: number; rotation?: number }
-  | { id: string; type: "text"; x: number; y: number; text: string; fontSize: number; color: string; rotation?: number }
-  | { id: string; type: "image"; x: number; y: number; w: number; h: number; src: string; rotation?: number };
+  | (ShapeStyle & { id: string; type: "rect"; x: number; y: number; w: number; h: number; fill: string; stroke: string; strokeWidth: number })
+  | (ShapeStyle & { id: string; type: "circle"; x: number; y: number; r: number; fill: string; stroke: string; strokeWidth: number })
+  | (ShapeStyle & { id: string; type: "line"; x1: number; y1: number; x2: number; y2: number; stroke: string; strokeWidth: number })
+  | (ShapeStyle & { id: string; type: "arrow"; x1: number; y1: number; x2: number; y2: number; stroke: string; strokeWidth: number })
+  | (ShapeStyle & { id: string; type: "path"; points: Point[]; stroke: string; strokeWidth: number })
+  | (ShapeStyle & { id: string; type: "text"; x: number; y: number; text: string; fontSize: number; color: string })
+  | (ShapeStyle & { id: string; type: "image"; x: number; y: number; w: number; h: number; src: string });
 
 export interface Bounds {
   minX: number;

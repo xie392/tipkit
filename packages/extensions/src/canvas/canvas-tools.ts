@@ -163,3 +163,40 @@ export function resizeShapeByBox(shape: CanvasShape, orig: Bounds, nb: Bounds): 
 
 /** 通用元素包围盒（供渲染/命中）——转发自 canvas-types，便于集中导入 */
 export { getShapeBounds };
+
+export type ZDirection = "top" | "up" | "down" | "bottom";
+
+/** 图层顺序调整：按 id 集合移动选中元素。数组靠后 = 显示在上层。 */
+export function reorderShapes(arr: CanvasShape[], ids: Set<string>, dir: ZDirection): CanvasShape[] {
+  const result = arr.slice();
+  switch (dir) {
+    case "top": {
+      const keep = result.filter((s) => !ids.has(s.id));
+      const moved = result.filter((s) => ids.has(s.id));
+      return [...keep, ...moved];
+    }
+    case "bottom": {
+      const moved = result.filter((s) => ids.has(s.id));
+      const keep = result.filter((s) => !ids.has(s.id));
+      return [...moved, ...keep];
+    }
+    case "up": {
+      const out = result.slice();
+      for (let i = 0; i < out.length; i++) {
+        if (ids.has(out[i].id) && i > 0 && !ids.has(out[i - 1].id)) {
+          [out[i - 1], out[i]] = [out[i], out[i - 1]];
+        }
+      }
+      return out;
+    }
+    case "down": {
+      const out = result.slice();
+      for (let i = out.length - 1; i >= 0; i--) {
+        if (ids.has(out[i].id) && i < out.length - 1 && !ids.has(out[i + 1].id)) {
+          [out[i], out[i + 1]] = [out[i + 1], out[i]];
+        }
+      }
+      return out;
+    }
+  }
+}

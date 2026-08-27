@@ -97,14 +97,19 @@ export function BlockCommentHover({
         // 需按 node 起始位置解析后再 ±1 得到完整文本区间，避免漏掉首字符
         const raw = view.posAtDOM(el, 0);
         const $pos = view.state.doc.resolve(raw);
-        let nodePos = raw;
+        let nodePos: number | null = null;
         if ($pos.parentOffset === 0 && $pos.nodeAfter && $pos.nodeAfter.isBlock) {
+          // posAtDOM 落在块内部内容起点 → 回退 1 得到块起始
           nodePos = raw - 1;
-        } else {
+        } else if ($pos.depth > 0) {
           nodePos = $pos.before();
+        } else if ($pos.nodeBefore) {
+          // 位置解析到文档顶层边界（depth 0，如最后一个块之后）：
+          // 此时 $pos.before() 会抛 RangeError，改取前一个块作为目标
+          nodePos = raw - $pos.nodeBefore.nodeSize;
         }
-        const node = view.state.doc.nodeAt(nodePos);
-        if (!node) {
+        const node = nodePos == null ? null : view.state.doc.nodeAt(nodePos);
+        if (nodePos == null || !node) {
           keepZoneRef.current = null;
           setPos(null);
           return;

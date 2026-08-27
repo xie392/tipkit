@@ -13,7 +13,7 @@ import {
   createShapeId,
   type CanvasShape,
 } from "../../src/canvas/canvas-types";
-import { updateDraft, resizeShapeByBox, computeNewBounds, makeBaseShape } from "../../src/canvas/canvas-tools";
+import { updateDraft, resizeShapeByBox, computeNewBounds, makeBaseShape, reorderShapes } from "../../src/canvas/canvas-tools";
 
 function makeEditor(content?: string) {
   return new Editor({
@@ -206,5 +206,16 @@ describe("Canvas 工具函数", () => {
     const json = shapesToJSON([{ ...RECT, rotation: 45 }]);
     const parsed = parseShapes(json);
     expect(parsed[0].rotation).toBe(45);
+  });
+
+  it("reorderShapes 置顶/置底/上下移动图层", () => {
+    const a = { ...RECT, id: "a" };
+    const b = { ...RECT, id: "b" };
+    const c = { ...RECT, id: "c" };
+    const arr = [a, b, c];
+    expect(reorderShapes(arr, new Set(["b"]), "top").map((s) => s.id)).toEqual(["a", "c", "b"]);
+    expect(reorderShapes(arr, new Set(["b"]), "bottom").map((s) => s.id)).toEqual(["b", "a", "c"]);
+    expect(reorderShapes(arr, new Set(["c"]), "up").map((s) => s.id)).toEqual(["a", "c", "b"]);
+    expect(reorderShapes(arr, new Set(["a"]), "down").map((s) => s.id)).toEqual(["b", "a", "c"]);
   });
 });

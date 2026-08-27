@@ -2,7 +2,7 @@
 
 import { Node, mergeAttributes } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import { parseShapes, shapesToJSON, type CanvasShape } from "./canvas-types";
+import { parseShapes, shapesToJSON, type CanvasShape, type CanvasStyle } from "./canvas-types";
 import { CanvasView } from "./canvas-view";
 
 declare module "@tiptap/core" {
@@ -10,7 +10,7 @@ declare module "@tiptap/core" {
     canvas: {
       /** 在光标处插入一个画板块 */
       setCanvas: () => ReturnType;
-      /** 更新画板节点属性（width/height/shapes） */
+      /** 更新画板节点属性（width/height/shapes/style/snap） */
       updateCanvas: (attrs: Partial<CanvasAttrs>) => ReturnType;
     };
   }
@@ -20,6 +20,10 @@ export interface CanvasAttrs {
   width: number;
   height: number;
   shapes: CanvasShape[];
+  /** 渲染风格：auto=跟随主题 / clean=清晰 / sketch=手绘 */
+  style: CanvasStyle;
+  /** 网格吸附 */
+  snap: boolean;
 }
 
 /**
@@ -61,6 +65,19 @@ export const Canvas = Node.create({
         default: [],
         parseHTML: (el) => parseShapes((el as HTMLElement).getAttribute("data-shapes")),
         renderHTML: (attrs) => ({ "data-shapes": shapesToJSON((attrs.shapes as CanvasShape[]) || []) }),
+      },
+      style: {
+        default: "auto",
+        parseHTML: (el) => {
+          const v = (el as HTMLElement).getAttribute("data-style");
+          return v === "clean" || v === "sketch" ? v : "auto";
+        },
+        renderHTML: (attrs) => ({ "data-style": attrs.style }),
+      },
+      snap: {
+        default: false,
+        parseHTML: (el) => (el as HTMLElement).getAttribute("data-snap") === "true",
+        renderHTML: (attrs) => ({ "data-snap": attrs.snap ? "true" : "false" }),
       },
     };
   },
