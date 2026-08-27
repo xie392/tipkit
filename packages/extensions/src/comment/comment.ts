@@ -11,6 +11,16 @@ declare module "@tiptap/core" {
   }
 }
 
+/**
+ * Comment（划词评论）扩展的配置项。
+ *
+ * ## 分层/定制契约
+ * - 评论 UI（抽屉 / FAB / 锚点 gutter / hover 卡片 / 输入框）完全由消费方实现，可整体替换或自定义。
+ * - 内核只提供：Comment Mark、`setComment`/`unsetComment`/`removeComment` 命令，
+ *   以及 `onCommentCreate`/`onCommentClick` 回调。
+ * - 集成方可自定义或整体替换评论 UI（例如不用抽屉）而无需改动内核。
+ * - 评论文本的修改（编辑 / 回复 / 删除）由消费方在其自有 UI 中于数据层完成，内核不参与。
+ */
 export interface CommentOptions {
   /**
    * 评论锚点点击回调（可选）。

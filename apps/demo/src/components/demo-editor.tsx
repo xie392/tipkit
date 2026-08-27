@@ -284,20 +284,20 @@ export function DemoEditor({
     setDraft("");
   };
 
-  /** 对整段（块）添加评论：程序化设置选区 → 调用 setComment → 触发 onCommentCreate */
+  /** 对整段（块）添加评论：只读模式下通过 view.dispatch 直接 addMark（绕过命令层 editable 检查），并直接打开评论输入框 */
   const handleBlockComment = (from: number, to: number, text: string) => {
     const editor = editorRef.current;
     if (!editor) return;
-    editor.chain().focus().setTextSelection({ from, to }).setComment().run();
-    // setComment 执行后扩展会通过 deps.onCommentCreate 回调触发 setPendingRange；
-    // 兜底：若下一帧还没 pending，手动加 mark 并触发 pending
-    setTimeout(() => {
-      if (pendingRangeRef.current) return;
-      const commentId = `c_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
-      editor.chain().focus().setTextSelection({ from, to }).setComment(commentId).run();
-      setPendingRange({ from, to, commentId, text });
-      setDraft("");
-    }, 30);
+    const commentId = `c_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const tr = editor.state.tr;
+    const markType = editor.schema.marks.comment;
+    if (markType) {
+      tr.addMark(from, to, markType.create({ commentId }));
+      editor.view.dispatch(tr);
+    }
+    setPendingRange({ from, to, commentId, text });
+    setDraft("");
+    setDrawerOpen(true);
   };
 
   const cancelComment = () => {

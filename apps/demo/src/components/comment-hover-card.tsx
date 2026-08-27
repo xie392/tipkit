@@ -18,9 +18,7 @@ type HoverState = {
   commentId: string;
   x: number;
   y: number;
-  /** 卡片上方箭头指向的文字 x 中点 */
-  arrowX: number;
-  /** 卡片显示方向：above = 卡片在文字上方（箭头朝下）；below = 卡片在文字下方（箭头朝上） */
+  /** 卡片显示方向：above = 卡片在文字上方；below = 卡片在文字下方 */
   placement: "above" | "below";
 };
 
@@ -123,7 +121,6 @@ export function CommentHoverCard({
         commentId: id,
         x: midX,
         y: showAbove ? rect.top : rect.bottom,
-        arrowX: midX,
         placement: showAbove ? "above" : "below",
       });
     };
@@ -163,10 +160,6 @@ export function CommentHoverCard({
       onMouseEnter={clearLeaveTimer}
       onMouseLeave={() => scheduleHide(120)}
     >
-      <div
-        className="demo-comment-hover-arrow"
-        style={{ left: state.arrowX - state.x }}
-      />
       {comment ? (
         <>
           <div className="demo-comment-hover-header">

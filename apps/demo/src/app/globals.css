@@ -641,23 +641,6 @@ body::after {
   color: var(--primary);
   background: color-mix(in srgb, var(--primary) 10%, transparent);
 }
-/* 有未读/最新评论时，锚点旁边带一个小色条（语雀的红色短杠） */
-.demo-comment-anchor::after {
-  content: "";
-  position: absolute;
-  left: -10px;
-  top: 50%;
-  width: 8px;
-  height: 2px;
-  background: var(--primary);
-  border-radius: 2px;
-  transform: translateY(-50%) scaleX(0);
-  transform-origin: right center;
-  transition: transform 0.15s;
-}
-.demo-comment-anchor:hover::after {
-  transform: translateY(-50%) scaleX(1);
-}
 
 .demo-comment-panel-header {
   display: flex;
@@ -1052,30 +1035,6 @@ body::after {
 @keyframes tk-comment-card-in-below {
   from { opacity: 0; transform: translate(-50%, 6px); }
   to   { opacity: 1; transform: translate(-50%, 10px); }
-}
-
-.demo-comment-hover-arrow {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: var(--card, #fff);
-  border-radius: 2px;
-}
-/* above：箭头在卡片底部，朝下 */
-.demo-comment-hover-card.is-above .demo-comment-hover-arrow {
-  bottom: -6px;
-  left: 50%;
-  transform: translateX(-50%) rotate(45deg);
-  border-right: 1px solid var(--border, #e5e5e5);
-  border-bottom: 1px solid var(--border, #e5e5e5);
-}
-/* below：箭头在卡片顶部，朝上 */
-.demo-comment-hover-card.is-below .demo-comment-hover-arrow {
-  top: -6px;
-  left: 50%;
-  transform: translateX(-50%) rotate(45deg);
-  border-left: 1px solid var(--border, #e5e5e5);
-  border-top: 1px solid var(--border, #e5e5e5);
 }
 
 .demo-comment-hover-header {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { MessageSquare } from "lucide-react";
@@ -10,7 +10,7 @@ import { MessageSquare } from "lucide-react";
  * 在白纸右侧 gutter 区域显示一个评论图标（fixed 定位，与飞书/语雀一致）。
  *
  * 实现：
- * 1. 监听 ProseMirror DOM 的 mousemove，找到最近的块级祖先
+ * 1. 全局监听 mousemove（按钮 portal 到 body，离开 pmDom 时仍能触发），找到最近的块级祖先
  * 2. 用 getBoundingClientRect 计算块在视口中的垂直中点，fixed 定位按钮
  * 3. 白纸右边缘 x 坐标通过 ResizeObserver + 滚动实时计算（响应式也正确）
  * 4. 点击：选中块范围 → 调用 commands.setComment 触发评论流程
@@ -48,6 +48,8 @@ export function BlockCommentHover({
   onBlockComment: (from: number, to: number, text: string) => void;
 }) {
   const [pos, setPos] = useState<Pos | null>(null);
+  /** 最近一次显示按钮所在块的"保持热区"：鼠标在此区域内移动（含移向按钮途中）不隐藏，避免引用块等块提前消失 */
+  const keepZoneRef = useRef<{ left: number; top: number; right: number; bottom: number } | null>(null);
 
   const recompute = useCallback(() => {
     if (!editor) return;
@@ -72,51 +74,90 @@ export function BlockCommentHover({
     };
 
     const handleMove = (e: MouseEvent) => {
-      // 如果当前悬停在按钮热区内，保持显示
-      if (isOverBtn(e.clientX, e.clientY)) return;
+      const { clientX, clientY } = e;
+      // 1) 光标在按钮热区内 → 保持显示（按钮 portal 到 body，光标移向按钮时也不能提前隐藏）
+      if (isOverBtn(clientX, clientY)) return;
 
+      // 2) 光标在 pmDom 内的某个块上 → 在该块位置显示按钮
       const el = (e.target as HTMLElement | null)?.closest(BLOCK_SELECTOR) as HTMLElement | null;
-      if (!el || !pmDom.contains(el)) {
-        setPos(null);
+      if (el && pmDom.contains(el)) {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < 90 || rect.bottom > window.innerHeight - 20) {
+          keepZoneRef.current = null;
+          setPos(null);
+          return;
+        }
+        // 该块已包含评论 → 不显示块评论按钮（右侧已有锚点图标，避免重复）
+        if (el.querySelector("[data-comment-id]")) {
+          keepZoneRef.current = null;
+          setPos(null);
+          return;
+        }
+        // 计算整块文本范围：posAtDOM 返回的是块内部内容起始位置，
+        // 需按 node 起始位置解析后再 ±1 得到完整文本区间，避免漏掉首字符
+        const raw = view.posAtDOM(el, 0);
+        const $pos = view.state.doc.resolve(raw);
+        let nodePos = raw;
+        if ($pos.parentOffset === 0 && $pos.nodeAfter && $pos.nodeAfter.isBlock) {
+          nodePos = raw - 1;
+        } else {
+          nodePos = $pos.before();
+        }
+        const node = view.state.doc.nodeAt(nodePos);
+        if (!node) {
+          keepZoneRef.current = null;
+          setPos(null);
+          return;
+        }
+        const from = nodePos + 1;
+        const to = nodePos + node.nodeSize - 1;
+        let text = el.textContent?.trim() ?? "";
+        if (text.length > 80) text = text.slice(0, 80) + "…";
+        // 按钮放到 ProseMirror 正文右外侧的 gutter 区（与评论锚点同位置），不压文字
+        const pmRect = pmDom.getBoundingClientRect();
+        // 记录"保持热区"：覆盖整块垂直范围 + 横向一直到按钮右侧，鼠标从块移向按钮途中不隐藏
+        keepZoneRef.current = {
+          left: rect.left - 24,
+          top: rect.top - 24,
+          right: pmRect.right + 24,
+          bottom: rect.bottom + 24,
+        };
+        setPos({
+          x: pmRect.right - 28,
+          y: rect.top + 6,
+          from: Math.min(from, to),
+          to: Math.max(from, to),
+          text: text || "(整块内容)",
+        });
         return;
       }
-      const rect = el.getBoundingClientRect();
-      if (rect.top < 90 || rect.bottom > window.innerHeight - 20) {
-        setPos(null);
+
+      // 3) 不在块上：若仍在上一块的"保持热区"内（含移向按钮途中）→ 保持显示
+      const kz = keepZoneRef.current;
+      if (
+        kz &&
+        clientX >= kz.left &&
+        clientX <= kz.right &&
+        clientY >= kz.top &&
+        clientY <= kz.bottom
+      ) {
         return;
       }
-      const posAtDom = view.posAtDOM(el, 0);
-      const node = view.state.doc.nodeAt(posAtDom);
-      if (!node) {
-        setPos(null);
-        return;
-      }
-      const from = posAtDom + 1;
-      const to = posAtDom + node.nodeSize - 1;
-      let text = el.textContent?.trim() ?? "";
-      if (text.length > 80) text = text.slice(0, 80) + "…";
-      // 按钮放到 ProseMirror 正文右外侧的 gutter 区（与评论锚点同位置），不压文字
-      const pmRect = pmDom.getBoundingClientRect();
-      setPos({
-        x: pmRect.right - 28,
-        y: rect.top + 6,
-        from: Math.min(from, to),
-        to: Math.max(from, to),
-        text: text || "(整块内容)",
-      });
+      keepZoneRef.current = null;
+      setPos(null);
     };
 
-    const handleLeave = (e: MouseEvent) => {
-      // 离开编辑器 DOM 时，如果不在按钮热区就隐藏
-      if (!isOverBtn(e.clientX, e.clientY)) setPos(null);
+    // 全局监听 mousemove：按钮 portal 到 document.body（不在 pmDom 内），
+    // 只有全局监听才能在光标从块移向按钮、离开 pmDom 的途中持续触发，避免按钮提前消失
+    const handleScroll = () => {
+      keepZoneRef.current = null;
+      setPos(null);
     };
-
-    pmDom.addEventListener("mousemove", handleMove);
-    pmDom.addEventListener("mouseleave", handleLeave);
-    window.addEventListener("scroll", () => setPos(null), true);
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("scroll", handleScroll, true);
     return () => {
-      pmDom.removeEventListener("mousemove", handleMove);
-      pmDom.removeEventListener("mouseleave", handleLeave);
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("scroll", handleScroll, true);
     };
   }, [editor]);
 
