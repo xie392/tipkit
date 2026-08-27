@@ -2,11 +2,12 @@
 
 import { Node } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
-import { useEffect, useState } from "react";
-import { useT } from "@tipkit/core";
+import { useEffect, useRef, useState } from "react";
+import { useT, useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
 
 /* 目录节点（迁移自 blog rich-text/ext/toc-node.tsx）：
- * 插入后自动扫描文档 heading 并渲染列表，点击跳转。 */
+ * 插入后自动扫描文档 heading 并渲染列表，点击跳转。
+ * 交互：与其他块统一，编辑态悬停显示「复制 / 删除」工具栏 + 小边框。 */
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -21,6 +22,23 @@ interface HeadingInfo {
   text: string;
   level: number;
   pos: number;
+}
+
+function IconCopy() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" />
+      <path d="M10.5 5.5v-1a1.5 1.5 0 0 0-1.5-1.5H4a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 4 11h1.5" />
+    </svg>
+  );
+}
+
+function IconTrash() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.5 4h11M6.5 4V2.5h3V4M4 4l.6 9h6.8l.6-9M6.5 7v3.5M9.5 7v3.5" />
+    </svg>
+  );
 }
 
 function collectHeadings(doc: NodeViewProps["editor"]["state"]["doc"]): HeadingInfo[] {
@@ -40,8 +58,13 @@ function collectHeadings(doc: NodeViewProps["editor"]["state"]["doc"]): HeadingI
 }
 
 function TocView(props: NodeViewProps) {
-  const { editor, extension } = props;
+  const { editor, extension, node, getPos, deleteNode } = props;
   const t = useT();
+  const isEditable = useEditorEditable(editor);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const placement = useToolbarPlacement(rootRef);
+  const { visible, show, hide } = useToolbarVisibility();
+  const [hovered, setHovered] = useState(false);
   const scrollOffset = (extension.options.scrollOffset ?? 0) as number;
   const [items, setItems] = useState<HeadingInfo[]>([]);
 
@@ -66,8 +89,59 @@ function TocView(props: NodeViewProps) {
     });
   };
 
+  const handleDuplicate = () => {
+    const pos = getPos();
+    if (typeof pos !== "number") return;
+    editor
+      .chain()
+      .focus(undefined, { scrollIntoView: false })
+      .insertContentAt(pos + node.nodeSize, node.toJSON())
+      .run();
+  };
+
   return (
-    <NodeViewWrapper>
+    <NodeViewWrapper
+      ref={rootRef}
+      className={`tk-toc-wrap tk-hover-toolbar${isEditable ? " is-editable" : ""}${hovered ? " is-hovered" : ""}`}
+      onMouseEnter={() => {
+        if (isEditable) setHovered(true);
+        show();
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        hide();
+      }}
+    >
+      {isEditable && (
+        <div
+          className={`tk-ct-toolbar-bridge ${placement === "bottom" ? "is-bottom" : "is-top"}${visible ? " is-visible" : ""}`}
+          contentEditable={false}
+          onMouseEnter={show}
+          onMouseLeave={hide}
+        >
+          <div className="tk-ct-toolbar">
+            <button
+              type="button"
+              className="tk-ct-btn"
+              data-tip={t("block.duplicate")}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleDuplicate}
+            >
+              <IconCopy />
+            </button>
+            <span className="tk-ct-sep" />
+            <button
+              type="button"
+              className="tk-ct-btn is-danger"
+              data-tip={t("block.delete")}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => deleteNode()}
+            >
+              <IconTrash />
+            </button>
+          </div>
+        </div>
+      )}
       <div className="tk-toc" contentEditable={false}>
         <div className="tk-toc-title">{t("toc.title")}</div>
         {items.length === 0 ? (

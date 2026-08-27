@@ -1794,6 +1794,16 @@
 }
 
 /* 目录 */
+.tk-toc-wrap {
+  position: relative;
+}
+
+/* 悬停小边框（与折叠块/分栏一致） */
+.tk-toc-wrap.is-hovered {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
+  border-radius: 8px;
+}
+
 .tk-toc {
   margin: 0.75em 0;
   border: 1px solid var(--border, #ddd);
