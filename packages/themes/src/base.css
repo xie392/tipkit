@@ -1363,6 +1363,11 @@
   box-shadow: none;
 }
 
+/* 悬停小边框（与折叠块/分栏一致） */
+.tk-callout.is-hovered {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
+}
+
 .tk-callout-content {
   flex: 1;
   min-width: 1em;

@@ -10,7 +10,7 @@ import {
   NodeViewContent,
   type NodeViewProps,
 } from "@tiptap/react";
-import { useT, useEditorEditable } from "@tipkit/core";
+import { useT, useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
 import { emojisToName } from "../emoji/emoji-data";
 
 /* Callout 提示框（迁移自 blog rich-text/ext/callout.tsx）。
@@ -167,15 +167,45 @@ export const Callout = TiptapNode.create({
   },
 });
 
+function IconCopy() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" />
+      <path d="M10.5 5.5v-1a1.5 1.5 0 0 0-1.5-1.5H4a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 4 11h1.5" />
+    </svg>
+  );
+}
+
+function IconTrash() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.5 4h11M6.5 4V2.5h3V4M4 4l.6 9h6.8l.6-9M6.5 7v3.5M9.5 7v3.5" />
+    </svg>
+  );
+}
+
 function CalloutView(props: NodeViewProps) {
-  const { editor, node, updateAttributes, selected } = props;
+  const { editor, node, updateAttributes, selected, getPos, deleteNode } = props;
   const t = useT();
   const isEditable = useEditorEditable(editor);
   const attrs = node.attrs as { variant: CalloutVariant; emoji: string | null };
   const variant = attrs.variant ?? "info";
   const style = CALLOUT_VARIANTS[variant] ?? CALLOUT_VARIANTS.info;
   const emoji = attrs.emoji ?? style.emoji;
-  const wrapRef = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const placement = useToolbarPlacement(wrapRef);
+  const { visible, show, hide } = useToolbarVisibility();
+  const [hovered, setHovered] = useState(false);
+
+  const handleDuplicate = () => {
+    const pos = getPos();
+    if (typeof pos !== "number") return;
+    editor
+      .chain()
+      .focus(undefined, { scrollIntoView: false })
+      .insertContentAt(pos + node.nodeSize, node.toJSON())
+      .run();
+  };
 
   const clearInnerSelectedNodes = useCallback(() => {
     if (!wrapRef.current) return;
@@ -326,9 +356,47 @@ function CalloutView(props: NodeViewProps) {
   return (
     <NodeViewWrapper
       ref={wrapRef}
-      className={`tk-callout tk-callout-${variant}`}
+      className={`tk-callout tk-callout-${variant} tk-hover-toolbar${isEditable ? " is-editable" : ""}${hovered ? " is-hovered" : ""}`}
       style={{ color: style.textColor, borderColor: style.borderColor, background: style.backgroundColor }}
+      onMouseEnter={() => {
+        if (isEditable) setHovered(true);
+        show();
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        hide();
+      }}
     >
+      {isEditable && (
+        <div
+          className={`tk-ct-toolbar-bridge ${placement === "bottom" ? "is-bottom" : "is-top"}${visible ? " is-visible" : ""}`}
+          contentEditable={false}
+          onMouseEnter={show}
+          onMouseLeave={hide}
+        >
+          <div className="tk-ct-toolbar">
+            <button
+              type="button"
+              className="tk-ct-btn"
+              data-tip={t("block.duplicate")}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleDuplicate}
+            >
+              <IconCopy />
+            </button>
+            <span className="tk-ct-sep" />
+            <button
+              type="button"
+              className="tk-ct-btn is-danger"
+              data-tip={t("block.delete")}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => deleteNode()}
+            >
+              <IconTrash />
+            </button>
+          </div>
+        </div>
+      )}
       <div className="tk-callout-head">
         {isEditable ? (
           <button
