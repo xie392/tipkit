@@ -4,13 +4,18 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
+    # 仅安全更新：常规版本升级不自动开 PR，有漏洞时 Dependabot 会自动开安全修复 PR
+    open-pull-requests-limit: 0
     labels:
       - "dependencies"
+      - "security"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    # GitHub Actions 同理，只在有安全问题时开 PR
+    open-pull-requests-limit: 0
     labels:
       - "dependencies"
+      - "security"
