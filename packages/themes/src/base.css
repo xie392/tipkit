@@ -2973,3 +2973,126 @@
   background: var(--tk-comment-hover-bg, rgb(251 191 36 / 0.15));
   border-bottom-color: var(--tk-comment-hover-color, #f59e0b);
 }
+
+/* ============================================================
+ * 状态标签 Status（Confluence /status 风格内联标签）
+ * 背景色来自节点 data-color（内联 style，随节点存储），
+ * 其余视觉全部在本层定义。
+ * ============================================================ */
+.tk-status {
+  display: inline-block;
+  vertical-align: baseline;
+  border-radius: 4px;
+  padding: 0.15em 0.5em;
+  font-size: 0.875em;
+  line-height: 1.4;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid rgb(0 0 0 / 0.08);
+  color: #1f2937;
+}
+
+.tk-status.is-selected {
+  outline: 2px solid var(--tk-accent, currentColor);
+  outline-offset: 1px;
+}
+
+/* 状态标签编辑面板（原生 DOM 弹层，fixed 定位到 body） */
+.tk-status-popover {
+  position: fixed;
+  z-index: 9999;
+  min-width: 200px;
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.16), 0 2px 6px rgb(0 0 0 / 0.06);
+  color: var(--foreground, #1f2937);
+  font-size: 13px;
+}
+
+.tk-status-popover-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tk-status-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  font-size: 13px;
+  border: 1px solid var(--border, #d0d0d0);
+  border-radius: 6px;
+  background: var(--background, #fff);
+  color: var(--foreground, #1f2937);
+  outline: none;
+}
+
+.tk-status-input:focus {
+  border-color: var(--primary, #2563eb);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary, #2563eb) 18%, transparent);
+}
+
+.tk-status-colors {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tk-status-colors-label {
+  font-size: 11px;
+  color: var(--muted-foreground, #71717a);
+}
+
+.tk-status-swatches {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tk-status-swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid rgb(0 0 0 / 0.1);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  color: rgb(0 0 0 / 0.6);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.tk-status-swatch:hover {
+  transform: scale(1.1);
+}
+
+.tk-status-swatch.is-selected {
+  box-shadow: 0 0 0 2px var(--primary, #2563eb);
+}
+
+.tk-status-popover-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border, #eee);
+}
+
+.tk-status-delete {
+  border: none;
+  background: transparent;
+  color: var(--destructive, #dc2626);
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tk-status-delete:hover {
+  background: color-mix(in srgb, var(--destructive, #dc2626) 10%, transparent);
+}

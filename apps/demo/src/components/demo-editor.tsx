@@ -43,6 +43,7 @@ import {
   Frame,
   Paperclip,
   Smile,
+  Badge,
   MessageSquare,
   Send,
   X,
@@ -88,6 +89,7 @@ const iconMap: Record<IconRef, LucideIcon> = {
   Frame,
   Paperclip,
   Smile,
+  Badge,
 };
 
 /** demo 图片上传：本地 blob 预览 */

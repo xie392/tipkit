@@ -65,6 +65,8 @@ export type { CodeBlockTheme, CodeLanguage } from "./code-block/code-block";
 // M3：高级节点
 export { Katex } from "./katex/katex";
 export type { KatexAttrs } from "./katex/katex";
+export { Status } from "./status/status";
+export type { StatusAttrs } from "./status/status";
 export { Callout, CALLOUT_VARIANTS } from "./callout/callout";
 export type { CalloutVariant } from "./callout/callout";
 export { Columns, Column, ColumnLayout } from "./columns/columns";

@@ -99,6 +99,9 @@ export const zh: Messages = {
   "slash.taskList.label": "任务列表",
   "slash.taskList.description": "带复选框的待办事项",
   "slash.taskList.previewTitle": "待办任务",
+  "slash.status.label": "设置状态",
+  "slash.status.description": "插入一个彩色状态标签",
+  "slash.status.previewTitle": "设置状态",
   "slash.blockquote.label": "引用",
   "slash.blockquote.description": "块引用",
   "slash.blockquote.previewTitle": "引用块",
@@ -145,6 +148,11 @@ export const zh: Messages = {
   "slash.closeMenu": "关闭菜单",
   "slash.searchPlaceholder": "搜索要插入的内容",
   "slash.insertEmpty": "没有匹配的内容",
+
+  /* ── 状态标签 ── */
+  "status.textPlaceholder": "输入状态文字",
+  "status.selectColor": "选择颜色",
+  "status.delete": "删除",
 
   /* ── 链接对话框 ── */
   "link.editTitle": "编辑链接",

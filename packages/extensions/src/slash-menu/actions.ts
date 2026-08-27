@@ -240,6 +240,22 @@ export function getInsertActions({
       },
     },
     {
+      id: "status",
+      group: "basic",
+      label: tr("slash.status.label"),
+      description: tr("slash.status.description"),
+      aliases: ["zhuangtai", "status", "label"],
+      icon: "Badge",
+      available: true,
+      previewTitle: tr("slash.status.previewTitle"),
+      preview:
+        '<div style="background:#fff;border-radius:6px;padding:16px;display:flex;align-items:center;justify-content:center"><span style="display:inline-block;background:#ffcccc;border-radius:4px;padding:2px 8px;font-size:11px;color:#111">待处理</span></div>',
+      run: () => {
+        prepareInsert();
+        editor.chain().focus().setStatus().run();
+      },
+    },
+    {
       id: "blockquote",
       group: "basic",
       label: tr("slash.blockquote.label"),

@@ -99,6 +99,9 @@ export const en: Messages = {
   "slash.taskList.label": "Task List",
   "slash.taskList.description": "Checkable to-do items",
   "slash.taskList.previewTitle": "Tasks",
+  "slash.status.label": "Status",
+  "slash.status.description": "Insert a colored status label",
+  "slash.status.previewTitle": "Status",
   "slash.blockquote.label": "Quote",
   "slash.blockquote.description": "Block quote",
   "slash.blockquote.previewTitle": "Block Quote",
@@ -145,6 +148,11 @@ export const en: Messages = {
   "slash.closeMenu": "Close menu",
   "slash.searchPlaceholder": "Search content to insert",
   "slash.insertEmpty": "No matching content",
+
+  /* ── Status label ── */
+  "status.textPlaceholder": "Enter status text",
+  "status.selectColor": "Choose color",
+  "status.delete": "Delete",
 
   /* ── Link dialog ── */
   "link.editTitle": "Edit Link",
