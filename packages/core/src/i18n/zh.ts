@@ -232,6 +232,9 @@ export const zh: Messages = {
   "iframeView.embed": "嵌入",
   "iframeView.dragResize": "拖拽调整高度",
   "iframeView.changeLink": "改链接",
+  "iframeView.editLink": "编辑链接",
+  "iframeView.duplicate": "复制",
+  "iframeView.delete": "删除",
 
   /* ── 公式操作 ── */
   "katex.formula": "公式",

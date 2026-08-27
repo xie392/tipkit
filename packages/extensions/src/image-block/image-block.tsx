@@ -2,7 +2,7 @@ import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import Image from "@tiptap/extension-image";
 import type { NodeViewProps } from "@tiptap/react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { useEditorEditable } from "@tipkit/core";
+import { useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
 import { ImagePreview } from "./image-preview";
 
 /* ImageBlock 节点（迁移自 blog rich-text/ext/image-block/image-block.ts）。
@@ -176,12 +176,15 @@ export const ImageBlock = Image.extend({
 
 /** ImageBlock NodeView：图片 + 左右宽度拖拽手柄 + 就地 caption + 预览。视觉走主题。 */
 function ImageBlockView(props: NodeViewProps) {
-  const { editor, node, updateAttributes, selected } = props;
+  const { editor, node, updateAttributes, selected, getPos, deleteNode } = props;
   const isEditable = useEditorEditable(editor);
   const attrs = node.attrs as unknown as ImageBlockAttrs;
   const { src, width, align, alt, caption, imageStyle = "none" } = attrs;
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const placement = useToolbarPlacement(rootRef);
+  const { visible, show, hide } = useToolbarVisibility();
   const captionRef = useRef<HTMLDivElement | null>(null);
   const [dragWidth, setDragWidth] = useState<number | null>(null);
   const dragWidthRef = useRef<number | null>(null);
@@ -217,6 +220,35 @@ function ImageBlockView(props: NodeViewProps) {
     const text = captionRef.current?.textContent ?? "";
     updateAttributes({ caption: text.trim() ? text : null });
   };
+
+  const replaceImage = useCallback(() => {
+    if (!isEditable) return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target?.result as string;
+        updateAttributes({ src: dataUrl });
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }, [isEditable, updateAttributes]);
+
+  const handleDuplicate = useCallback(() => {
+    if (!isEditable) return;
+    const pos = getPos();
+    if (typeof pos !== "number") return;
+    editor
+      .chain()
+      .focus(undefined, { scrollIntoView: false })
+      .insertContentAt(pos + node.nodeSize, node.toJSON())
+      .run();
+  }, [editor, node, getPos, isEditable]);
 
   const startResize = useCallback(
     (side: "left" | "right") => (e: React.PointerEvent) => {
@@ -292,12 +324,92 @@ function ImageBlockView(props: NodeViewProps) {
 
   return (
     <NodeViewWrapper
-      className={`tk-image-block${isEditable ? "" : " is-readonly"}${hovered ? " is-hovered" : ""}`}
+      ref={rootRef}
+      className={`tk-image-block tk-hover-toolbar${isEditable ? " is-editable" : " is-readonly"}${hovered ? " is-hovered" : ""}`}
       data-align={align}
       data-selected={selected ? "true" : undefined}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={() => {
+        setHovered(true);
+        show();
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        hide();
+      }}
     >
+      {isEditable && (
+        <div
+          className={`tk-ct-toolbar-bridge ${placement === "bottom" ? "is-bottom" : "is-top"}${visible ? " is-visible" : ""}`}
+          contentEditable={false}
+          onMouseEnter={show}
+          onMouseLeave={hide}
+        >
+          <div className="tk-ct-toolbar">
+            <button
+              type="button"
+              data-tip="替换图片"
+              aria-label="替换图片"
+              className="tk-ct-btn"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={replaceImage}
+            >
+              <IconUpload />
+            </button>
+            <span className="tk-ct-sep" />
+            <button
+              type="button"
+              data-tip="左对齐"
+              aria-label="左对齐"
+              className={`tk-ct-btn${align === "left" ? " is-active" : ""}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => updateAttributes({ align: "left" })}
+            >
+              <IconAlignLeft />
+            </button>
+            <button
+              type="button"
+              data-tip="居中"
+              aria-label="居中"
+              className={`tk-ct-btn${align === "center" ? " is-active" : ""}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => updateAttributes({ align: "center" })}
+            >
+              <IconAlignCenter />
+            </button>
+            <button
+              type="button"
+              data-tip="右对齐"
+              aria-label="右对齐"
+              className={`tk-ct-btn${align === "right" ? " is-active" : ""}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => updateAttributes({ align: "right" })}
+            >
+              <IconAlignRight />
+            </button>
+            <span className="tk-ct-sep" />
+            <button
+              type="button"
+              data-tip="复制"
+              aria-label="复制"
+              className="tk-ct-btn"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleDuplicate}
+            >
+              <IconDuplicate />
+            </button>
+            <button
+              type="button"
+              data-tip="删除"
+              aria-label="删除"
+              className="tk-ct-btn is-danger"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => deleteNode()}
+            >
+              <IconTrash />
+            </button>
+          </div>
+        </div>
+      )}
       <div
         ref={wrapRef}
         className={`tk-image-block-wrap ${wrapperAlign}${selected ? " is-selected" : ""}`}
@@ -394,6 +506,67 @@ function ImageBlockView(props: NodeViewProps) {
 
       {preview && <ImagePreview src={src} alt={alt} onClose={() => setPreview(false)} />}
     </NodeViewWrapper>
+  );
+}
+
+/* ---- 内联图标组件 ---- */
+
+function IconUpload() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 2v8M5 5l3-3 3 3" />
+      <path d="M2 10v3a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3" />
+    </svg>
+  );
+}
+
+function IconAlignLeft() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+      <line x1="2" y1="3" x2="14" y2="3" />
+      <line x1="2" y1="7" x2="9" y2="7" />
+      <line x1="2" y1="11" x2="14" y2="11" />
+      <line x1="2" y1="15" x2="9" y2="15" />
+    </svg>
+  );
+}
+
+function IconAlignCenter() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+      <line x1="2" y1="3" x2="14" y2="3" />
+      <line x1="3.5" y1="7" x2="12.5" y2="7" />
+      <line x1="2" y1="11" x2="14" y2="11" />
+      <line x1="3.5" y1="15" x2="12.5" y2="15" />
+    </svg>
+  );
+}
+
+function IconAlignRight() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+      <line x1="2" y1="3" x2="14" y2="3" />
+      <line x1="7" y1="7" x2="14" y2="7" />
+      <line x1="2" y1="11" x2="14" y2="11" />
+      <line x1="7" y1="15" x2="14" y2="15" />
+    </svg>
+  );
+}
+
+function IconDuplicate() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" />
+      <path d="M10.5 5.5v-1a1.5 1.5 0 0 0-1.5-1.5H4a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 4 11h1.5" />
+    </svg>
+  );
+}
+
+function IconTrash() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.5 4h11M6.5 4V2.5h3V4M4 4l.6 9h6.8l.6-9M6.5 7v3.5M9.5 7v3.5" />
+    </svg>
   );
 }
 

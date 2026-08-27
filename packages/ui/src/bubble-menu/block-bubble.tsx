@@ -6,35 +6,17 @@ import type { Editor } from "@tiptap/react";
 import { useEditorState } from "@tiptap/react";
 import { NodeSelection, type EditorState } from "@tiptap/pm/state";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
-import { useT } from "@tipkit/core";
 import { ImageBlockActions } from "./block-actions/image-block-actions";
 import { IframeActions } from "./block-actions/iframe-actions";
 import { KatexActions } from "./block-actions/katex-actions";
 import { AttachmentActions } from "./block-actions/attachment-actions";
 import { ColumnsActions } from "./block-actions/columns-actions";
 import { DetailsActions } from "./block-actions/details-actions";
-import { BlockTooltip } from "./block-actions/shared";
 
 /* 块级浮动工具栏（点击选中块触发，NodeSelection 驱动）。
- * hover 触发的操作栏由各 NodeView 内部渲染（参考 columns 做法），
- * 此处仅承载用户主动点击选中后的操作。 */
-
-function IconTrash() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2.5 4h11M6.5 4V2.5h3V4M4 4l.6 9h6.8l.6-9M6.5 7v3.5M9.5 7v3.5" />
-    </svg>
-  );
-}
-
-function IconDuplicate() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" />
-      <path d="M10.5 5.5v-1a1.5 1.5 0 0 0-1.5-1.5H4a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 4 11h1.5" />
-    </svg>
-  );
-}
+ * hover 触发的操作栏由各 NodeView 内部渲染，包含复制/删除等通用操作。
+ * 此处仅保留特定块类型独有的操作（如宽度、样式、重命名等），
+ * 避免与 hover 工具栏中的复制/删除按钮重复。 */
 
 const SPECIFIC_TYPES = new Set([
   "imageBlock",
@@ -91,7 +73,6 @@ function renderSpecificActions(
 }
 
 export function BlockBubbleMenu({ editor }: { editor: Editor | null }) {
-  const t = useT();
   const selected = useEditorState({
     editor,
     selector: ({ editor: ed }) => selectBlock(ed),
@@ -126,27 +107,15 @@ export function BlockBubbleMenu({ editor }: { editor: Editor | null }) {
       .run();
   };
 
-  const duplicate = (pos: number, nodeSize: number) => () => {
-    const node = editor.state.doc.nodeAt(pos);
-    if (!node) return;
-    editor
-      .chain()
-      .focus(undefined, { scrollIntoView: false })
-      .insertContentAt(pos + nodeSize, node.toJSON())
-      .run();
-  };
-
   let specificActions: React.ReactNode = null;
-  let typeName = "";
   if (selected) {
-    typeName = selected.typeName;
     const node = editor.state.doc.nodeAt(selected.pos);
     if (node) {
       specificActions = renderSpecificActions(
         editor,
         node,
         selected.pos,
-        updateAttributes(typeName),
+        updateAttributes(selected.typeName),
         deleteNode(selected.pos, selected.nodeSize),
       );
     }
@@ -162,33 +131,8 @@ export function BlockBubbleMenu({ editor }: { editor: Editor | null }) {
       className="tk-block-bubble"
     >
       {specificActions && (
-        <>
-          <div className="tk-block-bubble-actions">{specificActions}</div>
-          <span className="tk-block-bubble-divider" />
-        </>
+        <div className="tk-block-bubble-actions">{specificActions}</div>
       )}
-      <BlockTooltip label={t("block.duplicate")}>
-        <button
-          type="button"
-          title={t("block.duplicate")}
-          className="tk-block-bubble-btn"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={selected ? duplicate(selected.pos, selected.nodeSize) : undefined}
-        >
-          <IconDuplicate />
-        </button>
-      </BlockTooltip>
-      <BlockTooltip label={t("block.delete")}>
-        <button
-          type="button"
-          title={t("block.delete")}
-          className="tk-block-bubble-btn is-danger"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={selected ? deleteNode(selected.pos, selected.nodeSize) : undefined}
-        >
-          <IconTrash />
-        </button>
-      </BlockTooltip>
     </BubbleMenu>
   );
 }

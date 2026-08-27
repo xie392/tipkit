@@ -7,8 +7,8 @@ import {
   NodeViewContent,
   type NodeViewProps,
 } from "@tiptap/react";
-import { useCallback, useEffect, useState } from "react";
-import { useT, useEditorEditable } from "@tipkit/core";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useT, useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
 
 /* 多栏容器：含两个 column 子节点。
  * columns 不是 atom，自动设 NodeSelection 会把内部文本整块高亮变灰，
@@ -84,6 +84,9 @@ function ColumnsView({ editor, node, getPos, updateAttributes, deleteNode }: Nod
   const isEditable = useEditorEditable(editor);
   const layout = (node.attrs.layout as ColumnLayout) ?? ColumnLayout.TwoColumn;
   const [hovered, setHovered] = useState(false);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const placement = useToolbarPlacement(wrapRef);
+  const { visible, show, hide } = useToolbarVisibility();
 
   useEffect(() => {
     if (!isEditable) setHovered(false);
@@ -107,47 +110,63 @@ function ColumnsView({ editor, node, getPos, updateAttributes, deleteNode }: Nod
 
   return (
     <NodeViewWrapper
-      className={`tk-columns-wrap layout-${layout}${hovered ? " is-hovered" : ""}`}
-      onMouseEnter={() => isEditable && setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      ref={wrapRef}
+      className={`tk-columns-wrap layout-${layout} tk-hover-toolbar${isEditable ? " is-editable" : ""}${hovered ? " is-hovered" : ""}`}
+      onMouseEnter={() => {
+        if (isEditable) {
+          setHovered(true);
+          show();
+        }
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        hide();
+      }}
       data-type="columns"
     >
-      {hovered && isEditable && (
-        <div className="tk-columns-toolbar" contentEditable={false}>
-          {LAYOUTS.map((l) => (
+      {isEditable && (
+        <div
+          className={`tk-ct-toolbar-bridge ${placement === "bottom" ? "is-bottom" : "is-top"}${visible ? " is-visible" : ""}`}
+          contentEditable={false}
+          onMouseEnter={show}
+          onMouseLeave={hide}
+        >
+          <div className="tk-ct-toolbar">
+            {LAYOUTS.map((l) => (
+              <button
+                key={l.value}
+                type="button"
+                data-tip={t(l.labelKey)}
+                aria-label={t(l.labelKey)}
+                className={`tk-ct-btn${layout === l.value ? " is-active" : ""}`}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => updateAttributes({ layout: l.value })}
+              >
+                {l.icon}
+              </button>
+            ))}
+            <span className="tk-ct-sep" />
             <button
-              key={l.value}
               type="button"
-              data-tip={t(l.labelKey)}
-              aria-label={t(l.labelKey)}
-              className={`tk-ct-btn${layout === l.value ? " is-active" : ""}`}
+              data-tip={t("block.duplicate")}
+              aria-label={t("block.duplicate")}
+              className="tk-ct-btn"
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => updateAttributes({ layout: l.value })}
+              onClick={handleDuplicate}
             >
-              {l.icon}
+              <IconDuplicate />
             </button>
-          ))}
-          <span className="tk-ct-sep" />
-          <button
-            type="button"
-            data-tip={t("block.duplicate")}
-            aria-label={t("block.duplicate")}
-            className="tk-ct-btn"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={handleDuplicate}
-          >
-            <IconDuplicate />
-          </button>
-          <button
-            type="button"
-            data-tip={t("block.delete")}
-            aria-label={t("block.delete")}
-            className="tk-ct-btn is-danger"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={handleDelete}
-          >
-            <IconTrash />
-          </button>
+            <button
+              type="button"
+              data-tip={t("block.delete")}
+              aria-label={t("block.delete")}
+              className="tk-ct-btn is-danger"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleDelete}
+            >
+              <IconTrash />
+            </button>
+          </div>
         </div>
       )}
       <NodeViewContent className="tk-columns-grid" as="div" />

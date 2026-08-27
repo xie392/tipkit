@@ -592,29 +592,20 @@
   margin: 1em 0;
   border-radius: 10px;
   font-size: 0.9em;
+  display: flex;
+  flex-direction: column;
 }
 
 .tk-code-block-toolbar {
-  position: absolute;
-  right: 8px;
-  top: 8px;
+  position: relative;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 4px 6px;
-  border-radius: 8px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.tk-code-block:hover .tk-code-block-toolbar,
-.tk-code-block:focus-within .tk-code-block-toolbar,
-.tk-code-block[data-toolbar-open="true"] .tk-code-block-toolbar {
+  padding: 6px 12px;
+  border-radius: 10px 10px 0 0;
+  /* 工具栏作为代码块头部始终常显，避免移出后头部内容不可读 */
   opacity: 1;
   pointer-events: auto;
 }
@@ -705,7 +696,8 @@
   margin: 0;
   overflow-x: auto;
   padding: 16px;
-  border-radius: 10px;
+  border-radius: 0 0 10px 10px;
+  border-top: none;
 }
 
 .tk-code-block-pre code {
@@ -725,6 +717,7 @@
   background: #0d1117;
   color: #e6edf3;
   border: 1px solid #21262d;
+  border-top: none;
   caret-color: #e6edf3;
 }
 
@@ -736,6 +729,7 @@
 .tk-code-block-dark .tk-code-block-toolbar {
   background: #161b22;
   border: 1px solid rgb(255 255 255 / 0.12);
+  border-bottom: none;
   color: #9d9d9d;
 }
 
@@ -838,11 +832,13 @@
   background: #f6f8fa;
   color: #24292f;
   border: 1px solid #d0d7de;
+  border-top: none;
 }
 
 .tk-code-block-light .tk-code-block-toolbar {
   background: #ffffff;
   border: 1px solid #d0d7de;
+  border-bottom: none;
   color: #656d76;
 }
 
@@ -1211,6 +1207,7 @@
   text-align: center;
   padding: 8px 0;
   border-radius: 8px;
+  position: relative;
 }
 
 /* 公式选中：用淡色背景代替外框，与块激活风格一致 */
@@ -1539,11 +1536,8 @@
   min-width: 0;
 }
 
-.tk-columns-toolbar {
-  position: absolute;
-  top: -38px;
-  left: 50%;
-  transform: translateX(-50%);
+.tk-columns-toolbar,
+.tk-ct-toolbar {
   display: flex;
   align-items: center;
   gap: 2px;
@@ -1552,7 +1546,38 @@
   background: var(--popover, #fff);
   border: 1px solid var(--border, #e0e0e0);
   box-shadow: 0 4px 20px rgb(0 0 0 / 0.14);
+}
+
+/* ============================================================
+ * 通用 hover 工具栏（块级元素）
+ * 定位与显隐：由 useToolbarVisibility（hover-intent）+ useToolbarPlacement 控制。
+ * 桥接区仅用于把工具栏定位到块上方/下方，pointer-events:none 使其不拦截点击，
+ * 避免遮挡块上方文字导致无法点击聚焦。工具栏本身仅在可见时接收指针。
+ * ============================================================ */
+.tk-ct-toolbar-bridge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
   z-index: 50;
+}
+.tk-ct-toolbar-bridge.is-top { top: -64px; }
+.tk-ct-toolbar-bridge.is-bottom { top: auto; bottom: -64px; }
+.tk-ct-toolbar-bridge.is-visible { opacity: 1; }
+
+.tk-ct-toolbar-bridge .tk-ct-toolbar {
+  position: static;
+  transform: none;
+  pointer-events: none;
+}
+.tk-ct-toolbar-bridge.is-visible .tk-ct-toolbar {
+  pointer-events: auto;
 }
 
 .tk-ct-btn {
@@ -1717,25 +1742,6 @@
   border-radius: 8px;
 }
 
-.tk-details-toolbar {
-  position: absolute;
-  right: 6px;
-  top: 6px;
-  z-index: 10;
-  display: none;
-  align-items: center;
-  gap: 2px;
-  padding: 2px;
-  border: 1px solid var(--border, #e0e0e0);
-  border-radius: 8px;
-  background: var(--card, #fff);
-  box-shadow: 0 4px 20px rgb(0 0 0 / 0.14);
-}
-
-.tk-details-wrap.is-hovered .tk-details-toolbar {
-  display: flex;
-}
-
 /* 目录 */
 .tk-toc {
   margin: 0.75em 0;
@@ -1876,6 +1882,7 @@
 /* 附件 */
 .tk-attachment {
   margin: 0.75em 0;
+  position: relative;
 }
 
 .tk-att-card {

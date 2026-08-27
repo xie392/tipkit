@@ -80,7 +80,7 @@ export const Details = Node.create({
       // 外壳 div：悬停工具栏 + 内容 DOM（<details>）。工具栏必须放在
       // contentDOM 之外，否则会被 ProseMirror 的内容同步逻辑当成节点内容处理。
       const wrap = document.createElement("div");
-      wrap.className = "tk-details-wrap";
+      wrap.className = "tk-details-wrap tk-hover-toolbar";
 
       const dom = document.createElement("details");
       dom.setAttribute("data-type", "details");
@@ -92,10 +92,14 @@ export const Details = Node.create({
       });
 
       // ---- 悬停工具栏（展开/折叠、复制、删除）----
+      // 桥接区：覆盖工具栏与内容之间的间隙，悬停桥接区或块本身时保持可见，
+      // 随滚动在 is-top / is-bottom 间翻转。
+      const bridge = document.createElement("div");
+      bridge.className = "tk-ct-toolbar-bridge is-top";
+      bridge.contentEditable = "false";
+
       const toolbar = document.createElement("div");
-      toolbar.className = "tk-details-toolbar";
-      toolbar.contentEditable = "false";
-      toolbar.hidden = true;
+      toolbar.className = "tk-ct-toolbar";
 
       const makeBtn = (className: string, html: string) => {
         const btn = document.createElement("button");
@@ -114,7 +118,8 @@ export const Details = Node.create({
       sep.className = "tk-ct-sep";
 
       toolbar.append(toggleBtn, sep, duplicateBtn, deleteBtn);
-      wrap.append(toolbar, dom);
+      bridge.append(toolbar);
+      wrap.append(bridge, dom);
 
       const refreshTips = () => {
         const t = getT();
@@ -133,19 +138,47 @@ export const Details = Node.create({
       };
       syncToolbar();
 
-      // 悬停显示工具栏（只读时不显示）
-      const onWrapEnter = () => {
+      // 悬停显示工具栏（hover-intent：离开后延迟隐藏，移入工具栏本身则保持）。
+      // 仅可编辑时显示；is-hovered 用于蓝色外框提示。桥接区不拦截指针，
+      // 因此不遮挡块上方文字。
+      let hideTimer: number | null = null;
+      const showToolbar = () => {
         if (!editor.isEditable) return;
+        if (hideTimer !== null) {
+          clearTimeout(hideTimer);
+          hideTimer = null;
+        }
         refreshTips();
-        toolbar.hidden = false;
         wrap.classList.add("is-hovered");
+        bridge.classList.add("is-visible");
       };
-      const onWrapLeave = () => {
-        toolbar.hidden = true;
+      const hideToolbar = () => {
         wrap.classList.remove("is-hovered");
+        if (hideTimer !== null) clearTimeout(hideTimer);
+        hideTimer = window.setTimeout(() => {
+          bridge.classList.remove("is-visible");
+          hideTimer = null;
+        }, 250);
       };
+      const onWrapEnter = () => showToolbar();
+      const onWrapLeave = () => hideToolbar();
+      const onBridgeEnter = () => showToolbar();
+      const onBridgeLeave = () => hideToolbar();
       wrap.addEventListener("mouseenter", onWrapEnter);
       wrap.addEventListener("mouseleave", onWrapLeave);
+      bridge.addEventListener("mouseenter", onBridgeEnter);
+      bridge.addEventListener("mouseleave", onBridgeLeave);
+
+      // 随滚动动态切换工具栏上/下位置，避免滚动上去后被视口顶部裁切
+      const updatePlacement = () => {
+        const top = wrap.getBoundingClientRect().top;
+        const bottom = top < 64;
+        bridge.classList.toggle("is-bottom", bottom);
+        bridge.classList.toggle("is-top", !bottom);
+      };
+      updatePlacement();
+      window.addEventListener("scroll", updatePlacement, true);
+      window.addEventListener("resize", updatePlacement);
 
       // 语言切换时即时刷新 tooltip 文案（TipKitEditor 在 deps.t 变化时派发 tipkit:langChange）
       const onLangChange = () => refreshTips();
@@ -289,6 +322,11 @@ export const Details = Node.create({
         destroy() {
           wrap.removeEventListener("mouseenter", onWrapEnter);
           wrap.removeEventListener("mouseleave", onWrapLeave);
+          bridge.removeEventListener("mouseenter", onBridgeEnter);
+          bridge.removeEventListener("mouseleave", onBridgeLeave);
+          if (hideTimer !== null) clearTimeout(hideTimer);
+          window.removeEventListener("scroll", updatePlacement, true);
+          window.removeEventListener("resize", updatePlacement);
           view.dom.removeEventListener("tipkit:langChange", onLangChange);
           toggleBtn.removeEventListener("click", onToggleClick);
           duplicateBtn.removeEventListener("click", onDuplicateClick);
@@ -300,10 +338,15 @@ export const Details = Node.create({
         ignoreMutation: (mutation) => {
           if (mutation.type === "attributes") {
             const target = mutation.target as HTMLElement;
-            // wrap / toolbar 及其内部子元素（按钮等）的属性变化
-            // （悬停类、工具栏 hidden、按钮 data-tip/aria-label 等）不能触发
+            // wrap / bridge / toolbar 及其内部子元素（按钮等）的属性变化
+            // （悬停类、桥接 placement、按钮 data-tip/aria-label 等）不能触发
             // ProseMirror 重建，否则 is-hovered 被新 dom 重置，工具栏永远不显示
-            if (target === wrap || target === toolbar || toolbar.contains(target)) return true;
+            if (
+              target === wrap ||
+              target === bridge ||
+              target === toolbar ||
+              toolbar.contains(target)
+            ) return true;
             return (mutation as MutationRecord).attributeName === "open";
           }
           return false;

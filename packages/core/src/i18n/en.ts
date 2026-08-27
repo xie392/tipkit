@@ -232,6 +232,9 @@ export const en: Messages = {
   "iframeView.embed": "Embed",
   "iframeView.dragResize": "Drag to resize height",
   "iframeView.changeLink": "Change URL",
+  "iframeView.editLink": "Edit link",
+  "iframeView.duplicate": "Duplicate",
+  "iframeView.delete": "Delete",
 
   /* ── Katex actions ── */
   "katex.formula": "Formula",

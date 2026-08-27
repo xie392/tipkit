@@ -6,7 +6,7 @@ import type { Editor } from "@tiptap/react";
 import { TipKitEditor } from "@tipkit/editor";
 import type { EditorDeps, IconRef, CommentRange } from "@tipkit/editor";
 import { createBasicExtensions, createAdvancedExtensions, Comment } from "@tipkit/extensions";
-import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockBubbleMenu, BlockHandleMenu, TableControls, ReadonlyTextMenu } from "@tipkit/ui";
+import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockHandleMenu, TableControls, ReadonlyTextMenu } from "@tipkit/ui";
 import { useDemoLang } from "@/components/use-demo-lang";
 import type { DemoLang } from "@/components/site-lang-switch";
 import { BlockCommentHover } from "@/components/block-comment-hover";
@@ -710,7 +710,6 @@ export function DemoEditor({
                 <ReadonlyTextMenu editor={editor} onCommentCreate={handleReadonlyCommentCreate} />
                 <LinkBubble editor={editor} />
                 <LinkDialogHost editor={editor} />
-                {editable && <BlockBubbleMenu editor={editor} />}
                 {editable && <BlockHandleMenu editor={editor} />}
                 <TableControls editor={editor} />
               </TooltipProvider>
