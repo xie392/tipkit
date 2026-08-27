@@ -651,6 +651,17 @@
   color: #fff;
 }
 
+/* 只读模式（无 header 工具栏）：代码块整体四角圆角、顶部补回边框 */
+.tk-code-block[data-editable="false"] .tk-code-block-pre {
+  border-radius: 10px;
+}
+.tk-code-block-dark[data-editable="false"] .tk-code-block-pre {
+  border-top: 1px solid #21262d;
+}
+.tk-code-block-light[data-editable="false"] .tk-code-block-pre {
+  border-top: 1px solid #d0d7de;
+}
+
 .tk-code-block-lang-wrap {
   position: relative;
 }
@@ -1836,6 +1847,12 @@
   overflow-anchor: none;
 }
 
+/* 悬停小边框（与折叠块/分栏一致） */
+.tk-iframe.is-hovered {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
+  border-radius: 8px;
+}
+
 .tk-iframe-inner {
   border-radius: 8px;
   overflow: hidden;
@@ -1923,6 +1940,12 @@
 .tk-attachment {
   margin: 0.75em 0;
   position: relative;
+}
+
+/* 悬停小边框（与折叠块/分栏一致） */
+.tk-attachment.is-hovered {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
+  border-radius: 10px;
 }
 
 .tk-att-card {

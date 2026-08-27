@@ -312,6 +312,7 @@ function CodeBlockView(props: NodeViewProps) {
       data-theme={dark ? "dark" : "light"}
       data-language={language ?? undefined}
       data-toolbar-open={langOpen ? "true" : undefined}
+      data-editable={isEditable ? "true" : "false"}
     >
       {isEditable && (
       <div

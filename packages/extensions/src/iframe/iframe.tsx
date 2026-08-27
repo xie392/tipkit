@@ -185,6 +185,7 @@ function IframeView(props: NodeViewProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const placement = useToolbarPlacement(rootRef);
   const { visible, show, hide } = useToolbarVisibility();
+  const [hovered, setHovered] = useState(false);
   const dragHRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
 
@@ -272,10 +273,16 @@ function IframeView(props: NodeViewProps) {
   return (
     <NodeViewWrapper
       ref={rootRef}
-      className={`tk-iframe tk-hover-toolbar${isEditable ? " is-editable" : ""}${selected ? " is-selected" : ""}`}
+      className={`tk-iframe tk-hover-toolbar${isEditable ? " is-editable" : ""}${hovered ? " is-hovered" : ""}${selected ? " is-selected" : ""}`}
       data-has-url={url ? "true" : "false"}
-      onMouseEnter={show}
-      onMouseLeave={hide}
+      onMouseEnter={() => {
+        if (isEditable) setHovered(true);
+        show();
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        hide();
+      }}
     >
       {isEditable && url && !editing && (
         <div

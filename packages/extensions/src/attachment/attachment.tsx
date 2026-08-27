@@ -169,6 +169,7 @@ function AttachmentView(props: NodeViewProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const placement = useToolbarPlacement(rootRef);
   const { visible, show, hide } = useToolbarVisibility();
+  const [hovered, setHovered] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
 
@@ -312,10 +313,16 @@ function AttachmentView(props: NodeViewProps) {
   return (
     <NodeViewWrapper
       ref={rootRef}
-      className={`tk-attachment tk-hover-toolbar${isEditable ? " is-editable" : ""}${selected ? " is-selected" : ""}`}
+      className={`tk-attachment tk-hover-toolbar${isEditable ? " is-editable" : ""}${hovered ? " is-hovered" : ""}${selected ? " is-selected" : ""}`}
       data-has-url={url ? "true" : "false"}
-      onMouseEnter={show}
-      onMouseLeave={hide}
+      onMouseEnter={() => {
+        if (isEditable) setHovered(true);
+        show();
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        hide();
+      }}
     >
       {isEditable && url && (
         <div

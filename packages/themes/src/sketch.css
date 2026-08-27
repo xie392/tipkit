@@ -529,6 +529,12 @@
   box-shadow: 3px 3px 0 var(--tk-sketch-shadow);
 }
 
+/* 只读模式（无 header）：pre 补回顶部圆角与边框，整体一致 */
+.tk-theme-sketch .tk-code-block[data-editable="false"] .tk-code-block-pre {
+  border-top: 1.5px solid var(--tk-sketch-line-soft);
+  border-radius: 12px 10px 14px 11px;
+}
+
 /* 只读模式右上角复制按钮：跟随 sketch 风格 */
 .tk-theme-sketch .tk-code-block-copy-btn {
   border: 1.5px solid var(--tk-sketch-line);
