@@ -84,3 +84,8 @@ export { emojisToName } from "./emoji/emoji-data";
 // Comment（划词评论）
 export { Comment } from "./comment/comment";
 export type { CommentOptions } from "./comment/comment";
+
+// Canvas（画板）
+export { Canvas } from "./canvas/canvas";
+export type { CanvasAttrs } from "./canvas/canvas";
+export type { CanvasShape, CanvasView, CanvasTool, Point, Bounds } from "./canvas/canvas-types";

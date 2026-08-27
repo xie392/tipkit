@@ -142,6 +142,9 @@ export const zh: Messages = {
   "slash.emoji.label": "插入 emoji",
   "slash.emoji.description": "输入 : 触发或点此浏览",
   "slash.emoji.previewTitle": "Emoji 表情",
+  "slash.canvas.label": "画板",
+  "slash.canvas.description": "插入可自由绘制的画板",
+  "slash.canvas.previewTitle": "画板",
 
   /* ── 斜杠菜单 UI ── */
   "slash.noMatch": "没有匹配的命令",
@@ -334,6 +337,24 @@ export const zh: Messages = {
   "katex.placeholder": "输入 LaTeX 公式，如 \\frac{1}{2} 或 e^{i\\pi}+1=0",
   "katex.emptyPlaceholder": "+ 输入数学公式",
   "katex.renderError": "公式渲染失败：",
+
+  /* ── 画板 ── */
+  "canvas.select": "选择",
+  "canvas.hand": "抓手",
+  "canvas.brush": "画笔",
+  "canvas.pencil": "铅笔",
+  "canvas.text": "文本",
+  "canvas.rect": "矩形",
+  "canvas.circle": "圆形",
+  "canvas.arrow": "箭头",
+  "canvas.line": "连线",
+  "canvas.image": "图片",
+  "canvas.boxSelect": "框选",
+  "canvas.zoomIn": "放大",
+  "canvas.zoomOut": "缩小",
+  "canvas.fullscreen": "全屏",
+  "canvas.exitFullscreen": "退出全屏",
+  "canvas.title": "画板",
 
   /* ── 占位符 ── */
   "placeholder.default": "写下点什么…",

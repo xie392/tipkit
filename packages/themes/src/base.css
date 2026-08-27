@@ -3096,3 +3096,239 @@
 .tk-status-delete:hover {
   background: color-mix(in srgb, var(--destructive, #dc2626) 10%, transparent);
 }
+
+/* ============================================================
+ * 画板 Canvas（布局 + 颜色走 CSS 变量）
+ * ============================================================ */
+.tk-canvas-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 0.75em 0;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--card, #fff);
+}
+
+.tk-canvas-board {
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  touch-action: none;
+  cursor: default;
+  user-select: none;
+}
+
+.tk-canvas-board.is-editable {
+  cursor: crosshair;
+}
+
+.tk-canvas-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tk-canvas-shape {
+  pointer-events: none;
+}
+
+.tk-canvas-grid-line {
+  stroke: var(--border, #e5e7eb);
+  stroke-width: 1;
+}
+
+.tk-canvas-grid {
+  pointer-events: none;
+}
+
+.tk-canvas-selection {
+  fill: color-mix(in srgb, var(--tk-accent, #3b82f6) 15%, transparent);
+  stroke: var(--tk-accent, #3b82f6);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
+.tk-canvas-boxsel {
+  fill: color-mix(in srgb, var(--tk-accent, #3b82f6) 12%, transparent);
+  stroke: var(--tk-accent, #3b82f6);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
+/* 工具栏 */
+.tk-canvas-toolbar {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+}
+
+.tk-canvas-toolbar-left {
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+}
+
+.tk-canvas-toolbar-top {
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+.tk-canvas-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted-foreground, #6b7280);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.tk-canvas-tool:hover {
+  background: var(--accent, #f0f0f0);
+  color: var(--foreground, #222);
+}
+
+.tk-canvas-tool.is-active {
+  background: color-mix(in srgb, var(--tk-accent, #3b82f6) 16%, transparent);
+  color: var(--tk-accent, #3b82f6);
+}
+
+.tk-canvas-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 2px;
+  background: var(--border, #e0e0e0);
+}
+
+.tk-canvas-zoom-label {
+  min-width: 42px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted-foreground, #6b7280);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.tk-canvas-text-input {
+  position: absolute;
+  min-width: 40px;
+  border: 1px dashed var(--tk-accent, #3b82f6);
+  border-radius: 2px;
+  background: transparent;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--foreground, #222);
+  padding: 0 2px;
+  outline: none;
+}
+
+/* 画板网页内全屏容器：撑满整个浏览器视口（保留标签页/地址栏，非系统全屏） */
+.tk-canvas-frame {
+  position: relative;
+}
+.tk-canvas-frame.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  background: var(--background, #fff);
+}
+.tk-canvas-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.tk-canvas-frame.is-fullscreen .tk-canvas-board {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 全屏顶部 header：明确展示退出全屏入口 */
+.tk-canvas-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 12px 0 16px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  background: var(--card, #fff);
+  color: var(--foreground, #222);
+  font-size: 14px;
+  font-weight: 600;
+  user-select: none;
+}
+.tk-canvas-header-exit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 6px;
+  background: var(--popover, #fff);
+  color: var(--foreground, #222);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.tk-canvas-header-exit:hover {
+  background: var(--accent, #f0f0f0);
+}
+.tk-canvas-header-exit svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* 元素缩放手柄（屏幕坐标系，尺寸恒定） */
+.tk-canvas-resize-handle {
+  fill: #fff;
+  stroke: var(--tk-accent, #3b82f6);
+  stroke-width: 1.5;
+  pointer-events: auto;
+  cursor: nwse-resize;
+}
+.tk-canvas-resize-handle[data-corner="tr"],
+.tk-canvas-resize-handle[data-corner="bl"] {
+  cursor: nesw-resize;
+}
+
+/* 旋转手柄：选中元素顶边中点的圆点 + 连接线 */
+.tk-canvas-rotate-line {
+  stroke: var(--tk-accent, #3b82f6);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  pointer-events: none;
+}
+.tk-canvas-rotate-handle {
+  fill: #fff;
+  stroke: var(--tk-accent, #3b82f6);
+  stroke-width: 1.5;
+  pointer-events: auto;
+  cursor: grab;
+}
+.tk-canvas-rotate-handle:active {
+  cursor: grabbing;
+}

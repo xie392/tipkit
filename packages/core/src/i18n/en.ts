@@ -142,6 +142,9 @@ export const en: Messages = {
   "slash.emoji.label": "Insert Emoji",
   "slash.emoji.description": "Type : or click to browse",
   "slash.emoji.previewTitle": "Emoji",
+  "slash.canvas.label": "Canvas",
+  "slash.canvas.description": "Insert a free-drawing canvas",
+  "slash.canvas.previewTitle": "Canvas",
 
   /* ── Slash menu UI ── */
   "slash.noMatch": "No matching commands",
@@ -334,6 +337,24 @@ export const en: Messages = {
   "katex.placeholder": "Enter LaTeX formula, e.g. \\frac{1}{2} or e^{i\\pi}+1=0",
   "katex.emptyPlaceholder": "+ Enter math formula",
   "katex.renderError": "Formula render error: ",
+
+  /* ── Canvas ── */
+  "canvas.select": "Select",
+  "canvas.hand": "Hand",
+  "canvas.brush": "Brush",
+  "canvas.pencil": "Pencil",
+  "canvas.text": "Text",
+  "canvas.rect": "Rectangle",
+  "canvas.circle": "Circle",
+  "canvas.arrow": "Arrow",
+  "canvas.line": "Line",
+  "canvas.image": "Image",
+  "canvas.boxSelect": "Box select",
+  "canvas.zoomIn": "Zoom in",
+  "canvas.zoomOut": "Zoom out",
+  "canvas.fullscreen": "Fullscreen",
+  "canvas.exitFullscreen": "Exit fullscreen",
+  "canvas.title": "Canvas",
 
   /* ── Placeholder ── */
   "placeholder.default": "Start writing…",

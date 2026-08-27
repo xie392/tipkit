@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { TipKitEditor } from "@tipkit/editor";
 import type { EditorDeps, IconRef, CommentRange } from "@tipkit/editor";
-import { createBasicExtensions, createAdvancedExtensions, Comment } from "@tipkit/extensions";
+import { createBasicExtensions, createAdvancedExtensions, Comment, Canvas } from "@tipkit/extensions";
 import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockHandleMenu, TableControls, ReadonlyTextMenu } from "@tipkit/ui";
 import { useDemoLang } from "@/components/use-demo-lang";
 import type { DemoLang } from "@/components/site-lang-switch";
@@ -50,6 +50,7 @@ import {
   Pencil,
   Reply,
   Check,
+  Brush,
   type LucideIcon,
 } from "lucide-react";
 
@@ -90,6 +91,7 @@ const iconMap: Record<IconRef, LucideIcon> = {
   Paperclip,
   Smile,
   Badge,
+  Brush,
 };
 
 /** demo 图片上传：本地 blob 预览 */
@@ -698,6 +700,7 @@ export function DemoEditor({
           extensions={[
             ...createBasicExtensions(),
             commentExt,
+            Canvas,
             ...createAdvancedExtensions({ tocScrollOffset: 120 }),
           ]}
           placeholder={placeholder ?? PLACEHOLDER[lang]}
