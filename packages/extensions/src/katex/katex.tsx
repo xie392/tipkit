@@ -96,6 +96,7 @@ function KatexView(props: NodeViewProps) {
   const [editing, setEditing] = useState(!text.trim());
   const [draft, setDraft] = useState(text);
   const [copied, setCopied] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const wrapperRef = useRef<HTMLElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const placement = useToolbarPlacement(wrapperRef);
@@ -172,11 +173,17 @@ function KatexView(props: NodeViewProps) {
   return (
     <NodeViewWrapper
       ref={wrapperRef}
-      className={`tk-katex tk-hover-toolbar${isEditable ? " is-editable" : " is-readonly"}${props.selected ? " is-selected" : ""}`}
+      className={`tk-katex tk-hover-toolbar${isEditable ? " is-editable" : " is-readonly"}${hovered ? " is-hovered" : ""}${props.selected ? " is-selected" : ""}`}
       data-empty={!text.trim() ? "true" : "false"}
       contentEditable={false}
-      onMouseEnter={show}
-      onMouseLeave={hide}
+      onMouseEnter={() => {
+        setHovered(true);
+        show();
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        hide();
+      }}
     >
       {editing ? (
         <div className="tk-katex-editor">

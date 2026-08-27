@@ -313,12 +313,12 @@ function CodeBlockView(props: NodeViewProps) {
       data-language={language ?? undefined}
       data-toolbar-open={langOpen ? "true" : undefined}
     >
+      {isEditable && (
       <div
         className="tk-code-block-toolbar"
         contentEditable={false}
         onMouseDown={(e) => e.preventDefault()}
       >
-        {isEditable && (
         <div className="tk-code-block-lang-wrap">
           <button
             ref={langBtnRef}
@@ -367,10 +367,8 @@ function CodeBlockView(props: NodeViewProps) {
               document.body
             )}
         </div>
-        )}
 
         <div className="tk-code-block-actions">
-          {isEditable && (
           <button
             type="button"
             className="tk-code-block-action-btn"
@@ -379,7 +377,6 @@ function CodeBlockView(props: NodeViewProps) {
           >
             {dark ? <IconSun /> : <IconMoon />}
           </button>
-          )}
           <button
             type="button"
             className="tk-code-block-action-btn"
@@ -388,18 +385,17 @@ function CodeBlockView(props: NodeViewProps) {
           >
             {copied ? <IconCheck /> : <IconCopy />}
           </button>
-          {isEditable && (
-            <button
-              type="button"
-              className="tk-code-block-action-btn tk-code-block-action-danger"
-              onClick={() => deleteNode()}
-              title={t("codeBlock.delete")}
-            >
-              <IconTrash />
-            </button>
-          )}
+          <button
+            type="button"
+            className="tk-code-block-action-btn tk-code-block-action-danger"
+            onClick={() => deleteNode()}
+            title={t("codeBlock.delete")}
+          >
+            <IconTrash />
+          </button>
         </div>
       </div>
+      )}
 
       <pre className="tk-code-block-pre">
         <NodeViewContent
@@ -408,6 +404,17 @@ function CodeBlockView(props: NodeViewProps) {
           style={{ whiteSpace: "pre" }}
         />
       </pre>
+
+      {!isEditable && (
+        <button
+          type="button"
+          className="tk-code-block-copy-btn"
+          onClick={copyCode}
+          title={t("codeBlock.copy")}
+        >
+          {copied ? <IconCheck /> : <IconCopy />}
+        </button>
+      )}
     </NodeViewWrapper>
   );
 }

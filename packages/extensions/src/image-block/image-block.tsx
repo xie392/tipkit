@@ -192,6 +192,35 @@ function ImageBlockView(props: NodeViewProps) {
   const [editingCaption, setEditingCaption] = useState(false);
   const [preview, setPreview] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [styleOpen, setStyleOpen] = useState(false);
+  const styleWrapRef = useRef<HTMLDivElement | null>(null);
+
+  const STYLE_OPTIONS: { value: ImageStyleType; label: string }[] = [
+    { value: "none", label: "无样式" },
+    { value: "border", label: "边框" },
+    { value: "shadow", label: "阴影" },
+    { value: "border-shadow", label: "边框 + 阴影" },
+  ];
+  const currentStyle = (attrs.imageStyle as ImageStyleType) || "none";
+
+  // 样式下拉：点击外部或 Esc 关闭
+  useEffect(() => {
+    if (!styleOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (styleWrapRef.current && !styleWrapRef.current.contains(e.target as Node)) {
+        setStyleOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setStyleOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [styleOpen]);
 
   useEffect(() => {
     if (!isEditable) setEditingCaption(false);
@@ -356,6 +385,40 @@ function ImageBlockView(props: NodeViewProps) {
               <IconUpload />
             </button>
             <span className="tk-ct-sep" />
+            <div className="tk-block-action-dropdown" ref={styleWrapRef}>
+              <button
+                type="button"
+                data-tip="设置样式"
+                aria-label="设置样式"
+                className={`tk-ct-btn${styleOpen ? " is-active" : ""}`}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setStyleOpen((v) => !v)}
+              >
+                <IconStyle />
+              </button>
+              {styleOpen && (
+                <div
+                  className="tk-block-action-menu"
+                  contentEditable={false}
+                  style={{ minWidth: 132 }}
+                >
+                  {STYLE_OPTIONS.map((o) => (
+                    <button
+                      key={o.value}
+                      type="button"
+                      className={`tk-block-action-item${currentStyle === o.value ? " is-active" : ""}`}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        updateAttributes({ imageStyle: o.value });
+                        setStyleOpen(false);
+                      }}
+                    >
+                      <span className="tk-image-style-option">{o.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               type="button"
               data-tip="左对齐"
@@ -516,6 +579,16 @@ function IconUpload() {
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 2v8M5 5l3-3 3 3" />
       <path d="M2 10v3a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3" />
+    </svg>
+  );
+}
+
+function IconStyle() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="12" height="10" rx="1.5" />
+      <circle cx="5.5" cy="6.5" r="1" />
+      <path d="M4.5 12.5 8 9l4 3.5" />
     </svg>
   );
 }

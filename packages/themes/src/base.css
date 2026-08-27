@@ -610,6 +610,47 @@
   pointer-events: auto;
 }
 
+/* 只读模式：不显示 header，改在右上角浮层一个复制按钮，hover 时显示 */
+.tk-code-block-copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 6px;
+  background: var(--popover, #fff);
+  color: var(--muted-foreground, #656d76);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s, background 0.15s, color 0.15s;
+}
+.tk-code-block-copy-btn:hover {
+  background: rgb(0 0 0 / 0.05);
+  color: var(--foreground, #24292f);
+}
+.tk-code-block:hover .tk-code-block-copy-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tk-code-block-dark .tk-code-block-copy-btn {
+  background: #161b22;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  color: #9d9d9d;
+}
+.tk-code-block-dark .tk-code-block-copy-btn:hover {
+  background: rgb(255 255 255 / 0.1);
+  color: #fff;
+}
+
 .tk-code-block-lang-wrap {
   position: relative;
 }
@@ -1210,11 +1251,10 @@
   position: relative;
 }
 
-/* 公式选中：用淡色背景代替外框，与块激活风格一致 */
-.tk-katex.is-selected,
-.tk-editor .ProseMirror-selectednode.tk-katex {
-  outline: none;
-  background: color-mix(in srgb, var(--tk-accent, #3b82f6) 12%, transparent);
+/* 公式：悬停显示小边框（与折叠块/分栏一致）；不再用选中灰底 */
+.tk-katex.is-hovered {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
+  border-radius: 8px;
 }
 
 .tk-katex-placeholder,
