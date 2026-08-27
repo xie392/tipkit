@@ -31,9 +31,22 @@ const BLOCK_SELECTOR = [
   ".tk-katex",
   "hr",
   "table",
+  ".tk-image-block",
   "[data-type='image-block']",
   ".tk-columns",
   "details",
+].join(",");
+
+/**
+ * 容器型块：内部往往再嵌套 p/li 等块（表格单元格、分栏、折叠块内容、代码块、图片块）。
+ * hover 到这些容器内部时，应把整块作为一个整体评论，而不是命中内层的 p/li 导致按钮跳来跳去。
+ */
+const CONTAINER_SELECTOR = [
+  "table",
+  ".tk-columns",
+  "details",
+  ".tk-image-block",
+  "pre",
 ].join(",");
 
 type Pos = { x: number; y: number; from: number; to: number; text: string };
@@ -81,21 +94,26 @@ export function BlockCommentHover({
       // 2) 光标在 pmDom 内的某个块上 → 在该块位置显示按钮
       const el = (e.target as HTMLElement | null)?.closest(BLOCK_SELECTOR) as HTMLElement | null;
       if (el && pmDom.contains(el)) {
-        const rect = el.getBoundingClientRect();
+        // 若命中的是容器块内部的块（表格单元格/分栏/折叠块内容等），提升到外层容器，
+        // 让整块作为整体评论，按钮固定在容器顶部，避免随内部行/格跳来跳去
+        const container = el.closest(CONTAINER_SELECTOR);
+        const target =
+          container && pmDom.contains(container) && container !== el ? container : el;
+        const rect = target.getBoundingClientRect();
         if (rect.top < 90 || rect.bottom > window.innerHeight - 20) {
           keepZoneRef.current = null;
           setPos(null);
           return;
         }
         // 该块已包含评论 → 不显示块评论按钮（右侧已有锚点图标，避免重复）
-        if (el.querySelector("[data-comment-id]")) {
+        if (target.querySelector("[data-comment-id]")) {
           keepZoneRef.current = null;
           setPos(null);
           return;
         }
         // 计算整块文本范围：posAtDOM 返回的是块内部内容起始位置，
         // 需按 node 起始位置解析后再 ±1 得到完整文本区间，避免漏掉首字符
-        const raw = view.posAtDOM(el, 0);
+        const raw = view.posAtDOM(target, 0);
         const $pos = view.state.doc.resolve(raw);
         let nodePos: number | null = null;
         if ($pos.parentOffset === 0 && $pos.nodeAfter && $pos.nodeAfter.isBlock) {
@@ -116,7 +134,7 @@ export function BlockCommentHover({
         }
         const from = nodePos + 1;
         const to = nodePos + node.nodeSize - 1;
-        let text = el.textContent?.trim() ?? "";
+        let text = target.textContent?.trim() ?? "";
         if (text.length > 80) text = text.slice(0, 80) + "…";
         // 按钮放到 ProseMirror 正文右外侧的 gutter 区（与评论锚点同位置），不压文字
         const pmRect = pmDom.getBoundingClientRect();
