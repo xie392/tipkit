@@ -38,6 +38,7 @@
   "scripts": {
     "lint": "eslint src/",
     "type-check": "tsc --noEmit",
+    "dev": "tsc -p tsconfig.json --watch",
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {

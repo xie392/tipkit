@@ -39,6 +39,7 @@
     "lint": "eslint src/",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
+    "dev": "tsc -p tsconfig.json --watch",
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {

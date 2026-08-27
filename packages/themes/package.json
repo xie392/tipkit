@@ -22,6 +22,7 @@
     "access": "public"
   },
   "files": [
+    "src",
     "dist",
     "README.md"
   ],
@@ -35,15 +36,15 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./base.css": "./dist/base.css",
-    "./default.css": "./dist/default.css",
-    "./sketch.css": "./dist/sketch.css",
-    "./dark.css": "./dist/dark.css"
+    "./base.css": "./src/base.css",
+    "./default.css": "./src/default.css",
+    "./sketch.css": "./src/sketch.css",
+    "./dark.css": "./src/dark.css"
   },
   "scripts": {
     "lint": "eslint src/",
     "type-check": "tsc --noEmit",
-    "build": "node scripts/build-themes.mjs"
+    "build": "tsc -p tsconfig.json"
   },
   "devDependencies": {
     "typescript": "^5.7.2"
