@@ -4,13 +4,12 @@
  * 职责：编辑器交互层的行为与布局（定位、键盘导航、激活态计算），
  * 禁止输出颜色/字体/阴影/边框等视觉样式。
  *
- * 迁移状态：
- * - [M2] slash-menu/ SlashMenu（定位、键盘导航、portal，语义类名 tk-slash-*）
- * - [M3] emoji/ EmojiSuggestion（: 触发浮层 + 键盘导航）
- * - [待迁移] bubble-menu/ 选中文字浮层（链接气泡、文本工具条）
- * - [待迁移] block-handles UI（插件逻辑已在 @tipkit/extensions）
- * - [待迁移] table-controls 表格控制条逻辑
- * - [待迁移] toc-panel/ 目录面板逻辑（消费 OutlineItem）
+ * 交互原语：
+ * - slash-menu/ SlashMenu（定位、键盘导航、portal，语义类名 tk-slash-*）
+ * - emoji/ EmojiSuggestion（: 触发浮层 + 键盘导航）
+ * - bubble-menu/ 选中文字浮层（TextMenu / LinkBubble / BlockBubbleMenu / BlockHandleMenu）
+ * - table-controls/ 表格控制条（TableControls / TablePicker / TableBubbleToolbar / TableContextMenu）
+ * - toolbar/ 工具栏菜单（BlockStyleMenu / AlignMenu / ColorMenu / FontMenu / ToolbarBtn）
  *
  * 视觉组件（Button/Popover/DropdownMenu 等）在 @tipkit/components；
  * 主题皮肤在 @tipkit/themes。

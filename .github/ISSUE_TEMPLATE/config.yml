@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: TipKit 文档
+    url: https://github.com/xie392/tipkit#readme
+    about: 查看 README 与接入文档
+  - name: 在线演示
+    url: https://tipkit-delta.vercel.app/demo
+    about: 先体验在线演示确认是否复现问题
