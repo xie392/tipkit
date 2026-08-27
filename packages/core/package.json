@@ -39,22 +39,26 @@
     "lint": "eslint src/",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
+    "dev": "tsc -p tsconfig.json --watch",
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@tiptap/core": "^3.30.1",
     "@tiptap/extension-placeholder": "^3.30.1",
-    "@tiptap/react": "^3.30.1",
-    "@tiptap/starter-kit": "^3.30.1",
-    "@tiptap/pm": "^3.30.1"
+    "@tiptap/starter-kit": "^3.30.1"
   },
   "peerDependencies": {
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "@tiptap/core": "^3.30.1",
+    "@tiptap/react": "^3.30.1",
+    "@tiptap/pm": "^3.30.1"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@tiptap/core": "^3.30.1",
+    "@tiptap/react": "^3.30.1",
+    "@tiptap/pm": "^3.30.1",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8",
     "happy-dom": "^15.11.7"

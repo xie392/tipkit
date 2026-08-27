@@ -48,6 +48,7 @@ export default function App() {
   return (
     <TipKitEditor
       deps={deps}
+      className="tk-theme-default"
       placeholder="输入 / 打开斜杠菜单…"
       extensions={[...createBasicExtensions(), ...createAdvancedExtensions()]}
       onChange={(editor) => save(editor.getHTML())}
@@ -56,12 +57,14 @@ export default function App() {
 }
 ```
 
-换肤只需换一行 import：
+> 主题视觉样式作用域在 `tk-theme-*` 类下——**只 import CSS 不会生效**，必须把该类加到编辑器或其祖先元素（通常是包裹 div 或 `<html>`）。
+
+换肤只需换 import，并同步把 `tk-theme-*` 类改成对应主题：
 
 ```ts
-import "@tipkit/themes/default.css"; // shadcn 标准
-import "@tipkit/themes/sketch.css";  // 手绘线框
-import "@tipkit/themes/dark.css";    // 暗色
+import "@tipkit/themes/default.css"; // shadcn 标准 → tk-theme-default
+import "@tipkit/themes/sketch.css";  // 手绘线框   → tk-theme-sketch
+import "@tipkit/themes/dark.css";    // 暗色       → tk-theme-dark
 ```
 
 完整接入文档见 [apps/demo 官网](apps/demo) —— 首页、MDX 文档、在线演示、三种主题实时切换。

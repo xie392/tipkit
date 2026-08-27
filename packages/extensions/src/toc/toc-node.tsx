@@ -7,7 +7,8 @@ import { useT, useEditorEditable, useToolbarPlacement, useToolbarVisibility } fr
 
 /* 目录节点（迁移自 blog rich-text/ext/toc-node.tsx）：
  * 插入后自动扫描文档 heading 并渲染列表，点击跳转。
- * 交互：与其他块统一，编辑态悬停显示「复制 / 删除」工具栏 + 小边框。 */
+ * 交互：与其他块统一，编辑态悬停显示「复制 / 删除」工具栏 + 小边框。 
+ */
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {

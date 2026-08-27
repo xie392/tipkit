@@ -39,12 +39,12 @@
     "lint": "eslint src/",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
+    "dev": "tsc -p tsconfig.json --watch",
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@tipkit/components": "workspace:*",
     "@tipkit/core": "workspace:*",
-    "@tiptap/core": "^3.30.1",
     "@tiptap/extension-bold": "^3.30.1",
     "@tiptap/extension-character-count": "^3.30.2",
     "@tiptap/extension-code": "^3.30.1",
@@ -73,21 +73,26 @@
     "@tiptap/extension-typography": "^3.30.1",
     "@tiptap/extension-underline": "^3.30.1",
     "@tiptap/markdown": "^3.30.1",
-    "@tiptap/pm": "^3.30.1",
-    "@tiptap/react": "^3.30.1",
     "@tiptap/suggestion": "^3.30.2",
     "katex": "^0.16.0",
     "lowlight": "^3.3.0",
+    "lucide-react": "^0.469.0",
     "roughjs": "^4.6.6"
   },
   "peerDependencies": {
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "@tiptap/core": "^3.30.1",
+    "@tiptap/react": "^3.30.1",
+    "@tiptap/pm": "^3.30.1"
   },
   "devDependencies": {
     "@types/katex": "^0.16.7",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@tiptap/core": "^3.30.1",
+    "@tiptap/react": "^3.30.1",
+    "@tiptap/pm": "^3.30.1",
     "happy-dom": "^15.11.7",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"

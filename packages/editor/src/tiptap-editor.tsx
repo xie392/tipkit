@@ -95,13 +95,9 @@ export function TipKitEditor({
 /* 工具栏分组（逻辑层，视觉由主题渲染）                                  */
 /* ------------------------------------------------------------------ */
 
-// buildToolbarGroups 在 render 中调用，保存当前实例供 isActive/isEnabled 使用
-let editorRef: { current: Editor | null } = { current: null };
-
 /** 由 editor 计算基础工具栏分组。视觉渲染交给主题/消费方。
  *  t 为 i18n 翻译函数（来自 useT()），不传时 key 原样返回。 */
 export function buildToolbarGroups(editor: Editor | null, t?: Translate): ToolbarGroup[] {
-  editorRef.current = editor;
   if (!editor) return [];
 
   const tr = t ?? ((k: string) => k);
@@ -129,12 +125,12 @@ export function buildToolbarGroups(editor: Editor | null, t?: Translate): Toolba
     {
       id: "marks",
       actions: [
-        markAction("bold", tr("toolbar.bold"), "Bold", (e) => e.isActive("bold"), (e) => e.chain().focus().toggleBold().run()),
-        markAction("italic", tr("toolbar.italic"), "Italic", (e) => e.isActive("italic"), (e) => e.chain().focus().toggleItalic().run()),
-        markAction("strike", tr("toolbar.strike"), "Strikethrough", (e) => e.isActive("strike"), (e) => e.chain().focus().toggleStrike().run()),
-        markAction("underline", tr("toolbar.underline"), "Underline", (e) => e.isActive("underline"), (e) => e.chain().focus().toggleUnderline().run()),
-        markAction("code", tr("toolbar.code"), "Code", (e) => e.isActive("code"), (e) => e.chain().focus().toggleCode().run()),
-        markAction("highlight", tr("toolbar.highlight"), "Highlighter", (e) => e.isActive("highlight"), (e) => e.chain().focus().toggleHighlight().run()),
+        markAction(editor, "bold", tr("toolbar.bold"), "Bold", (e) => e.isActive("bold"), (e) => e.chain().focus().toggleBold().run()),
+        markAction(editor, "italic", tr("toolbar.italic"), "Italic", (e) => e.isActive("italic"), (e) => e.chain().focus().toggleItalic().run()),
+        markAction(editor, "strike", tr("toolbar.strike"), "Strikethrough", (e) => e.isActive("strike"), (e) => e.chain().focus().toggleStrike().run()),
+        markAction(editor, "underline", tr("toolbar.underline"), "Underline", (e) => e.isActive("underline"), (e) => e.chain().focus().toggleUnderline().run()),
+        markAction(editor, "code", tr("toolbar.code"), "Code", (e) => e.isActive("code"), (e) => e.chain().focus().toggleCode().run()),
+        markAction(editor, "highlight", tr("toolbar.highlight"), "Highlighter", (e) => e.isActive("highlight"), (e) => e.chain().focus().toggleHighlight().run()),
         {
           type: "select",
           id: "color",
@@ -164,11 +160,11 @@ export function buildToolbarGroups(editor: Editor | null, t?: Translate): Toolba
             { id: "h3", label: tr("toolbar.heading3"), onSelect: (e) => e.chain().focus().toggleHeading({ level: 3 }).run() },
           ],
         },
-        markAction("bulletList", tr("toolbar.bulletList"), "List", (e) => e.isActive("bulletList"), (e) => e.chain().focus().toggleBulletList().run()),
-        markAction("orderedList", tr("toolbar.orderedList"), "ListOrdered", (e) => e.isActive("orderedList"), (e) => e.chain().focus().toggleOrderedList().run()),
-        markAction("taskList", tr("toolbar.taskList"), "ListChecks", (e) => e.isActive("taskList"), (e) => e.chain().focus().toggleTaskList().run()),
-        markAction("blockquote", tr("toolbar.blockquote"), "Quote", (e) => e.isActive("blockquote"), (e) => e.chain().focus().toggleBlockquote().run()),
-        markAction("codeBlock", tr("toolbar.codeBlock"), "Code2", (e) => e.isActive("codeBlock"), (e) => e.chain().focus().toggleCodeBlock().run()),
+        markAction(editor, "bulletList", tr("toolbar.bulletList"), "List", (e) => e.isActive("bulletList"), (e) => e.chain().focus().toggleBulletList().run()),
+        markAction(editor, "orderedList", tr("toolbar.orderedList"), "ListOrdered", (e) => e.isActive("orderedList"), (e) => e.chain().focus().toggleOrderedList().run()),
+        markAction(editor, "taskList", tr("toolbar.taskList"), "ListChecks", (e) => e.isActive("taskList"), (e) => e.chain().focus().toggleTaskList().run()),
+        markAction(editor, "blockquote", tr("toolbar.blockquote"), "Quote", (e) => e.isActive("blockquote"), (e) => e.chain().focus().toggleBlockquote().run()),
+        markAction(editor, "codeBlock", tr("toolbar.codeBlock"), "Code2", (e) => e.isActive("codeBlock"), (e) => e.chain().focus().toggleCodeBlock().run()),
         {
           type: "button",
           id: "insertTable",
@@ -181,10 +177,10 @@ export function buildToolbarGroups(editor: Editor | null, t?: Translate): Toolba
     {
       id: "align",
       actions: [
-        markAction("alignLeft", tr("toolbar.alignLeft"), "AlignLeft", (e) => e.isActive({ textAlign: "left" }), (e) => e.chain().focus().setTextAlign("left").run()),
-        markAction("alignCenter", tr("toolbar.alignCenter"), "AlignCenter", (e) => e.isActive({ textAlign: "center" }), (e) => e.chain().focus().setTextAlign("center").run()),
-        markAction("alignRight", tr("toolbar.alignRight"), "AlignRight", (e) => e.isActive({ textAlign: "right" }), (e) => e.chain().focus().setTextAlign("right").run()),
-        markAction("alignJustify", tr("toolbar.alignJustify"), "AlignJustify", (e) => e.isActive({ textAlign: "justify" }), (e) => e.chain().focus().setTextAlign("justify").run()),
+        markAction(editor, "alignLeft", tr("toolbar.alignLeft"), "AlignLeft", (e) => e.isActive({ textAlign: "left" }), (e) => e.chain().focus().setTextAlign("left").run()),
+        markAction(editor, "alignCenter", tr("toolbar.alignCenter"), "AlignCenter", (e) => e.isActive({ textAlign: "center" }), (e) => e.chain().focus().setTextAlign("center").run()),
+        markAction(editor, "alignRight", tr("toolbar.alignRight"), "AlignRight", (e) => e.isActive({ textAlign: "right" }), (e) => e.chain().focus().setTextAlign("right").run()),
+        markAction(editor, "alignJustify", tr("toolbar.alignJustify"), "AlignJustify", (e) => e.isActive({ textAlign: "justify" }), (e) => e.chain().focus().setTextAlign("justify").run()),
       ],
     },
     {
@@ -211,6 +207,7 @@ export function buildToolbarGroups(editor: Editor | null, t?: Translate): Toolba
 }
 
 function markAction(
+  editor: Editor,
   id: string,
   label: string,
   icon: IconRef,
@@ -222,8 +219,8 @@ function markAction(
     id,
     label,
     icon,
-    isActive: () => isActive(editorRef.current as Editor),
-    isEnabled: () => !!editorRef.current,
+    isActive: () => isActive(editor),
+    isEnabled: () => !!editor,
     onExecute,
   };
 }

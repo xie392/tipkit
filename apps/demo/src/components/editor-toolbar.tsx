@@ -25,7 +25,9 @@ import {
 import { getInsertActions, getSlashGroupLabel, SLASH_GROUP_ORDER, type InsertAction } from "@tipkit/extensions";
 import { useDemoLang } from "@/components/use-demo-lang";
 import {
+  Badge,
   Bold,
+  Brush,
   Check,
   ChevronDown,
   ChevronDownSquare,
@@ -87,6 +89,8 @@ const INSERT_ICONS: Record<string, LucideIcon> = {
   Frame,
   Paperclip,
   Smile,
+  Badge,
+  Brush,
 };
 
 /**
