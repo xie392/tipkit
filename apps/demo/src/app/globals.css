@@ -166,6 +166,30 @@ body::after {
   gap: 8px;
 }
 
+/* GitHub 图标按钮（与主题切换按钮同款圆角图标样式） */
+.site-header-github {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--card) 70%, transparent);
+  color: var(--foreground);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.site-header-github:hover {
+  background: var(--muted);
+  transform: translateY(-1px);
+}
+
 .site-nav-link {
   padding: 6px 12px;
   border-radius: 8px;
