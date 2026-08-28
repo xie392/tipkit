@@ -1,0 +1,57 @@
+## 基础插件
+
+本页介绍 TipKit 的**基础扩展集合**，全部来自 `createBasicExtensions()`，开箱即用。它覆盖日常写作所需的全部基础能力：块级元素、行内格式、链接、表格、任务列表，以及 Markdown 即时转换与序列化。
+
+基础集合基于 Tiptap 的 `StarterKit` 配置而来，但**禁用了内置的粗体/斜体/删除线/行内代码/链接/下划线/分隔线**等，改用下方自定义的、更稳的版本（规避 Tiptap 3.x 的 mark input rule 崩溃 bug），因此行为与裸 StarterKit 略有差异。
+
+### 基础块与行内
+
+- **块级**：段落、标题（1–6）、无序/有序列表、引用、分隔线。输入 `# ` 加空格变标题、`- ` 或 `1. ` 变列表、`>` 变引用、`---` 变分隔线。
+- **行内**：粗体、斜体、删除线、行内代码——输入 `**加粗**`、`*斜体*`、`~~删除~~`、`` `代码` `` 即时转换；另支持下划线、高亮（多彩）、上标、下标。
+- **排版**：颜色、字体、字号、对齐（标题与段落）、Typography（自动把 `--` 转破折号、`(c)` 转 © 等排版字符）。
+
+### 列表与任务
+
+`TaskList` + `TaskItem` 提供任务清单；`TaskItem` 配置了 `nested: true`，任务项可**无限嵌套**子任务。
+
+### 链接
+
+- **Markdown 输入规则**：输入 `[文字](url)` 即时转为链接。
+- **自动链接**：粘贴或输入可识别的 URL 时自动识别为链接。
+- **回填兜底**：`LinkBackfillConvert` 处理 IME 组合输入等场景下 `[文字](url)` 的兜底转换；`CodeBackfillConvert` 在空格/回车时把 `` `code` `` 兜底转为行内代码。
+
+### 表格
+
+`Table` / `TableRow` / `TableHeader` / `TableCell` 提供完整表格能力，`Table` 配置为 `resizable: true`（可拖拽调整列宽，`lastColumnResizable: false` 即最后一列不可调）。
+
+### Markdown
+
+- **即时转换**：输入 `# `、`- `、`1. `、`[文字](url)` 等语法即时生效。
+- **粘贴**：`MarkdownPaste` 让粘贴的 Markdown 文本直接解析为富文本，而非纯文本。
+- **序列化**：`Markdown`（来自 `@tiptap/markdown`）提供内容序列化/反序列化，可输出 Markdown。
+
+### 编辑器体验
+
+面向编辑体验的小工具：`TrailingNode` 保证文档末尾始终有可编辑段落；`Selection` 提供选区辅助；`SelectAll` 优化全选行为；`ListInputRules` 处理列表缩进等输入规则；`CharacterCount` 统计字数（上限 100,000）；`Dropcursor` 在拖拽元素时显示落点光标（宽度 2px）。
+
+### 最小编辑器
+
+`createBasicExtensions()` 单独即可构成一个最小编辑器，配合一个主题即可使用：
+
+```tsx
+"use client";
+
+import { TipKitEditor } from "@tipkit/editor";
+import { createBasicExtensions } from "@tipkit/extensions";
+import "@tipkit/themes/default.css";
+
+export default function Editor() {
+  return (
+    <div className="tk-theme-default">
+      <TipKitEditor deps={{}} extensions={createBasicExtensions()} />
+    </div>
+  );
+}
+```
+
+> 主题 CSS 的视觉样式全部作用域在 `tk-theme-default` 类下，必须把该类加到编辑器任意祖先元素上。更完整的接入见「快速开始」页面。

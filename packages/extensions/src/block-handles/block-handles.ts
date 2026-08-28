@@ -78,9 +78,8 @@ function getBlockNodePos(view: EditorView, el: HTMLElement): number | null {
   const pos = view.posAtDOM(el, 0);
   if (pos == null || pos < 0) return null;
   const $pos = view.state.doc.resolve(pos);
-  // depth === 0: posAtDOM 返回的是顶层块之前的位置（atom NodeView，如
-  // KaTeX/图片等），pos 本身就是块的起始位置，不能再调 before()（根节点无前驱位置，
-  // 会抛 "There is no position before the top-level node"）。
+  // depth === 0: posAtDOM 返回的是顶层块之前的位置（atom NodeView，如 KaTeX/图片等），
+  // pos 本身就是块的起始位置；根节点无前驱位置，再调 before() 会抛错。
   if ($pos.depth === 0) return pos;
   if ($pos.parentOffset === 0 && $pos.nodeAfter && $pos.nodeAfter.isBlock) {
     return pos - 1;
@@ -281,15 +280,40 @@ export const BlockHandles = Extension.create({
         top = rect.top + padTop + lineH / 2 - wrapH / 2;
       }
 
+      // 视口边缘 clamp：块滚出视口时手柄贴边而不消失
+      if (top < 8) top = 8;
+      const maxTop = window.innerHeight - wrapH - 8;
+      if (top > maxTop) top = Math.max(8, maxTop);
       wrap.style.left = `${left}px`;
       wrap.style.top = `${top}px`;
       wrap.classList.remove("is-hidden");
     };
 
+    // 激活块对应的 DOM 元素（菜单打开时手柄应锚定在它上面）
+    const getActiveEl = (): HTMLElement | null => {
+      if (activePos == null || !view) return null;
+      const dom = view.nodeDOM(activePos);
+      return dom instanceof HTMLElement ? dom : null;
+    };
+
+    // rAF 合并同一帧内的多次重定位（mousemove / scroll 触发频率高）。
+    // force：hover 主动定位时强制显示（positionUI 会移除 is-hidden）；
+    // 滚动等被动定位不唤醒已隐藏的手柄。
+    let rafId: number | null = null;
+    const schedulePosition = (force = false) => {
+      if (rafId != null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        if (!wrap) return;
+        if (!force && wrap.classList.contains("is-hidden")) return;
+        // 菜单打开时跟随激活块；否则跟随 hover 的块
+        const el = getActiveEl() ?? hoverEl;
+        if (el && el.isConnected) positionUI(el);
+      });
+    };
+
     const onScroll = () => {
-      if (hoverEl && wrap && !wrap.classList.contains("is-hidden")) {
-        positionUI(hoverEl);
-      }
+      schedulePosition();
     };
 
     const createUI = () => {
@@ -335,6 +359,10 @@ export const BlockHandles = Extension.create({
 
     const destroyUI = () => {
       if (hideTimer) clearTimeout(hideTimer);
+      if (rafId != null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
       window.removeEventListener("scroll", onScroll, true);
       window.removeEventListener("resize", onScroll, true);
       addBtn?.removeEventListener("click", onAddClick);
@@ -387,6 +415,9 @@ export const BlockHandles = Extension.create({
           handleDOMEvents: {
             mousemove: (v, event) => {
               if (!v.editable || !wrap) return false;
+              // 菜单打开时手柄锁定在激活块上，不跟随 hover 移动，
+              // 避免弹窗（锚定手柄位置）与按钮分离
+              if (activePos != null) return false;
               const blockEl = findBlockEl(event.target as EventTarget, v.dom as HTMLElement);
               if (!blockEl) {
                 scheduleHide();
@@ -394,7 +425,7 @@ export const BlockHandles = Extension.create({
                 return false;
               }
               hoverEl = blockEl;
-              positionUI(blockEl);
+              schedulePosition(true);
               return false;
             },
             mouseleave: () => {
@@ -406,8 +437,8 @@ export const BlockHandles = Extension.create({
               if (wrap?.contains(target)) return false;
               if (activePos != null) {
                 setActive(null);
+                wrap?.classList.add("is-hidden");
               }
-              wrap?.classList.add("is-hidden");
               return false;
             },
             keydown: (_v, event) => {
@@ -426,7 +457,8 @@ export const BlockHandles = Extension.create({
               ) {
                 if (activePos != null) setActive(null);
               }
-              wrap?.classList.add("is-hidden");
+              // 菜单打开时不隐藏手柄，保持与弹窗对齐
+              if (activePos == null) wrap?.classList.add("is-hidden");
               return false;
             },
           },
@@ -439,6 +471,11 @@ export const BlockHandles = Extension.create({
               view = updatedView;
               const statePos = getActiveBlockPos(updatedView.state);
               if (statePos !== activePos) activePos = statePos;
+              // 菜单打开期间手柄始终锚定激活块（doc/选区变化后的重对齐）
+              if (statePos != null) {
+                const dom = updatedView.nodeDOM(statePos);
+                if (dom instanceof HTMLElement) positionUI(dom);
+              }
               // 响应 editable 切换：只读时销毁手柄，可编辑时重建
               if (updatedView.editable && !wrap) {
                 createUI();

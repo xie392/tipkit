@@ -29,6 +29,7 @@ export const SITE_COPY = {
       lead: "从零开始把 TipKit 接入你的 Next.js / React 项目。只需要安装聚合包、引入一个组件、选一个主题。",
     },
     pager: { prev: "上一节", next: "下一节" },
+    toc: { title: "本页目录" },
     themeMenu: {
       triggerLabel: "切换主题",
       menuLabel: "主题选项",
@@ -119,6 +120,7 @@ export const SITE_COPY = {
       lead: "Add TipKit to your Next.js / React project from scratch — install the aggregate package, drop in one component, pick a theme.",
     },
     pager: { prev: "Previous", next: "Next" },
+    toc: { title: "On this page" },
     themeMenu: {
       triggerLabel: "Switch theme",
       menuLabel: "Theme options",

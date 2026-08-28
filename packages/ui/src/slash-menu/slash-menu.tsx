@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import {
@@ -39,7 +39,9 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
   const [activeIndex, setActiveIndex] = useState(0);
   const [hiddenKey, setHiddenKey] = useState("");
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
-  const [previewPos, setPreviewPos] = useState<{ top: number } | null>(null);
+  // 预览弹窗的视口 top：每次定位/高亮变化后实时测量高亮项位置，
+  // 保证滚动时预览跟随菜单与高亮项（仅在贴近视口底部时贴边）
+  const [previewTop, setPreviewTop] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -56,7 +58,7 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
             t,
           })
         : [],
-    [editor, onUploadImage, slash.key, slash.active, t],
+    [editor, onUploadImage, t],
   );
   const actions = useMemo(
     () => filterInsertActions(allActions, slash.query),
@@ -80,11 +82,10 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
 
     const menuH = menuRef.current?.offsetHeight || MENU_MAX_HEIGHT;
     const menuW = MENU_WIDTH;
+    // 光标贴近视口底部时翻转到 / 字符上方，但始终紧邻 / 字符；
+    // 不做视口边缘 clamp —— / 滚出视口时菜单跟着出去（严格跟随）
     if (top + menuH > vh - 12) {
       top = coords.top - menuH - OFFSET;
-    }
-    if (top < 8) {
-      top = Math.max(8, vh - menuH - 12);
     }
     if (left + menuW > vw - 12) {
       left = vw - menuW - 12;
@@ -97,7 +98,19 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
   useEffect(() => {
     if (!editor) return;
     const syncSlash = () => {
-      setSlash(getSlashCommandState(editor));
+      const next = getSlashCommandState(editor);
+      const cur = stateRef.current.slash;
+      // 逐字段比较：无变化不 setState，避免编辑器每次事务都重渲染本组件
+      if (
+        cur.active === next.active &&
+        cur.query === next.query &&
+        cur.from === next.from &&
+        cur.to === next.to &&
+        cur.key === next.key
+      ) {
+        return;
+      }
+      setSlash(next);
       setActiveIndex(0);
       requestAnimationFrame(updatePosition);
     };
@@ -137,11 +150,6 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
     const el = listRef.current.children[activeIndex] as HTMLElement | undefined;
     if (!el) return;
     el.scrollIntoView({ block: "nearest" });
-    requestAnimationFrame(() => {
-      const listRect = listRef.current!.getBoundingClientRect();
-      const itemRect = el.getBoundingClientRect();
-      setPreviewPos({ top: itemRect.top - listRect.top });
-    });
   }, [activeIndex]);
 
   useEffect(() => {
@@ -186,6 +194,22 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
   const isVisible = slash.active && hiddenKey !== slash.key && pos !== null;
   const activeAction = actions[activeIndex] ?? null;
 
+  // 预览弹窗垂直位置：实时测量高亮项的视口位置，滚动时跟随菜单与高亮项
+  useLayoutEffect(() => {
+    if (!isVisible || !activeAction?.preview) {
+      setPreviewTop((prev) => (prev === null ? prev : null));
+      return;
+    }
+    const el = listRef.current?.children[activeIndex] as HTMLElement | undefined;
+    if (!el) {
+      setPreviewTop((prev) => (prev === null ? prev : null));
+      return;
+    }
+    // 严格跟随高亮项
+    const top = el.getBoundingClientRect().top - 4;
+    setPreviewTop((prev) => (prev === top ? prev : top));
+  }, [activeIndex, pos, isVisible, activeAction]);
+
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -203,14 +227,12 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
   };
 
   let previewLeft = 0;
-  let previewTop = 0;
   let showPreview = false;
-  if (isVisible && pos && previewPos !== null && activeAction?.preview) {
+  if (isVisible && pos && previewTop !== null && activeAction?.preview) {
     const onRight = pos.left + MENU_WIDTH + PREVIEW_GAP + PREVIEW_WIDTH + 16 < window.innerWidth;
     previewLeft = onRight
       ? pos.left + MENU_WIDTH + PREVIEW_GAP
       : pos.left - PREVIEW_WIDTH - PREVIEW_GAP;
-    previewTop = Math.min(pos.top + previewPos.top - 4, window.innerHeight - 180);
     showPreview = true;
   }
 
@@ -224,7 +246,7 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
         left: pos?.left,
         width: MENU_WIDTH,
         maxHeight: MENU_MAX_HEIGHT,
-        zIndex: 9999,
+        zIndex: 65,
       }}
       onMouseDown={(e) => e.preventDefault()}
       role="menu"
@@ -255,10 +277,10 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
         className="tk-slash-preview"
         style={{
           position: "fixed",
-          top: previewTop,
+          top: previewTop ?? 0,
           left: previewLeft,
           width: PREVIEW_WIDTH,
-          zIndex: 9998,
+          zIndex: 64,
           pointerEvents: "none",
         }}
       >

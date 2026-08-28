@@ -1,8 +1,12 @@
 ## 快速开始
 
-### 最小示例
+本页假设你已经有一个 React / Next.js 项目，并完成了依赖安装（见「安装」页）。如果连项目都还没有，最快的办法是去「安装」页用方式一克隆仓库先看效果，再回来照抄这里的代码。
 
-一个组件 + 一个主题，即可得到可编辑的富文本区域：
+### 第一步：新建一个页面组件
+
+TipKit 编辑器是 React 组件。在 Next.js 的 `app/` 目录里，页面默认是服务端组件，而编辑器需要浏览器能力，所以要建一个标了 `"use client"` 的客户端组件。
+
+新建 `app/page.tsx`，先贴一个最小版本：
 
 ```tsx
 "use client";
@@ -20,11 +24,32 @@ export default function Editor() {
 }
 ```
 
-> 主题 CSS 的视觉样式全部作用域在 `tk-theme-default` 类下——**只 import CSS 不会生效**，必须把该类加到编辑器的任意祖先元素（通常是包裹 div 或 `<html>`）上。切换主题同理：换成 `tk-theme-sketch` / `tk-theme-dark` 即可，也可直接用 `<TipKitEditor className="tk-theme-sketch">`。
+### 第二步：接上主题（关键一步）
+
+主题的视觉样式全部作用域在 `tk-theme-default` 这个类名下，有两件事都要做：
+
+1. `import "@tipkit/themes/default.css"` —— 把样式注册进来；
+2. 把 `tk-theme-default` 类加到编辑器的**任意祖先元素**上（上面的包裹 `div`，或 `<html>`）—— 样式才会真正生效。
+
+> **最常见的坑**：只 import CSS、忘了加类名，页面就会是"纯白、没有样式"。换主题同理：用 `tk-theme-sketch` / `tk-theme-dark`，或直接 `<TipKitEditor className="tk-theme-sketch">`。
+
+### 第三步：运行并验证
+
+```bash
+pnpm dev        # 或 npm run dev
+```
+
+打开终端提示的地址（通常是 `http://localhost:3000`），你应该看到：
+
+- 一个可点击、可输入文字的编辑区域；
+- 选中一段文字，上方或下方弹出工具条；
+- 输入 `/`，出现一个可搜索的斜杠菜单。
+
+如果区域是纯白、没有任何样式，先检查是不是漏了 `tk-theme-default` 类（见第二步）。
 
 ### 完整示例
 
-接入高级扩展与全部交互浮层（斜杠菜单、文字工具条、链接气泡、块手柄、表格控件等），与 `apps/demo` 中的演示一致：
+上面是最小可运行配置。要把高级扩展和全部交互浮层都接上（斜杠菜单、文字工具条、链接气泡、块手柄、表格控件…），直接复制下面这段，与 `apps/demo` 里的演示一致：
 
 ```tsx
 "use client";
@@ -69,3 +94,10 @@ export default function App() {
 ```
 
 浮层不是 TipKitEditor 的内部实现，而是通过 render prop 由消费方挂载——这正是「无头」的体现：交互能力与视觉完全由你控制。
+
+### 常见问题
+
+- **页面没有样式 / 编辑器"裸奔"**：多半是忘了给祖先元素加 `tk-theme-default` 类（见第二步）。
+- **报 `"use client"` 相关错误**：Next.js App Router 中，使用 `TipKitEditor` 的组件必须标记 `"use client"`（见第一步）。
+- **报 hydration mismatch（水合不匹配）**：TipKit 默认 `immediatelyRender: false`，服务端渲染场景可直接使用；如果你自定义编辑器实例，记得也传 `immediatelyRender: false`。
+- **图片 / 附件传不上去**：需要把真实上传服务注入到 `deps`（`uploadImage` / `uploadAttachment`），见「插件总览」页的能力注入章节。

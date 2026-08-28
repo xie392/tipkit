@@ -1,0 +1,57 @@
+## Basic Extensions
+
+This page covers TipKit's **basic extension set**, all from `createBasicExtensions()`, ready to use out of the box. It covers everything needed for everyday writing: block-level elements, inline styles, links, tables, task lists, plus instant Markdown conversion and serialization.
+
+The basic set is built on Tiptap's `StarterKit`, but the **built-in bold/italic/strike/inline code/link/underline/horizontal rule** are disabled in favor of the custom, more robust versions below (to work around a Tiptap 3.x mark input rule crash), so behavior differs slightly from a bare StarterKit.
+
+### Blocks & Inline Styles
+
+- **Block-level**: paragraphs, headings (1–6), bulleted/ordered lists, blockquotes, horizontal rules. Type `# ` then space for a heading, `- ` or `1. ` for a list, `>` for a blockquote, `---` for a horizontal rule.
+- **Inline**: bold, italic, strike, inline code — type `**bold**`, `*italic*`, `~~strike~~`, `` `code` `` for instant conversion; underline, highlight (multicolor), superscript, and subscript are also supported.
+- **Typography**: color, font family, font size, alignment (headings and paragraphs), and Typography (auto-converts `--` to an en dash, `(c)` to ©, and other typographic characters).
+
+### Lists & Tasks
+
+`TaskList` + `TaskItem` provide task lists; `TaskItem` is configured with `nested: true`, so task items can be **nested arbitrarily deep**.
+
+### Links
+
+- **Markdown input rule**: type `[text](url)` and it converts to a link instantly.
+- **Auto-link**: recognizable URLs pasted or typed are recognized as links automatically.
+- **Fallback conversion**: `LinkBackfillConvert` handles fallback conversion of `[text](url)` in scenarios like IME composition; `CodeBackfillConvert` falls back to an inline code mark when `` `code` `` is followed by a space or Enter.
+
+### Tables
+
+`Table` / `TableRow` / `TableHeader` / `TableCell` provide full table support. `Table` is configured with `resizable: true` (drag to resize column widths, with `lastColumnResizable: false` so the last column is not resizable).
+
+### Markdown
+
+- **Instant conversion**: syntax such as `# `, `- `, `1. `, and `[text](url)` takes effect immediately as you type.
+- **Paste**: `MarkdownPaste` parses pasted Markdown text into rich content instead of plain text.
+- **Serialization**: `Markdown` (from `@tiptap/markdown`) provides content serialization/deserialization and can output Markdown.
+
+### Editor Experience
+
+Small utilities that improve the editing experience: `TrailingNode` keeps an editable paragraph at the end of the document; `Selection` provides selection helpers; `SelectAll` optimizes select-all behavior; `ListInputRules` handles input rules such as list indentation; `CharacterCount` counts characters (limit 100,000); `Dropcursor` shows a drop cursor while dragging elements (2px wide).
+
+### Minimal Editor
+
+`createBasicExtensions()` on its own already forms a minimal editor — pair it with a theme and you're good to go:
+
+```tsx
+"use client";
+
+import { TipKitEditor } from "@tipkit/editor";
+import { createBasicExtensions } from "@tipkit/extensions";
+import "@tipkit/themes/default.css";
+
+export default function Editor() {
+  return (
+    <div className="tk-theme-default">
+      <TipKitEditor deps={{}} extensions={createBasicExtensions()} />
+    </div>
+  );
+}
+```
+
+> All visual styles in the theme CSS are scoped under the `tk-theme-default` class — you must add that class to any ancestor of the editor for it to take effect. See the Quick Start page for a fuller integration.

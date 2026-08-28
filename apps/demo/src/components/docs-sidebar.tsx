@@ -8,10 +8,10 @@ export interface DocSection {
   slug: string;
   label: string;
   labelEn?: string;
-  items?: { id: string; label: string; labelEn?: string }[];
+  children?: DocSection[];
 }
 
-/** 文档侧边栏：主章节跳转独立页面，子小节锚点定位（sticky，文案跟随站点语言） */
+/** 文档侧边栏：主章节跳转独立页面；含 children 的章节渲染为分组（组头 + 子页面），sticky，文案跟随站点语言 */
 export function DocsSidebar({
   sections,
   currentSlug,
@@ -29,10 +29,15 @@ export function DocsSidebar({
       <p className="docs-sidebar-title">{c.title}</p>
       <nav className="docs-sidebar-nav" aria-label={c.navLabel}>
         {sections.map((section) => {
-          const active = currentSlug === section.slug;
+          const active =
+            currentSlug === section.slug ||
+            (section.children ? section.children.some((child) => child.slug === currentSlug) : false);
           return (
-            <div key={section.slug} className="docs-sidebar-group">
-              {section.items ? (
+            <div
+              key={section.slug}
+              className={`docs-sidebar-group${section.children ? " docs-sidebar-group--children" : ""}`}
+            >
+              {section.children ? (
                 <>
                   <Link
                     href={`${prefix}/docs/${section.slug}`}
@@ -43,16 +48,21 @@ export function DocsSidebar({
                     {label(section.label, section.labelEn)}
                   </Link>
                   <ul>
-                    {section.items.map((item) => (
-                      <li key={item.id}>
-                        <Link
-                          href={`/docs/${section.slug}#${item.id}`}
-                          className="docs-sidebar-link docs-sidebar-link-sub"
-                        >
-                          {label(item.label, item.labelEn)}
-                        </Link>
-                      </li>
-                    ))}
+                    {section.children.map((child) => {
+                      const childActive = currentSlug === child.slug;
+                      return (
+                        <li key={child.slug}>
+                          <Link
+                            href={`${prefix}/docs/${child.slug}`}
+                            className="docs-sidebar-link docs-sidebar-link-sub"
+                            data-active={childActive || undefined}
+                            aria-current={childActive ? "page" : undefined}
+                          >
+                            {label(child.label, child.labelEn)}
+                          </Link>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </>
               ) : (

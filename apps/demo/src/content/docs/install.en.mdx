@@ -1,9 +1,53 @@
 ## Installation
 
-pnpm is recommended (monorepo friendly), but npm / yarn work too:
+### Prerequisites
+
+Before you start, make sure your machine has:
+
+- **Node.js**: 18 or later (we recommend the latest LTS; check with `node -v` in a terminal).
+- A **package manager**: pnpm (recommended), npm, or yarn all work (check with `pnpm -v`).
+- A **React 18+** or **Next.js** project (if you don't have one yet, see "Option B" below to create it).
+
+> Just want to see what TipKit looks like without setting up a project? Jump straight to "Option A" — it's the fastest.
+
+### Option A: Clone the repo — see results fastest
+
+You can run it without building a project — just clone this repository and start the demo with one command:
+
+```bash
+git clone https://github.com/xie392/tipkit.git
+cd tipkit
+pnpm install
+pnpm dev
+```
+
+Open the address shown in your terminal (usually http://localhost:3000) and click "Live Demo" in the top-right to try the slash menu, canvas, columns, comments and more. The source in `apps/demo` is a complete integration example you can copy from later.
+
+### Option B: Install into your own project
+
+Prerequisite: you already have a React / Next.js project. If you don't, create a Next.js project first (it asks a few questions — press Enter to accept the defaults):
+
+```bash
+pnpm create next-app@latest my-app
+cd my-app
+```
+
+Then install TipKit into your project:
 
 ```bash
 pnpm add @tipkit/editor @tipkit/extensions @tipkit/ui @tipkit/components @tipkit/themes
 ```
 
-`@tipkit/editor` is the aggregate entry point; the other packages (extensions / ui / components / themes) can be imported on demand. To try things out quickly, you can also clone the repo and explore the full example in `apps/demo`.
+What each package does:
+
+| Package | Purpose | Required |
+| --- | --- | --- |
+| `@tipkit/editor` | Aggregate entry point, provides the `<TipKitEditor>` component | Yes |
+| `@tipkit/extensions` | Basic / advanced extension sets | Yes (as needed) |
+| `@tipkit/themes` | Theme CSS | Yes |
+| `@tipkit/ui` | Interactive primitives such as slash menu and overlays | Install when used |
+| `@tipkit/components` | shadcn base components | Install when used |
+
+> **App Router note**: If your project uses Next.js's `app/` directory, the TipKit editor must live in a component marked `"use client"` (see step 1 of "Quickstart").
+
+Once installed, head to the "Quickstart" page and follow the steps to wire the editor into your page.

@@ -1,0 +1,81 @@
+## Plugins Overview
+
+All TipKit extensions come from the `@tipkit/extensions` package, split into **two sets**:
+
+- `createBasicExtensions()` — basic formatting + Markdown input rules + serialization (paragraphs, headings, lists, blockquotes, inline styles, links, tables, task lists, etc.).
+- `createAdvancedExtensions(options?)` — a set of advanced nodes (image block, code block, math, callout, columns, details, table of contents, iframe, attachment, status, etc.).
+
+Both sets can be **omitted entirely** (import only the extensions you actually need) or **stacked together** (concatenated via array spread), fully on demand.
+
+### Set Overview
+
+| Set | Entry point | Typical contents |
+| --- | --- | --- |
+| Basic | `createBasicExtensions()` | Headings 1–6, lists, blockquotes, horizontal rules, bold/italic/strike/inline code, underline, highlight, subscript/superscript, color, font family, font size, alignment, task lists, links, tables, Markdown input rules & serialization |
+| Advanced | `createAdvancedExtensions({ tocScrollOffset? })` | Image block, code block, math (KaTeX), callout, columns, details, table of contents (TOC), iframe, attachment, block handles, file drop, status |
+| opt-in extensions | Imported separately from `@tipkit/extensions` | `Comment` (selection comment), `Canvas` (drawing board) |
+| UI primitives | `@tipkit/ui` | `SlashMenu` / `EmojiSuggestion`, rendered by the consumer |
+
+### Basic Set
+
+`createBasicExtensions()` covers all the basics needed for everyday writing: block-level elements (paragraphs, headings 1–6, lists, blockquotes, horizontal rules, tables, task lists), inline styles (bold/italic/strike/inline code/underline/highlight/subscript/superscript/color/font family/font size/alignment), instant Markdown conversion plus paste/serialization, and a set of editor-experience enhancements (trailing node, select-all, character count, etc.).
+
+On its own it already forms a minimal editor, ready to use out of the box. See the "Basic Extensions" page for the detailed breakdown.
+
+### Advanced Set
+
+`createAdvancedExtensions(options?)` is the full M2 + M3 collection of advanced nodes: image block (`ImageBlock`), code block (`CustomCodeBlock`), math (`Katex`), callout (`Callout`), columns (`Columns` / `Column`), details (`Details`), table of contents (`TableOfContentsNode`), iframe (`Iframe`), attachment (`Attachment`), block handles (`BlockHandles`), file drop (`FileHandler`), and status (`Status`).
+
+Note that `FileHandler` has **no upload configured by default** (it degrades to inline base64); when you need an upload service, override it with `FileHandler.configure({ onUpload })`. `EmojiSuggestion` (the emoji suggestion floating UI) lives in `@tipkit/ui` and is rendered by the consumer on demand.
+
+### opt-in Extensions
+
+The following extensions are **not** part of any set — import them individually when needed:
+
+| Export | Package | Purpose |
+| --- | --- | --- |
+| `Comment` | `@tipkit/extensions` | Selection comments: create a comment on selected text, paired with the `EditorDeps.onCommentCreate` callback |
+| `Canvas` | `@tipkit/extensions` | Drawing board: an embeddable free-drawing canvas node |
+| `SlashMenu` | `@tipkit/ui` | Slash menu (`/` trigger) UI primitive: positioning, keyboard navigation, portal |
+| `EmojiSuggestion` | `@tipkit/ui` | Emoji suggestion (`:` trigger) UI primitive: floating layer + keyboard navigation |
+
+`SlashMenu` / `EmojiSuggestion` provide only interaction primitives and render no visuals — you mount them into `TipKitEditor`'s render prop yourself (see the full example in Quick Start).
+
+### Capability Injection (EditorDeps)
+
+Extensions never call upload, storage, or rendering services directly — they read them from `useEditorDeps()` in `@tipkit/core`, injected into `TipKitEditor` through `deps`:
+
+| Field | Type | Purpose |
+| --- | --- | --- |
+| `uploadImage` | `(file: File, editor: Editor) => Promise<string>` | Image upload, returns a URL usable for `<img src>` |
+| `uploadAttachment` | `(file: File, editor: Editor) => Promise<AttachmentMeta>` | Attachment upload, returns attachment metadata |
+| `renderKatex` | `(tex: string, displayMode: boolean) => Promise<string>` | KaTeX rendering, returns rendered HTML (works on server or client) |
+
+### Composition Example
+
+The most common combination is the basic set + the advanced set, with upload capability injected:
+
+```tsx
+import { TipKitEditor, type EditorDeps } from "@tipkit/editor";
+import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensions";
+
+/** Image upload: replace with your real upload service */
+const uploadImage = async (file: File) => URL.createObjectURL(file);
+
+const deps: EditorDeps = { uploadImage };
+
+export default function App() {
+  return (
+    <TipKitEditor
+      deps={deps}
+      className="tk-theme-default"
+      extensions={[
+        ...createBasicExtensions(),
+        ...createAdvancedExtensions({ tocScrollOffset: 80 }),
+      ]}
+    />
+  );
+}
+```
+
+> **Tip**: `tocScrollOffset` in `createAdvancedExtensions({ tocScrollOffset: 80 })` is the pixel offset from the top of the scroll container when clicking a TOC entry to jump, used to avoid sticky headers / toolbars overlapping the target. Defaults to `0`.

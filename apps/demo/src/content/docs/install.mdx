@@ -1,9 +1,53 @@
 ## 安装
 
-推荐使用 pnpm（monorepo 友好），npm / yarn 亦可：
+### 前置要求
+
+开始前，请确认你的电脑满足：
+
+- **Node.js**：18 及以上版本（建议安装最新的 LTS 版，可在终端执行 `node -v` 查看）。
+- 一个**包管理器**：pnpm（推荐）、npm 或 yarn 均可（执行 `pnpm -v` 查看是否已装）。
+- 一个 **React 18+** 或 **Next.js** 项目（如果你还没有，看下面的「方式二」怎么创建）。
+
+> 如果你只想先看看 TipKit 长什么样、不想现在搭项目，直接跳「方式一」最快。
+
+### 方式一：克隆仓库，最快看到效果
+
+不搭项目也能跑起来——直接克隆这个仓库，一条命令启动演示：
+
+```bash
+git clone https://github.com/xie392/tipkit.git
+cd tipkit
+pnpm install
+pnpm dev
+```
+
+按终端提示打开地址（通常是 http://localhost:3000），点右上角「在线演示」就能体验斜杠菜单、画板、分栏、评论等全部功能。`apps/demo` 的源码就是一份完整的接入示例，之后可以照着它抄。
+
+### 方式二：在自己的项目里安装
+
+前提是你已经有一个 React / Next.js 项目。如果还没有，先用下面的命令创建一个 Next.js 项目（会问几个问题，一路回车即可）：
+
+```bash
+pnpm create next-app@latest my-app
+cd my-app
+```
+
+然后在项目里安装 TipKit：
 
 ```bash
 pnpm add @tipkit/editor @tipkit/extensions @tipkit/ui @tipkit/components @tipkit/themes
 ```
 
-其中 `@tipkit/editor` 是聚合入口，其余包（extensions / ui / components / themes）按需引入。想先跑起来，也可以直接克隆仓库，在 `apps/demo` 中查看完整示例。
+各包的作用：
+
+| 包 | 作用 | 是否必装 |
+| --- | --- | --- |
+| `@tipkit/editor` | 聚合入口，提供 `<TipKitEditor>` 组件 | 是 |
+| `@tipkit/extensions` | 基础 / 高级扩展集合 | 是（按需） |
+| `@tipkit/themes` | 主题样式 CSS | 是 |
+| `@tipkit/ui` | 斜杠菜单、浮层等交互原语 | 用到时装 |
+| `@tipkit/components` | shadcn 基础组件 | 用到时装 |
+
+> **App Router 提示**：如果你的项目用 Next.js 的 `app/` 目录，TipKit 编辑器必须放在标了 `"use client"` 的组件里（见「快速开始」第一步）。
+
+装完之后，去「快速开始」页按步骤把编辑器接到你的页面上。

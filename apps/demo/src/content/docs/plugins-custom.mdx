@@ -1,0 +1,242 @@
+## 自定义扩展开发
+
+TipKit 基于 Tiptap v3，消费方可以在**自己的项目里**用 `@tiptap/core` 定义扩展（节点 / mark / 命令），把它加进 `<TipKitEditor>` 的 `extensions` 数组即可——**无需修改 TipKit 包、无需访问 TipKit 源码**。本页约定与仓库内 `skills/new-extension` 技能保持一致。
+
+核心原则：**扩展就是标准 Tiptap 扩展**——声明属性 + `parseHTML` / `renderHTML`；需要外部能力（上传 / 渲染 / 文案）时用 `@tipkit/core` 的 `useEditorDeps()` / `useT()`。
+
+> **不要做**：修改 `@tipkit` 包内代码（会丢失且无法升级）；把视觉样式写进扩展逻辑（视觉归主题 CSS）。
+
+### 扩展目录自包含
+
+- 扩展目录使用**内部相对导入**，不依赖兄弟扩展，可以整体裁剪 / 整体搬运。
+- 先判断扩展类型：块级内容 → `Node`；行内样式（加粗、链接这类）→ `Mark`；纯逻辑（快捷键、输入规则、命令）→ `Extension`。
+- 纯逻辑（无 DOM）扩展写 `.ts`；带 React 视图写 `.tsx` 并加 `"use client"`。
+- 依赖：`@tiptap/core`、`@tiptap/react`、`@tipkit/core`。
+
+```bash
+pnpm add @tiptap/core @tiptap/react @tipkit/core
+```
+
+### 纯逻辑与语义类名
+
+- **纯逻辑**：扩展内只做 ProseMirror / Tiptap 行为（属性、解析、命令、输入规则），不渲染视觉 DOM。
+- **语义类名**：需要样式的节点只加 `tk-*` 语义类名（如 `tk-timestamp`），**禁止**视觉类名（`sketch-*`、`graph-paper` 等一律进 themes）。
+- 分层铁律：`core` / `extensions` / `ui` 中禁止出现颜色、字体、阴影、边框等视觉样式；视觉只允许出现在 `themes/`（或 `components/` 的 shadcn 组件内）。
+
+### 文案本地化 useT()
+
+所有用户可见文案**禁止硬编码**，通过 `useT()` 读取当前翻译函数（需在 `EditorProvider` 内渲染，`EditorContent` 默认满足）。未注入 `t` 时返回内置中文，开箱即用；消费方可用 `@tipkit/core` 的 `createT` / `zh` / `en` 构造词典并注入 `EditorDeps.t`。
+
+```tsx
+import { useT } from "@tipkit/core";
+
+function MyNodeView() {
+  const t = useT();
+  return <span className="tk-my-node-tag">{t("myNode.label")}</span>;
+}
+```
+
+缺 key 时 `t()` 原样返回 key 本身，不会抛错。自定义 key 按模块分段命名（如 `myNode.*`），需要覆盖时在消费方词典里展开合并。
+
+### 能力注入 useEditorDeps()
+
+扩展**不直接调用项目 API / 全局变量**，一律从 `@tipkit/core` 的 `useEditorDeps()` 读取注入的能力。`EditorDeps` 提供：`uploadImage`、`uploadAttachment`、`renderKatex`、`t`、`onCommentCreate`、`onCommentClick`。
+
+```tsx
+import { useEditorDeps } from "@tipkit/core";
+
+function MyNodeView({ editor, updateAttributes }: NodeViewProps) {
+  const { uploadImage, t } = useEditorDeps();
+
+  const handleUpload = async (file: File) => {
+    if (!uploadImage) return;
+    const src = await uploadImage(file, editor); // 返回可用于 <img src> 的 URL
+    updateAttributes({ src });
+  };
+
+  return <span className="tk-my-node-tag">{t("myNode.uploading")}</span>;
+}
+```
+
+### React NodeView
+
+需要自定义渲染的节点用 `ReactNodeViewRenderer` 挂 React 视图：
+
+- 用 `NodeViewWrapper` 作为根节点，用 `NodeViewContent` 渲染可编辑内容区（有内容的节点必须保留它）。
+- 交互 UI（按钮、输入框等）要设 `contentEditable={false}`，避免干扰光标与内容同步。
+- 只读态通过 `useEditorEditable(editor)` 判断，与 TipKit 自带节点行为一致。
+
+```tsx
+"use client";
+
+import { Node, mergeAttributes } from "@tiptap/core";
+import { ReactNodeViewRenderer, NodeViewWrapper, NodeViewContent, type NodeViewProps } from "@tiptap/react";
+import { useT } from "@tipkit/core";
+
+export const MyNode = Node.create({
+  name: "myNode",
+  group: "block",
+  content: "inline*",
+  defining: true,
+
+  addAttributes() {
+    return {
+      note: {
+        default: null as string | null,
+        parseHTML: (el) => (el as HTMLElement).getAttribute("data-note"),
+        renderHTML: (a) => (a.note ? { "data-note": a.note } : {}),
+      },
+    };
+  },
+
+  parseHTML: () => [{ tag: 'div[data-type="myNode"]' }],
+  renderHTML: ({ HTMLAttributes }) =>
+    ["div", mergeAttributes(HTMLAttributes, { "data-type": "myNode", class: "tk-my-node" }), 0],
+
+  addCommands() {
+    return {
+      setMyNode: () => ({ commands }) => commands.insertContent({ type: this.name }),
+    };
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(MyNodeView);
+  },
+});
+
+function MyNodeView({ node }: NodeViewProps) {
+  const t = useT();
+  return (
+    <NodeViewWrapper data-type="myNode" data-note={node.attrs.note}>
+      <span className="tk-my-node-tag">{t("myNode.label")}</span>
+      <NodeViewContent />
+    </NodeViewWrapper>
+  );
+}
+```
+
+### 注册与接入
+
+把扩展 append 到 `<TipKitEditor>` 的 `extensions` 数组即可；需要 `/` 斜杠菜单唤起时，把扩展命令映射到你自己的斜杠菜单数据里（TipKit 内置 `SlashMenu` 基于 `getInsertActions()` 构建，自定义节点需按你项目的菜单配置加入）。
+
+```tsx
+<TipKitEditor
+  deps={deps}
+  extensions={[...createBasicExtensions(), ...createAdvancedExtensions(), MyNode]}
+/>
+```
+
+完整小示例（时间戳节点）：定义 + 注册 + 文案 key 声明：
+
+```tsx
+"use client";
+
+import { Node, mergeAttributes } from "@tiptap/core";
+import { ReactNodeViewRenderer, NodeViewWrapper, NodeViewContent, type NodeViewProps } from "@tiptap/react";
+import { useT } from "@tipkit/core";
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    timestamp: { setTimestamp: (note?: string) => ReturnType };
+  }
+}
+
+export const Timestamp = Node.create({
+  name: "timestamp",
+  group: "block",
+  content: "inline*",
+  defining: true,
+
+  addAttributes() {
+    return {
+      note: {
+        default: null as string | null,
+        parseHTML: (el) => (el as HTMLElement).getAttribute("data-note"),
+        renderHTML: (a) => (a.note ? { "data-note": a.note } : {}),
+      },
+    };
+  },
+
+  parseHTML: () => [{ tag: 'div[data-type="timestamp"]' }],
+  renderHTML: ({ HTMLAttributes }) =>
+    ["div", mergeAttributes(HTMLAttributes, { "data-type": "timestamp", class: "tk-timestamp" }), 0],
+
+  addCommands() {
+    return {
+      setTimestamp: (note) => ({ commands }) =>
+        commands.insertContent({ type: "timestamp", attrs: { note: note ?? null } }),
+    };
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(TimestampView);
+  },
+});
+
+function TimestampView({ node, editor }: NodeViewProps) {
+  const t = useT();
+  const editable = editor.isEditable;
+  return (
+    <NodeViewWrapper data-type="timestamp" data-note={node.attrs.note}>
+      <span className="tk-timestamp-tag">{t("timestamp.label")}</span>
+      {editable && <button contentEditable={false}>{t("timestamp.edit")}</button>}
+      <NodeViewContent />
+    </NodeViewWrapper>
+  );
+}
+```
+
+```tsx
+// 注册
+<TipKitEditor
+  deps={deps}
+  extensions={[...createBasicExtensions(), ...createAdvancedExtensions(), Timestamp]}
+/>
+
+// 命令插入
+editor.chain().focus().setTimestamp("2026-08-28").run();
+```
+
+文案 key（消费方在词典里提供）：
+
+```ts
+// 在你的 i18n 词典中追加（zh 示例）
+{
+  "timestamp.label": "时间戳",
+  "timestamp.edit": "编辑",
+}
+```
+
+### 主题接入
+
+`tk-*` 语义类名的视觉样式写在**主题层** CSS 中（如 `packages/themes/src/base.css` 或各皮肤 css），不要写进扩展。样式通常挂在 `.tk-theme-*` 作用域下：
+
+```css
+/* packages/themes/src/base.css（示意） */
+.tk-theme-default .tk-timestamp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px dashed var(--tk-border);
+  border-radius: 6px;
+  background: var(--tk-bg-muted);
+}
+
+.tk-theme-default .tk-timestamp-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tk-accent);
+}
+```
+
+> 消费方在自己的项目里自定义样式时，同样以 `tk-*` 类名或 `data-type` 选择器写作用域样式，避免污染全局。
+
+### 验证
+
+写完扩展后运行类型检查与构建，并手动验证插入 / 序列化 / 复制粘贴 / SSR：
+
+```bash
+pnpm type-check
+pnpm build
+```
