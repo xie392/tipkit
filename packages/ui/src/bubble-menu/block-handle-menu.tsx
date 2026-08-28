@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { NodeSelection, TextSelection } from "@tiptap/pm/state";
-import { getActiveBlockPos } from "@tipkit/extensions";
+import { getActiveBlockPos, blockHandlesKey } from "@tipkit/extensions";
 import { useT, useEditorEditable } from "@tipkit/core";
 import {
   IconCopy,
@@ -73,6 +74,7 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
   const [open, setOpen] = useState(false);
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const [left, setLeft] = useState(0);
+  const [top, setTop] = useState(0);
   const [submenu, setSubmenu] = useState<string | null>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const openRef = useRef(false);
@@ -89,13 +91,88 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
     }
   }, [isEditable]);
 
+  // 同步清除扩展的激活块状态，避免高亮与手柄残留
+  const clearActive = useCallback(() => {
+    if (!editor) return;
+    if (getActiveBlockPos(editor.state) != null) {
+      editor.view.dispatch(
+        editor.state.tr.setMeta(blockHandlesKey, { type: "setActive", pos: null }),
+      );
+    }
+  }, [editor]);
+
+  const closeAll = useCallback(() => {
+    setOpen(false);
+    setSubmenu(null);
+    clearActive();
+  }, [clearActive]);
+
+  // 点击编辑器/弹窗以外的区域时关闭（与官方 drag-handle-menu 行为一致）。
+  // 手柄区域除外：点手柄会切换激活块，由 transaction 流程重新定位。
+  useEffect(() => {
+    if (!open) return;
+    const onDocMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (popRef.current?.contains(target)) return;
+      if (target.closest(".tk-block-handles")) return;
+      closeAll();
+    };
+    document.addEventListener("mousedown", onDocMouseDown, true);
+    return () => document.removeEventListener("mousedown", onDocMouseDown, true);
+  }, [open, editor, closeAll]);
+
   useLayoutEffect(() => {
     if (!open || !anchor || !popRef.current) return;
-    const w = popRef.current.offsetWidth;
+    const el = popRef.current;
+    const w = el.offsetWidth;
     let nextLeft = Math.round(anchor.right - w - GAP);
     if (nextLeft < 8) nextLeft = 8;
     setLeft((prev) => (prev === nextLeft ? prev : nextLeft));
+
+    // 视口边缘 clamp：菜单底部超出视口时上移贴边
+    let nextTop = Math.round(anchor.top);
+    const maxTop = window.innerHeight - el.offsetHeight - 8;
+    if (nextTop > maxTop) nextTop = Math.max(8, maxTop);
+    if (nextTop < 8) nextTop = 8;
+    setTop((prev) => (prev === nextTop ? prev : nextTop));
   }, [open, anchor, submenu]);
+
+  // 键盘导航：↑/↓ 移动焦点，→ 展开子菜单，← 收起，Esc 关闭（对齐官方菜单）
+  const onMenuKeyDown = (e: ReactKeyboardEvent) => {
+    const items = popRef.current
+      ? Array.from(
+          popRef.current.querySelectorAll<HTMLElement>(".tk-block-popover-item"),
+        )
+      : [];
+    if (e.key === "Escape") {
+      e.preventDefault();
+      closeAll();
+      editor?.commands.focus();
+      return;
+    }
+    if (!items.length) return;
+    const idx = items.indexOf(document.activeElement as HTMLElement);
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const next =
+        e.key === "ArrowDown"
+          ? (idx + 1) % items.length
+          : (idx - 1 + items.length) % items.length;
+      items[next].focus();
+    } else if (e.key === "ArrowRight") {
+      const id = items[idx]?.getAttribute("data-submenu");
+      if (id) {
+        e.preventDefault();
+        setSubmenu(id);
+      }
+    } else if (e.key === "ArrowLeft") {
+      if (submenu) {
+        e.preventDefault();
+        setSubmenu(null);
+      }
+    }
+  };
 
   const computeAnchor = useCallback(
     (pos: number): Anchor | null => {
@@ -272,7 +349,8 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
       ref={popRef}
       className="tk-block-popover"
       contentEditable={false}
-      style={{ position: "fixed", left, top: anchor?.top ?? 0, zIndex: 60 }}
+      style={{ position: "fixed", left, top, zIndex: 60 }}
+      onKeyDown={onMenuKeyDown}
       onMouseDown={(e) => e.preventDefault()}
       onMouseOver={(e) => {
         const target = e.target as HTMLElement;
@@ -282,6 +360,14 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
       {showTurnInto && (
         <div
           className="tk-block-popover-item has-sub"
+          data-submenu="turn"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setSubmenu("turn");
+            }
+          }}
           onMouseEnter={() => setSubmenu("turn")}
         >
           <span className="tk-block-popover-icon"><IconTransform /></span>
@@ -307,6 +393,14 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
       {isColumns && (
         <div
           className="tk-block-popover-item has-sub"
+          data-submenu="layout"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setSubmenu("layout");
+            }
+          }}
           onMouseEnter={() => setSubmenu("layout")}
         >
           <span className="tk-block-popover-icon"><IconColumns /></span>
