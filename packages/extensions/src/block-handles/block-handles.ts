@@ -296,13 +296,16 @@ export const BlockHandles = Extension.create({
       return dom instanceof HTMLElement ? dom : null;
     };
 
-    // rAF 合并同一帧内的多次重定位（mousemove / scroll 触发频率高）
+    // rAF 合并同一帧内的多次重定位（mousemove / scroll 触发频率高）。
+    // force：hover 主动定位时强制显示（positionUI 会移除 is-hidden）；
+    // 滚动等被动定位不唤醒已隐藏的手柄。
     let rafId: number | null = null;
-    const schedulePosition = () => {
+    const schedulePosition = (force = false) => {
       if (rafId != null) return;
       rafId = requestAnimationFrame(() => {
         rafId = null;
-        if (!wrap || wrap.classList.contains("is-hidden")) return;
+        if (!wrap) return;
+        if (!force && wrap.classList.contains("is-hidden")) return;
         // 菜单打开时跟随激活块；否则跟随 hover 的块
         const el = getActiveEl() ?? hoverEl;
         if (el && el.isConnected) positionUI(el);
@@ -422,7 +425,7 @@ export const BlockHandles = Extension.create({
                 return false;
               }
               hoverEl = blockEl;
-              schedulePosition();
+              schedulePosition(true);
               return false;
             },
             mouseleave: () => {
