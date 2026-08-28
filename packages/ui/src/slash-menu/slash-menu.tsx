@@ -58,7 +58,7 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
             t,
           })
         : [],
-    [editor, onUploadImage, slash.key, slash.active, t],
+    [editor, onUploadImage, t],
   );
   const actions = useMemo(
     () => filterInsertActions(allActions, slash.query),
@@ -98,7 +98,19 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
   useEffect(() => {
     if (!editor) return;
     const syncSlash = () => {
-      setSlash(getSlashCommandState(editor));
+      const next = getSlashCommandState(editor);
+      const cur = stateRef.current.slash;
+      // 逐字段比较：无变化不 setState，避免编辑器每次事务都重渲染本组件
+      if (
+        cur.active === next.active &&
+        cur.query === next.query &&
+        cur.from === next.from &&
+        cur.to === next.to &&
+        cur.key === next.key
+      ) {
+        return;
+      }
+      setSlash(next);
       setActiveIndex(0);
       requestAnimationFrame(updatePosition);
     };

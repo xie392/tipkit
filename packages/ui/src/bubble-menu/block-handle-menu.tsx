@@ -79,6 +79,7 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
   const popRef = useRef<HTMLDivElement>(null);
   const openRef = useRef(false);
   const prevPosRef = useRef<number | null>(null);
+  const repositionRafRef = useRef<number | null>(null);
 
   useLayoutEffect(() => {
     openRef.current = open;
@@ -227,10 +228,16 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
 
     const onScrollResize = () => {
       if (!openRef.current) return;
-      const pos = getActiveBlockPos(editor.state);
-      if (pos == null) return;
-      const next = computeAnchor(pos);
-      if (next) setAnchor(next);
+      // rAF 合并高频 scroll/resize，避免每次事件都做 querySelector + 强制布局
+      if (repositionRafRef.current != null) return;
+      repositionRafRef.current = requestAnimationFrame(() => {
+        repositionRafRef.current = null;
+        if (!openRef.current) return;
+        const pos = getActiveBlockPos(editor.state);
+        if (pos == null) return;
+        const next = computeAnchor(pos);
+        if (next) setAnchor(next);
+      });
     };
 
     editor.on("transaction", onTransaction);
@@ -241,6 +248,10 @@ export function BlockHandleMenu({ editor }: { editor: Editor | null }) {
       editor.off("transaction", onTransaction);
       window.removeEventListener("scroll", onScrollResize, true);
       window.removeEventListener("resize", onScrollResize);
+      if (repositionRafRef.current != null) {
+        cancelAnimationFrame(repositionRafRef.current);
+        repositionRafRef.current = null;
+      }
     };
   }, [editor, computeAnchor]);
 

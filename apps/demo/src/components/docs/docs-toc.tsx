@@ -65,17 +65,33 @@ export function DocsToc({ contentSelector }: { contentSelector: string }) {
       next.push({ id, text, level: Number(el.tagName[1]) });
     });
 
-    setEntries(next);
+    setEntries((prev) => {
+      if (
+        prev.length === next.length &&
+        prev.every((p, i) => p.id === next[i].id && p.text === next[i].text && p.level === next[i].level)
+      ) {
+        return prev;
+      }
+      return next;
+    });
   }, [contentSelector]);
 
-  // 挂载后等编辑器 DOM 就绪再收集；内容变化（MutationObserver）时重新收集
+  // 挂载后等编辑器 DOM 就绪再收集；内容变化（MutationObserver）时重新收集。
+  // 编辑器每个按键都会产生 DOM 变动，防抖避免 TOC 全量重扫跟随 keystroke 抖动
   useEffect(() => {
     const raf = requestAnimationFrame(() => collect());
     const root = document.querySelector(contentSelector);
-    const mo = root ? new MutationObserver(() => collect()) : null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const mo = root
+      ? new MutationObserver(() => {
+          if (timer) clearTimeout(timer);
+          timer = setTimeout(() => collect(), 300);
+        })
+      : null;
     if (root && mo) mo.observe(root, { childList: true, subtree: true });
     return () => {
       cancelAnimationFrame(raf);
+      if (timer) clearTimeout(timer);
       mo?.disconnect();
     };
   }, [collect, contentSelector]);
