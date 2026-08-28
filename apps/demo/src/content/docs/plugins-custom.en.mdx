@@ -1,0 +1,242 @@
+## Custom Extension Development
+
+TipKit is built on Tiptap v3. As a consumer you can define extensions (nodes / marks / commands) in **your own project** with `@tiptap/core` and add them to the `extensions` array of `<TipKitEditor>` — **no need to modify the TipKit package or touch its source**. The conventions on this page match the `skills/new-extension` skill in this repository.
+
+Core principle: **an extension is just a standard Tiptap extension** — declare attributes plus `parseHTML` / `renderHTML`; when you need external capabilities (upload / rendering / copy), read them from `@tipkit/core` via `useEditorDeps()` / `useT()`.
+
+> **Don't**: modify code inside the `@tipkit` packages (changes would be lost and break upgrades); or put visual styles into extension logic (visuals belong in the theme CSS).
+
+### Self-contained Extension Directories
+
+- Extension directories use **internal relative imports**, depend on nothing else in the same package, and can be trimmed or moved as a whole.
+- First decide the extension type: block-level content → `Node`; inline style (bold, links, etc.) → `Mark`; pure logic (shortcuts, input rules, commands) → `Extension`.
+- Pure-logic extensions (no DOM) are written as `.ts`; extensions with a React view are `.tsx` and must include `"use client"`.
+- Dependencies: `@tiptap/core`, `@tiptap/react`, `@tipkit/core`.
+
+```bash
+pnpm add @tiptap/core @tiptap/react @tipkit/core
+```
+
+### Pure Logic & Semantic Class Names
+
+- **Pure logic**: an extension only handles ProseMirror / Tiptap behavior (attributes, parsing, commands, input rules) and does not render visual DOM.
+- **Semantic class names**: nodes that need styling only add `tk-*` semantic class names (e.g. `tk-timestamp`); **visual class names are forbidden** (`sketch-*`, `graph-paper`, etc. all belong in themes).
+- Layering rules: `core` / `extensions` / `ui` must not contain colors, fonts, shadows, or borders; visuals are allowed only in `themes/` (or inside shadcn components in `components/`).
+
+### Localizing Copy with useT()
+
+All user-visible copy is **forbidden from being hardcoded**; read the current translation function via `useT()` (requires rendering inside `EditorProvider`; `EditorContent` satisfies this by default). When `t` is not injected the built-in Chinese is used out of the box; consumers can build dictionaries with `createT` / `zh` / `en` from `@tipkit/core` and inject them via `EditorDeps.t`.
+
+```tsx
+import { useT } from "@tipkit/core";
+
+function MyNodeView() {
+  const t = useT();
+  return <span className="tk-my-node-tag">{t("myNode.label")}</span>;
+}
+```
+
+When a key is missing, `t()` returns the key itself without throwing. Name custom keys by module with dot separators (e.g. `myNode.*`), and spread-merge them in the consumer dictionary to override.
+
+### Injecting Capabilities with useEditorDeps()
+
+Extensions must **not call project APIs / global variables directly**; always read injected capabilities from `useEditorDeps()` in `@tipkit/core`. `EditorDeps` provides: `uploadImage`, `uploadAttachment`, `renderKatex`, `t`, `onCommentCreate`, `onCommentClick`.
+
+```tsx
+import { useEditorDeps } from "@tipkit/core";
+
+function MyNodeView({ editor, updateAttributes }: NodeViewProps) {
+  const { uploadImage, t } = useEditorDeps();
+
+  const handleUpload = async (file: File) => {
+    if (!uploadImage) return;
+    const src = await uploadImage(file, editor); // returns a URL usable as <img src>
+    updateAttributes({ src });
+  };
+
+  return <span className="tk-my-node-tag">{t("myNode.uploading")}</span>;
+}
+```
+
+### React NodeView
+
+For nodes that need custom rendering, attach a React view with `ReactNodeViewRenderer`:
+
+- Use `NodeViewWrapper` as the root and `NodeViewContent` for the editable content area (nodes with content must keep it).
+- Interactive UI (buttons, inputs, etc.) should set `contentEditable={false}` so it does not disturb the cursor or content sync.
+- Detect read-only state with `useEditorEditable(editor)`, matching the behavior of TipKit's own nodes.
+
+```tsx
+"use client";
+
+import { Node, mergeAttributes } from "@tiptap/core";
+import { ReactNodeViewRenderer, NodeViewWrapper, NodeViewContent, type NodeViewProps } from "@tiptap/react";
+import { useT } from "@tipkit/core";
+
+export const MyNode = Node.create({
+  name: "myNode",
+  group: "block",
+  content: "inline*",
+  defining: true,
+
+  addAttributes() {
+    return {
+      note: {
+        default: null as string | null,
+        parseHTML: (el) => (el as HTMLElement).getAttribute("data-note"),
+        renderHTML: (a) => (a.note ? { "data-note": a.note } : {}),
+      },
+    };
+  },
+
+  parseHTML: () => [{ tag: 'div[data-type="myNode"]' }],
+  renderHTML: ({ HTMLAttributes }) =>
+    ["div", mergeAttributes(HTMLAttributes, { "data-type": "myNode", class: "tk-my-node" }), 0],
+
+  addCommands() {
+    return {
+      setMyNode: () => ({ commands }) => commands.insertContent({ type: this.name }),
+    };
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(MyNodeView);
+  },
+});
+
+function MyNodeView({ node }: NodeViewProps) {
+  const t = useT();
+  return (
+    <NodeViewWrapper data-type="myNode" data-note={node.attrs.note}>
+      <span className="tk-my-node-tag">{t("myNode.label")}</span>
+      <NodeViewContent />
+    </NodeViewWrapper>
+  );
+}
+```
+
+### Registering & Wiring Up
+
+Append the extension to the `extensions` array of `<TipKitEditor>`; to trigger it from the `/` slash menu, map its commands into your own slash menu data (TipKit's built-in `SlashMenu` is built on `getInsertActions()`; custom nodes need to be added to your project's menu configuration).
+
+```tsx
+<TipKitEditor
+  deps={deps}
+  extensions={[...createBasicExtensions(), ...createAdvancedExtensions(), MyNode]}
+/>
+```
+
+A small complete example (timestamp node): definition + registration + copy keys.
+
+```tsx
+"use client";
+
+import { Node, mergeAttributes } from "@tiptap/core";
+import { ReactNodeViewRenderer, NodeViewWrapper, NodeViewContent, type NodeViewProps } from "@tiptap/react";
+import { useT } from "@tipkit/core";
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    timestamp: { setTimestamp: (note?: string) => ReturnType };
+  }
+}
+
+export const Timestamp = Node.create({
+  name: "timestamp",
+  group: "block",
+  content: "inline*",
+  defining: true,
+
+  addAttributes() {
+    return {
+      note: {
+        default: null as string | null,
+        parseHTML: (el) => (el as HTMLElement).getAttribute("data-note"),
+        renderHTML: (a) => (a.note ? { "data-note": a.note } : {}),
+      },
+    };
+  },
+
+  parseHTML: () => [{ tag: 'div[data-type="timestamp"]' }],
+  renderHTML: ({ HTMLAttributes }) =>
+    ["div", mergeAttributes(HTMLAttributes, { "data-type": "timestamp", class: "tk-timestamp" }), 0],
+
+  addCommands() {
+    return {
+      setTimestamp: (note) => ({ commands }) =>
+        commands.insertContent({ type: "timestamp", attrs: { note: note ?? null } }),
+    };
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(TimestampView);
+  },
+});
+
+function TimestampView({ node, editor }: NodeViewProps) {
+  const t = useT();
+  const editable = editor.isEditable;
+  return (
+    <NodeViewWrapper data-type="timestamp" data-note={node.attrs.note}>
+      <span className="tk-timestamp-tag">{t("timestamp.label")}</span>
+      {editable && <button contentEditable={false}>{t("timestamp.edit")}</button>}
+      <NodeViewContent />
+    </NodeViewWrapper>
+  );
+}
+```
+
+```tsx
+// Registration
+<TipKitEditor
+  deps={deps}
+  extensions={[...createBasicExtensions(), ...createAdvancedExtensions(), Timestamp]}
+/>
+
+// Insert via command
+editor.chain().focus().setTimestamp("2026-08-28").run();
+```
+
+Copy keys (provide them in the consumer dictionary):
+
+```ts
+// Append to your i18n dictionary (zh example)
+{
+  "timestamp.label": "时间戳",
+  "timestamp.edit": "编辑",
+}
+```
+
+### Theme Integration
+
+Write the visuals for `tk-*` semantic class names in the **theme layer** CSS (e.g. `packages/themes/src/base.css` or a skin CSS), never inside the extension. Styles are usually scoped under `.tk-theme-*`:
+
+```css
+/* packages/themes/src/base.css (illustrative) */
+.tk-theme-default .tk-timestamp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px dashed var(--tk-border);
+  border-radius: 6px;
+  background: var(--tk-bg-muted);
+}
+
+.tk-theme-default .tk-timestamp-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tk-accent);
+}
+```
+
+> When styling in your own project, also use `tk-*` class names or `data-type` selectors with scoped styles to avoid polluting the global scope.
+
+### Verification
+
+After writing an extension, run type checking and the build, then manually verify insert / serialization / copy-paste / SSR:
+
+```bash
+pnpm type-check
+pnpm build
+```

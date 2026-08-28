@@ -1,8 +1,12 @@
 ## Quickstart
 
-### Minimal example
+This page assumes you already have a React / Next.js project with the dependencies installed (see the "Installation" page). If you don't even have a project yet, the fastest path is to clone the repo using Option A on the "Installation" page to see it working, then come back and copy the code below.
 
-One component plus one theme gives you an editable rich-text area:
+### Step 1: Create a page component
+
+The TipKit editor is a React component. In Next.js's `app/` directory, pages are server components by default, but the editor needs browser capabilities, so create a client component marked `"use client"`.
+
+Create `app/page.tsx` and paste in a minimal version:
 
 ```tsx
 "use client";
@@ -20,11 +24,32 @@ export default function Editor() {
 }
 ```
 
-> All visual rules in the theme CSS are scoped under the `tk-theme-default` class — **importing the CSS alone does nothing**. Add the class to any ancestor of the editor (usually a wrapping div or `<html>`). Switching themes works the same way: use `tk-theme-sketch` / `tk-theme-dark`, or simply `<TipKitEditor className="tk-theme-sketch">`.
+### Step 2: Hook up the theme (the key step)
+
+All visual rules in the theme CSS are scoped under the `tk-theme-default` class. Two things must both happen:
+
+1. `import "@tipkit/themes/default.css"` — registers the styles;
+2. Add the `tk-theme-default` class to **any ancestor** of the editor (the wrapping `div` above, or `<html>`) — only then do the styles take effect.
+
+> **The most common gotcha**: importing the CSS without adding the class leaves the page plain white with no styling. Switching themes works the same way: use `tk-theme-sketch` / `tk-theme-dark`, or simply `<TipKitEditor className="tk-theme-sketch">`.
+
+### Step 3: Run and verify
+
+```bash
+pnpm dev        # or npm run dev
+```
+
+Open the address shown in your terminal (usually http://localhost:3000). You should see:
+
+- an editable area you can click and type into;
+- a toolbar popping up above/below when you select text;
+- a searchable slash menu when you type `/`.
+
+If the area is plain white with no styling, first check whether you forgot the `tk-theme-default` class (see step 2).
 
 ### Full example
 
-Wire up advanced extensions and every interactive overlay (slash menu, text bubble, link bubble, block handles, table controls, etc.), matching the demo in `apps/demo`:
+The above is the minimal runnable setup. To wire up the advanced extensions and every interactive overlay (slash menu, text toolbar, link bubble, block handles, table controls…), copy this — it matches the demo in `apps/demo`:
 
 ```tsx
 "use client";
@@ -69,3 +94,10 @@ export default function App() {
 ```
 
 Overlays are not baked into TipKitEditor — they are mounted by the consumer via a render prop. That is what "headless" means: interaction and visuals are entirely under your control.
+
+### Troubleshooting
+
+- **No styling / bare editor**: you most likely forgot to add the `tk-theme-default` class to an ancestor element (see step 2).
+- **`"use client"` errors**: in the Next.js App Router, the component using `TipKitEditor` must be marked `"use client"` (see step 1).
+- **Hydration mismatch**: TipKit defaults to `immediatelyRender: false`, so server rendering works out of the box; if you create a custom editor instance, remember to pass `immediatelyRender: false` too.
+- **Images / attachments won't upload**: inject a real upload service into `deps` (`uploadImage` / `uploadAttachment`) — see the "Capability injection" section of the "Plugins overview" page.

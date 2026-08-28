@@ -1,0 +1,380 @@
+## 高级插件
+
+高级插件覆盖图片、代码、公式、排版等更复杂的内容节点，来自两条路径：
+
+- **`createAdvancedExtensions()`** —— M2 + M3 全量集合，一行接入：图片块、代码块、数学公式、提示框、分栏、折叠块、目录、嵌入、附件、块句柄（BlockHandles）、文件拖拽（FileHandler）、状态标签。
+- **opt-in 扩展** —— 默认不在集合内，按需单独引入：划词评论（`Comment`）、画板（`Canvas`）；以及 `@tipkit/ui` 提供的交互浮层（`SlashMenu`、`EmojiSuggestion` 等）。
+
+高级扩展通过 `extensions` 数组传入，与 `createBasicExtensions()` 叠加使用：
+
+```tsx
+import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensions";
+
+<TipKitEditor
+  extensions={[...createBasicExtensions(), ...createAdvancedExtensions({ tocScrollOffset: 80 })]}
+/>
+```
+
+| 扩展 | 导出（`@tipkit/extensions`） | 集合内 | 说明 |
+| --- | --- | --- | --- |
+| 图片块 | `ImageBlock` | ✅ | 图片 + 缩放 / 对齐 / 说明文字 |
+| 代码块 | `CustomCodeBlock`、`CODE_LANGUAGES` | ✅ | 语法高亮 + 语言切换 + 明暗主题 |
+| 数学公式 | `Katex` | ✅ | LaTeX 块级公式 |
+| 提示框 | `Callout`、`CALLOUT_VARIANTS` | ✅ | 5 种变体 + 自定义 emoji |
+| 分栏 | `Columns`、`Column`、`ColumnLayout` | ✅ | 两栏 / 左窄 / 右窄 |
+| 折叠块 | `Details`、`DetailsSummary`、`DetailsContent` | ✅ | 基于原生 `<details>` |
+| 页面目录 | `TableOfContentsNode` | ✅ | 自动扫描标题生成目录 |
+| 嵌入 | `Iframe` | ✅ | 嵌入网页 / B 站 / YouTube |
+| 附件 | `Attachment` | ✅ | 上传 + 下载 |
+| 状态标签 | `Status` | ✅ | Confluence 风格内联标签 |
+| 划词评论 | `Comment` | ⭕ opt-in | 评论 Mark + 回调，UI 由消费方实现 |
+| 画板 | `Canvas` | ⭕ opt-in | 手绘 / 清晰画板，可导出 PNG |
+| 斜杠菜单 | `SlashMenu`（`@tipkit/ui`） | ⭕ opt-in | 由消费方渲染 |
+| Emoji 建议 | `EmojiSuggestion`（`@tipkit/ui`） | ⭕ opt-in | 由消费方渲染 |
+
+> **提示**：`createAdvancedExtensions()` 是无参调用时的单例缓存；传入 `tocScrollOffset` 时会生成独立的目录实例，可放心多次调用。
+
+### 图片块 ImageBlock
+
+- **用途**：把图片作为独占一行的块节点，支持拖拽缩放宽度、对齐方式、就地编辑说明文字，以及四种图片样式（无样式 / 边框 / 阴影 / 边框 + 阴影）。
+- **启用**：`ImageBlock`（集合内默认已有，无需单独引入）。
+- **属性 `ImageBlockAttrs`**：
+
+| 属性 | 默认 | 说明 |
+| --- | --- | --- |
+| `src` | `""` | 图片地址 |
+| `width` | `"100%"` | 宽度百分比字符串（如 `"25"` / `"50"` / `"100"`） |
+| `align` | `"center"` | `left` / `center` / `right` |
+| `alt` | `undefined` | 替代文本 |
+| `caption` | `null` | 图片说明文字 |
+| `imageStyle` | `"none"` | `none` / `border` / `shadow` / `border-shadow` |
+
+- **命令**：`setImageBlock`、`setImageBlockAt`、`setImageBlockAlign`、`setImageBlockWidth`、`setImageBlockCaption`、`setImageBlockStyle`。
+- **图片上传**：斜杠菜单插入图片走 `SlashMenu` 的 `onUploadImage`；画板图片工具直接读取 `EditorDeps.uploadImage`；拖拽 / 粘贴图片由 `FileHandler` 处理（默认未配置上传函数，退化为 base64，可用 `FileHandler.configure({ onUpload })` 覆盖）。
+- **序列化**：HTML 输出为 `div[data-type='image-block']`，解析也只认该标签，可与普通行内 `<img>` 共存。
+
+```tsx
+import { ImageBlock } from "@tipkit/extensions";
+
+// 集合内默认已有，也可单独加入：
+extensions: [..., ImageBlock]
+
+// 命令示例
+editor.chain().focus().setImageBlock({ src: "https://example.com/a.png" }).run();
+editor.chain().focus().setImageBlockWidth(50).run();   // 宽度 50%
+editor.chain().focus().setImageBlockAlign("left").run();
+editor.chain().focus().setImageBlockCaption("产品示意图").run();
+```
+
+### 代码块 CustomCodeBlock
+
+- **用途**：带语法高亮的代码块，支持语言切换、明暗主题切换、复制与删除；空语言时在可编辑态自动检测语言。
+- **启用**：`CustomCodeBlock`（集合内默认已有）。
+- **导出**：`CODE_LANGUAGES`（30+ 种语言项，含“自动 / 纯文本”），类型 `CodeLanguage`；主题 `CodeBlockTheme = "light" | "dark"`（默认 `dark`）。
+- 基于 `@tiptap/extension-code-block-lowlight` + `lowlight`（`common` 语言集），默认 `enableTabIndentation: true`，支持 Tab 缩进。
+- NodeView 提供：语言下拉、明暗切换、复制按钮、删除按钮；只读模式下保留一个复制按钮。
+
+```tsx
+import { CustomCodeBlock, CODE_LANGUAGES, type CodeBlockTheme } from "@tipkit/extensions";
+
+// 集合内默认已有；单独引入时可配置：
+CustomCodeBlock.configure({ defaultLanguage: "typescript" })
+
+// CODE_LANGUAGES / CodeBlockTheme 可用于构建你自己的语言选择器
+const langs = CODE_LANGUAGES.map((l) => l.label).filter(Boolean);
+```
+
+### 数学公式 Katex
+
+- **用途**：LaTeX 数学公式块（`atom` 节点），双击或通过块级菜单进入编辑，实时预览渲染结果；只读模式保留“复制公式源码”按钮。
+- **启用**：`Katex`（集合内默认已有）。
+- **属性 `KatexAttrs`**：`text`（LaTeX 源码字符串）。
+- **命令**：`setKatex`；**输入规则**：输入 `$$katex$$` 回车即插入空公式节点。
+- **渲染**：客户端直接用 `katex.renderToString` 渲染；`EditorDeps.renderKatex` 是预留的服务端渲染注入能力（SSR 场景可用，签名 `(tex, displayMode) => Promise<string>`）。
+- **序列化**：`div.tk-katex`，源码存于 `data-text` 属性。
+
+```tsx
+import { Katex } from "@tipkit/extensions";
+
+// 集合内默认已有：
+extensions: [..., Katex]
+
+// 插入公式
+editor.chain().focus().setKatex({ text: "E = mc^2" }).run();
+```
+
+### 提示框 Callout
+
+- **用途**：强调性提示框（提示 / 成功 / 警告 / 危险 / 备注），可切换变体与自定义 emoji 图标，内容区可放多个段落。
+- **启用**：`Callout`（集合内默认已有）。
+- **变体 `CalloutVariant`**：`info` / `success` / `warning` / `danger` / `note`；`CALLOUT_VARIANTS` 常量记录每种变体的文案与配色。
+- **命令**：`setCallout`、`setCalloutVariant`、`setCalloutEmoji`；**输入规则**：`>!` 回车转换为 info 提示框。
+
+| 变体 | emoji | 适用场景 |
+| --- | --- | --- |
+| `info` | 💡 | 一般信息 |
+| `success` | ✅ | 成功 / 完成 |
+| `warning` | ⚠️ | 注意 / 警告 |
+| `danger` | 🔥 | 危险 / 错误 |
+| `note` | 📝 | 备注 / 补充 |
+
+```tsx
+import { Callout, CALLOUT_VARIANTS, type CalloutVariant } from "@tipkit/extensions";
+
+// 集合内默认已有：
+extensions: [..., Callout]
+
+// 切换变体
+editor.chain().focus().setCalloutVariant("warning").run();
+```
+
+### 分栏 Columns / Column
+
+- **用途**：两栏排版容器，支持“两栏等宽 / 左窄右宽 / 右窄左宽”三种布局；栏内可放任意块内容。
+- **启用**：`Columns` 与 `Column`（集合内默认已有），两者必须同时注册。
+- **布局枚举 `ColumnLayout`**：`TwoColumn`（两栏等宽）/ `SidebarLeft`（左窄右宽）/ `SidebarRight`（右窄左宽）。
+- **命令**：`setColumns`、`setLayout`；`Column` 通过 `position` 属性（`left` / `right`）标记栏位。
+- **序列化**：`div[data-type='columns']` 内嵌两个 `div[data-type='column']`。
+
+```tsx
+import { Columns, Column, ColumnLayout } from "@tipkit/extensions";
+
+// 集合内默认已有（Columns + Column 一起注册）：
+extensions: [..., Columns, Column]
+
+// 插入分栏 / 切换布局
+editor.chain().focus().setColumns().run();
+editor.chain().focus().setLayout(ColumnLayout.SidebarLeft).run();
+```
+
+### 折叠块 Details
+
+- **用途**：可展开 / 收起的折叠容器，基于原生 `<details>` 实现，适合 FAQ、长文折叠等场景。
+- **启用**：`Details`、`DetailsSummary`、`DetailsContent`（集合内默认已有，三者同时注册）。
+- **结构**：`Details` 内容为 `detailsSummary detailsContent+`；`DetailsSummary` 渲染为 `<summary>`，`DetailsContent` 内可放任意块内容。
+- **命令**：`setDetails`（默认 `open: true` 展开状态）。
+- **序列化**：`details[data-type='details']` → `summary[data-type='summary']` + `div[data-type='details-content']`。
+
+```tsx
+import { Details, DetailsSummary, DetailsContent } from "@tipkit/extensions";
+
+// 集合内默认已有：
+extensions: [..., Details, DetailsSummary, DetailsContent]
+
+editor.chain().focus().setDetails().run();
+```
+
+### 页面目录 TableOfContentsNode
+
+- **用途**：插入一个目录节点，自动扫描文档中的标题（heading）并按层级渲染列表，点击平滑滚动跳转。
+- **启用**：`TableOfContentsNode`（集合内默认已有）。
+- **关键配置**：`scrollOffset` 为点击跳转时距视口顶部的像素偏移，用于避开 sticky header / 工具栏。通过 `createAdvancedExtensions({ tocScrollOffset })` 统一传入，默认 `0`。
+- **命令**：`insertTableOfContents`。
+- **序列化**：`div[data-type='table-of-content']`。
+
+```tsx
+import { createAdvancedExtensions } from "@tipkit/extensions";
+
+// 页面有固定 header（高约 80px）时：
+extensions: [...createAdvancedExtensions({ tocScrollOffset: 80 })]
+```
+
+### 嵌入 Iframe
+
+- **用途**：嵌入网页 / B 站 / YouTube 等外链内容（`atom` 块节点）；未填 url 时显示输入卡片，可拖拽调整高度。
+- **启用**：`Iframe`（集合内默认已有）。
+- **属性 `IframeAttrs`**：`url`（null 时显示输入卡片）、`width`（默认 `"100%"`）、`height`（默认 `360`，可拖拽 120–1200 调整）。
+- **命令**：`setIframe`；**输入规则**：`$iframe$` 回车插入空嵌入节点。
+- **安全**：iframe 默认带 `sandbox` 与 `allow` 属性，`loading="lazy"` 懒加载。
+
+```tsx
+import { Iframe } from "@tipkit/extensions";
+
+// 集合内默认已有：
+extensions: [..., Iframe]
+
+editor.chain().focus().setIframe({ url: "https://www.youtube.com/embed/xxxx" }).run();
+```
+
+### 附件 Attachment
+
+- **用途**：文件附件块，支持上传、下载、重新上传；上传进度与错误重试内置于 NodeView。
+- **启用**：`Attachment`（集合内默认已有）。
+- **上传**：必须注入 `EditorDeps.uploadAttachment`，签名 `(file, editor) => Promise<AttachmentMeta>`，返回 `{ url, name, size, mimeType }`；未注入时 NodeView 提示“未注入 uploadAttachment”。
+- **属性 `AttachmentAttrs`**：`fileName`、`fileSize`、`fileType`、`fileExt`、`url`、`hasTrigger`、`error`。
+- **命令**：`setAttachment`。
+- **序列化**：`div.tk-attachment`，文件名 / 大小 / 扩展名 / url 分别存于 `data-*` 属性。
+
+```tsx
+import type { EditorDeps } from "@tipkit/editor";
+
+const deps: EditorDeps = {
+  uploadAttachment: async (file) => {
+    // 替换为真实上传服务，返回附件元数据
+    const url = await uploadToYourServer(file);
+    return { url, name: file.name, size: file.size, mimeType: file.type };
+  },
+};
+```
+
+### 状态标签 Status
+
+- **用途**：Confluence 风格的**内联**状态标签（如“待处理”“已完成”），可自定义文字与背景色。
+- **启用**：`Status`（集合内默认已有）。
+- **属性 `StatusAttrs`**：`text`（默认 `"待处理"`）、`color`（默认 `"#ffcccc"`）。
+- **命令**：`setStatus`、`updateStatus`。
+- **序列化**：`span[data-status]`（类名 `tk-status`），文字与颜色存于 `data-text` / `data-color`。
+
+```tsx
+import { Status } from "@tipkit/extensions";
+
+// 集合内默认已有：
+extensions: [..., Status]
+
+editor.chain().focus().setStatus({ text: "进行中", color: "#cfe8ff" }).run();
+editor.chain().focus().updateStatus({ text: "已完成", color: "#d1fadf" }).run();
+```
+
+### 划词评论 Comment
+
+- **用途**：给选中文字添加评论标记（划词评论）。**默认不在集合内**，为 opt-in 扩展。
+- **启用**：单独引入并 `configure`：
+
+```tsx
+import { Comment } from "@tipkit/extensions";
+
+extensions: [..., Comment.configure()]
+```
+
+- **内核职责（最小化）**：只提供 `Comment` Mark（`commentId` / `commentIds` 属性）、三个命令（`setComment` / `unsetComment` / `removeComment`）以及 `EditorDeps.onCommentCreate` / `onCommentClick` 回调。**评论 UI（抽屉 / 悬浮按钮 / 锚点 gutter / hover 卡片 / 输入框）完全由消费方实现**，可整体替换而不改动内核。
+- **注意**：扩展层默认不会在点击评论文字时自动触发 `onCommentClick`（避免弹出遮罩阻断编辑）；需要“点击评论定位面板”等行为时，应在 hover 卡片等自有 UI 中主动调用。
+- **序列化**：`span[data-comment-id]`（或 `mark[data-comment-id]` / `[class~=tk-comment]`），评论 ID 存于 `data-comment-id`。
+
+```tsx
+import { Comment } from "@tipkit/extensions";
+import type { EditorDeps } from "@tipkit/editor";
+
+const deps: EditorDeps = {
+  onCommentCreate: (range) => {
+    // range: { from, to, text, commentId } —— 打开你的评论抽屉
+    openDrawer(range.commentId, range.text);
+  },
+  onCommentClick: (commentId) => locateComment(commentId),
+};
+
+extensions: [..., Comment.configure()]
+```
+
+> **提示**：demo 站点 `/docs` → 在线演示实现了完整的划词评论 UI（右侧面板、hover 卡片、锚点 gutter），实现参考 `apps/demo/src/components/demo-editor.tsx`。
+
+### 画板 Canvas
+
+- **用途**：独占整行的手绘 / 矢量画板节点，支持画笔、铅笔、图形、文字、图片、框选、缩放、网格吸附、网页内全屏，并可导出 PNG。**默认不在集合内**，为 opt-in 扩展。
+- **启用**：单独引入：
+
+```tsx
+import { Canvas } from "@tipkit/extensions";
+
+extensions: [..., Canvas]
+```
+
+- **属性 `CanvasAttrs`**：
+
+| 属性 | 默认 | 说明 |
+| --- | --- | --- |
+| `width` | `800` | 画板宽 |
+| `height` | `450` | 画板高 |
+| `shapes` | `[]` | 全部绘制元素（`CanvasShape[]`），随节点持久化 |
+| `style` | `"auto"` | `auto`（跟随主题）/ `clean`（清晰）/ `sketch`（手绘） |
+| `snap` | `false` | 网格吸附 |
+
+- **命令**：`setCanvas`、`updateCanvas`。
+- **绘制内容存储**：所有绘制元素保存在 `attrs.shapes`，通过更新属性（新 transaction）实现撤销 / 重做，`contentEditable=false` 的容器内绘制不干扰编辑器。
+- **图片工具**：插入图片走 `EditorDeps.uploadImage`（未注入时回退到本地 object URL）。
+- **导出**：NodeView 内置“导出为图片”（`shapesToSvg` + `svgToPng`，2x 放大）。
+- **序列化**：`div[data-type='canvas']`，`data-shapes` 为 shapes 的 JSON 字符串。
+
+```tsx
+import { Canvas } from "@tipkit/extensions";
+
+extensions: [..., Canvas]
+
+editor.chain().focus().setCanvas().run();
+editor.chain().focus().updateCanvas({ style: "sketch", snap: true }).run();
+```
+
+### 斜杠菜单与 Emoji 建议（@tipkit/ui 浮层）
+
+- **用途**：`SlashMenu`（输入 `/` 唤起的内容插入菜单）与 `EmojiSuggestion`（输入 `:xxx` 唤起的 emoji 建议浮层）是**无头 UI 原语**，位于 `@tipkit/ui`，默认不在扩展集合内，由消费方在 `<TipKitEditor>` 的 children 中自行渲染。
+- **`SlashMenu`**：基于 `@tipkit/extensions` 导出的 `getInsertActions()` 构建命令项；可选 `onUploadImage` prop（图片上传）与 `iconRenderer`（图标渲染）。
+- **`EmojiSuggestion`**：输入 `:` + 关键词触发，方向键选择，Enter / Tab 插入。
+- 两者都只输出定位、键盘导航与 `tk-*` 语义类名，视觉全部归主题 CSS。
+
+```tsx
+import { SlashMenu, EmojiSuggestion } from "@tipkit/ui";
+
+<TipKitEditor extensions={[...]} deps={deps}>
+  {(editor) =>
+    editor ? (
+      <>
+        <SlashMenu editor={editor} onUploadImage={uploadImage} />
+        <EmojiSuggestion editor={editor} />
+      </>
+    ) : null
+  }
+</TipKitEditor>
+```
+
+### 组合示例
+
+把基础扩展、高级集合（配置 `tocScrollOffset`）、opt-in 的 `Comment` / `Canvas` 与浮层全部接好（参考 `apps/demo/src/components/demo-editor.tsx` 简化）：
+
+```tsx
+"use client";
+
+import { TipKitEditor, type EditorDeps } from "@tipkit/editor";
+import { createBasicExtensions, createAdvancedExtensions, Comment, Canvas } from "@tipkit/extensions";
+import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockHandleMenu, TableControls } from "@tipkit/ui";
+import { TooltipProvider } from "@tipkit/components";
+import "@tipkit/themes/default.css";
+
+/** 图片上传：消费方替换为真实上传服务 */
+const uploadImage = async (file: File) => URL.createObjectURL(file);
+
+const deps: EditorDeps = {
+  uploadImage,
+  onCommentCreate: (range) => console.log("comment created", range),
+};
+
+export default function App() {
+  return (
+    <TipKitEditor
+      deps={deps}
+      className="tk-theme-default"
+      placeholder="输入 / 打开斜杠菜单…"
+      extensions={[
+        ...createBasicExtensions(),
+        ...createAdvancedExtensions({ tocScrollOffset: 80 }),
+        Comment.configure(),
+        Canvas,
+      ]}
+    >
+      {(editor) =>
+        editor ? (
+          <TooltipProvider delayDuration={300}>
+            <SlashMenu editor={editor} onUploadImage={uploadImage} />
+            <EmojiSuggestion editor={editor} />
+            <TextMenu editor={editor} />
+            <LinkBubble editor={editor} />
+            <LinkDialogHost editor={editor} />
+            <BlockHandleMenu editor={editor} />
+            <TableControls editor={editor} />
+          </TooltipProvider>
+        ) : null
+      }
+    </TipKitEditor>
+  );
+}
+```
+
+浮层不是 `TipKitEditor` 的内部实现，而是通过 render prop 由消费方挂载——这正是「无头」的体现：高级节点的行为、交互浮层与视觉完全由你掌控。

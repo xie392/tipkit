@@ -1,0 +1,380 @@
+## Advanced Plugins
+
+Advanced plugins cover the more complex content nodes for images, code, math, and layout. They come from two paths:
+
+- **`createAdvancedExtensions()`** — the full M2 + M3 bundle, wired up in one line: image block, code block, math formula, callout, columns, details, table of contents, iframe, attachment, block handles, file handler, and status.
+- **Opt-in extensions** — not included by default, imported on demand: inline comments (`Comment`), canvas (`Canvas`), plus the interactive overlays from `@tipkit/ui` (`SlashMenu`, `EmojiSuggestion`, etc.).
+
+Advanced extensions are passed through the `extensions` array, layered on top of `createBasicExtensions()`:
+
+```tsx
+import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensions";
+
+<TipKitEditor
+  extensions={[...createBasicExtensions(), ...createAdvancedExtensions({ tocScrollOffset: 80 })]}
+/>
+```
+
+| Extension | Export (`@tipkit/extensions`) | In bundle | Description |
+| --- | --- | --- | --- |
+| Image block | `ImageBlock` | ✅ | Image + resize / align / caption |
+| Code block | `CustomCodeBlock`, `CODE_LANGUAGES` | ✅ | Syntax highlighting + language switch + light/dark theme |
+| Math formula | `Katex` | ✅ | Block-level LaTeX formula |
+| Callout | `Callout`, `CALLOUT_VARIANTS` | ✅ | 5 variants + custom emoji |
+| Columns | `Columns`, `Column`, `ColumnLayout` | ✅ | Two columns / narrow left / narrow right |
+| Details | `Details`, `DetailsSummary`, `DetailsContent` | ✅ | Built on native `<details>` |
+| Table of contents | `TableOfContentsNode` | ✅ | Auto-generates a TOC from headings |
+| Iframe | `Iframe` | ✅ | Embed web pages / Bilibili / YouTube |
+| Attachment | `Attachment` | ✅ | Upload + download |
+| Status | `Status` | ✅ | Confluence-style inline label |
+| Inline comment | `Comment` | ⭕ opt-in | Comment mark + callbacks, UI implemented by the consumer |
+| Canvas | `Canvas` | ⭕ opt-in | Sketch / clean drawing board, PNG export |
+| Slash menu | `SlashMenu` (`@tipkit/ui`) | ⭕ opt-in | Rendered by the consumer |
+| Emoji suggestion | `EmojiSuggestion` (`@tipkit/ui`) | ⭕ opt-in | Rendered by the consumer |
+
+> **Note**: `createAdvancedExtensions()` caches its result when called without options; passing `tocScrollOffset` creates a dedicated TOC instance, so it is safe to call it multiple times.
+
+### Image Block (ImageBlock)
+
+- **Purpose**: Represents an image as a block node occupying its own line, with drag-to-resize width, alignment, in-place caption editing, and four image styles (none / border / shadow / border + shadow).
+- **Enable**: `ImageBlock` (included in the bundle by default; no separate import needed).
+- **Attributes `ImageBlockAttrs`**:
+
+| Attribute | Default | Description |
+| --- | --- | --- |
+| `src` | `""` | Image URL |
+| `width` | `"100%"` | Width as a percentage string (e.g. `"25"` / `"50"` / `"100"`) |
+| `align` | `"center"` | `left` / `center` / `right` |
+| `alt` | `undefined` | Alternative text |
+| `caption` | `null` | Image caption |
+| `imageStyle` | `"none"` | `none` / `border` / `shadow` / `border-shadow` |
+
+- **Commands**: `setImageBlock`, `setImageBlockAt`, `setImageBlockAlign`, `setImageBlockWidth`, `setImageBlockCaption`, `setImageBlockStyle`.
+- **Image upload**: inserting from the slash menu uses the `onUploadImage` prop of `SlashMenu`; the canvas image tool reads `EditorDeps.uploadImage` directly; dragging / pasting images is handled by `FileHandler` (upload is not configured by default and falls back to base64 — override with `FileHandler.configure({ onUpload })`).
+- **Serialization**: HTML is output as `div[data-type='image-block']`, and parsing recognizes only that tag, so it can coexist with inline `<img>`.
+
+```tsx
+import { ImageBlock } from "@tipkit/extensions";
+
+// Included by default; can also be added on its own:
+extensions: [..., ImageBlock]
+
+// Command examples
+editor.chain().focus().setImageBlock({ src: "https://example.com/a.png" }).run();
+editor.chain().focus().setImageBlockWidth(50).run();   // width 50%
+editor.chain().focus().setImageBlockAlign("left").run();
+editor.chain().focus().setImageBlockCaption("Product diagram").run();
+```
+
+### Code Block (CustomCodeBlock)
+
+- **Purpose**: A code block with syntax highlighting, language switching, light/dark theme toggling, copy, and delete; when no language is set, it auto-detects the language while editable.
+- **Enable**: `CustomCodeBlock` (included in the bundle by default).
+- **Exports**: `CODE_LANGUAGES` (30+ language entries, including "auto / plain text"), type `CodeLanguage`; theme `CodeBlockTheme = "light" | "dark"` (default `dark`).
+- Built on `@tiptap/extension-code-block-lowlight` + `lowlight` (the `common` language set), with `enableTabIndentation: true` by default.
+- The NodeView provides a language dropdown, light/dark toggle, copy button, and delete button; a copy button is kept in read-only mode.
+
+```tsx
+import { CustomCodeBlock, CODE_LANGUAGES, type CodeBlockTheme } from "@tipkit/extensions";
+
+// Included by default; when adding it on its own you can configure it:
+CustomCodeBlock.configure({ defaultLanguage: "typescript" })
+
+// CODE_LANGUAGES / CodeBlockTheme can be used to build your own language picker
+const langs = CODE_LANGUAGES.map((l) => l.label).filter(Boolean);
+```
+
+### Math Formula (Katex)
+
+- **Purpose**: A block-level LaTeX math node (`atom`). Double-click or use the block menu to edit, with live preview; read-only mode keeps a "copy formula source" button.
+- **Enable**: `Katex` (included in the bundle by default).
+- **Attributes `KatexAttrs`**: `text` (LaTeX source string).
+- **Command**: `setKatex`; **input rule**: typing `$$katex$$` + Enter inserts an empty formula node.
+- **Rendering**: rendered on the client with `katex.renderToString`; `EditorDeps.renderKatex` is a reserved injection point for server-side rendering (SSR), signature `(tex, displayMode) => Promise<string>`.
+- **Serialization**: `div.tk-katex`, with the source stored in the `data-text` attribute.
+
+```tsx
+import { Katex } from "@tipkit/extensions";
+
+// Included by default:
+extensions: [..., Katex]
+
+// Insert a formula
+editor.chain().focus().setKatex({ text: "E = mc^2" }).run();
+```
+
+### Callout
+
+- **Purpose**: An emphasis callout (info / success / warning / danger / note) with switchable variants and a custom emoji icon; the content area can hold multiple paragraphs.
+- **Enable**: `Callout` (included in the bundle by default).
+- **Variants `CalloutVariant`**: `info` / `success` / `warning` / `danger` / `note`; the `CALLOUT_VARIANTS` constant records each variant's label and colors.
+- **Commands**: `setCallout`, `setCalloutVariant`, `setCalloutEmoji`; **input rule**: `>!` + Enter converts to an info callout.
+
+| Variant | Emoji | Use case |
+| --- | --- | --- |
+| `info` | 💡 | General information |
+| `success` | ✅ | Success / completion |
+| `warning` | ⚠️ | Caution / warning |
+| `danger` | 🔥 | Danger / error |
+| `note` | 📝 | Note / addendum |
+
+```tsx
+import { Callout, CALLOUT_VARIANTS, type CalloutVariant } from "@tipkit/extensions";
+
+// Included by default:
+extensions: [..., Callout]
+
+// Switch variant
+editor.chain().focus().setCalloutVariant("warning").run();
+```
+
+### Columns / Column
+
+- **Purpose**: A two-column layout container supporting "two equal columns / narrow left / narrow right"; each column can hold arbitrary block content.
+- **Enable**: `Columns` and `Column` (included in the bundle by default; both must be registered).
+- **Layout enum `ColumnLayout`**: `TwoColumn` (equal) / `SidebarLeft` (narrow left) / `SidebarRight` (narrow right).
+- **Commands**: `setColumns`, `setLayout`; `Column` is flagged by the `position` attribute (`left` / `right`).
+- **Serialization**: `div[data-type='columns']` containing two `div[data-type='column']` children.
+
+```tsx
+import { Columns, Column, ColumnLayout } from "@tipkit/extensions";
+
+// Included by default (Columns + Column registered together):
+extensions: [..., Columns, Column]
+
+// Insert columns / switch layout
+editor.chain().focus().setColumns().run();
+editor.chain().focus().setLayout(ColumnLayout.SidebarLeft).run();
+```
+
+### Details
+
+- **Purpose**: A collapsible container built on native `<details>`, useful for FAQs and collapsing long sections.
+- **Enable**: `Details`, `DetailsSummary`, `DetailsContent` (included in the bundle by default; register all three).
+- **Structure**: `Details` content is `detailsSummary detailsContent+`; `DetailsSummary` renders as `<summary>`, and `DetailsContent` can hold arbitrary block content.
+- **Command**: `setDetails` (open by default, `open: true`).
+- **Serialization**: `details[data-type='details']` → `summary[data-type='summary']` + `div[data-type='details-content']`.
+
+```tsx
+import { Details, DetailsSummary, DetailsContent } from "@tipkit/extensions";
+
+// Included by default:
+extensions: [..., Details, DetailsSummary, DetailsContent]
+
+editor.chain().focus().setDetails().run();
+```
+
+### Table of Contents (TableOfContentsNode)
+
+- **Purpose**: Inserts a TOC node that automatically scans the document's headings, renders them by level, and smooth-scrolls to a heading on click.
+- **Enable**: `TableOfContentsNode` (included in the bundle by default).
+- **Key option**: `scrollOffset` — the pixel offset from the top of the viewport when jumping, used to avoid sticky headers / toolbars. Passed via `createAdvancedExtensions({ tocScrollOffset })`, default `0`.
+- **Command**: `insertTableOfContents`.
+- **Serialization**: `div[data-type='table-of-content']`.
+
+```tsx
+import { createAdvancedExtensions } from "@tipkit/extensions";
+
+// When the page has a fixed header (~80px tall):
+extensions: [...createAdvancedExtensions({ tocScrollOffset: 80 })]
+```
+
+### Iframe
+
+- **Purpose**: Embeds external content such as web pages / Bilibili / YouTube (an `atom` block node); when `url` is empty an input card is shown, and the height can be drag-resized.
+- **Enable**: `Iframe` (included in the bundle by default).
+- **Attributes `IframeAttrs`**: `url` (shows an input card when `null`), `width` (default `"100%"`), `height` (default `360`, drag-resizable between 120–1200).
+- **Command**: `setIframe`; **input rule**: `$iframe$` + Enter inserts an empty embed node.
+- **Security**: the iframe ships with `sandbox` and `allow` attributes and lazy-loads via `loading="lazy"`.
+
+```tsx
+import { Iframe } from "@tipkit/extensions";
+
+// Included by default:
+extensions: [..., Iframe]
+
+editor.chain().focus().setIframe({ url: "https://www.youtube.com/embed/xxxx" }).run();
+```
+
+### Attachment
+
+- **Purpose**: A file attachment block with upload, download, and re-upload; upload progress and error retry are built into the NodeView.
+- **Enable**: `Attachment` (included in the bundle by default).
+- **Upload**: `EditorDeps.uploadAttachment` must be injected, signature `(file, editor) => Promise<AttachmentMeta>`, returning `{ url, name, size, mimeType }`; when missing, the NodeView shows "uploadAttachment not injected".
+- **Attributes `AttachmentAttrs`**: `fileName`, `fileSize`, `fileType`, `fileExt`, `url`, `hasTrigger`, `error`.
+- **Command**: `setAttachment`.
+- **Serialization**: `div.tk-attachment`, with file name / size / extension / url stored in `data-*` attributes.
+
+```tsx
+import type { EditorDeps } from "@tipkit/editor";
+
+const deps: EditorDeps = {
+  uploadAttachment: async (file) => {
+    // Replace with a real upload service and return attachment metadata
+    const url = await uploadToYourServer(file);
+    return { url, name: file.name, size: file.size, mimeType: file.type };
+  },
+};
+```
+
+### Status
+
+- **Purpose**: A Confluence-style **inline** status label (e.g. "To do", "Done") with customizable text and background color.
+- **Enable**: `Status` (included in the bundle by default).
+- **Attributes `StatusAttrs`**: `text` (default `"待处理"`), `color` (default `"#ffcccc"`).
+- **Commands**: `setStatus`, `updateStatus`.
+- **Serialization**: `span[data-status]` (class `tk-status`), with text and color stored in `data-text` / `data-color`.
+
+```tsx
+import { Status } from "@tipkit/extensions";
+
+// Included by default:
+extensions: [..., Status]
+
+editor.chain().focus().setStatus({ text: "In progress", color: "#cfe8ff" }).run();
+editor.chain().focus().updateStatus({ text: "Done", color: "#d1fadf" }).run();
+```
+
+### Inline Comment (Comment)
+
+- **Purpose**: Marks selected text as a comment (inline comment). **Not in the bundle by default** — it is an opt-in extension.
+- **Enable**: import it separately and `configure`:
+
+```tsx
+import { Comment } from "@tipkit/extensions";
+
+extensions: [..., Comment.configure()]
+```
+
+- **Minimal core**: it only provides the `Comment` Mark (`commentId` / `commentIds` attributes), three commands (`setComment` / `unsetComment` / `removeComment`), and the `EditorDeps.onCommentCreate` / `onCommentClick` callbacks. **The comment UI (drawer / FAB / anchor gutter / hover card / input) is fully implemented by the consumer** and can be replaced entirely without touching the core.
+- **Note**: the extension does not auto-trigger `onCommentClick` when clicking comment text (to avoid a modal blocking editing); if you need "click a comment to locate it in the panel", call it actively from your own UI such as the hover card.
+- **Serialization**: `span[data-comment-id]` (or `mark[data-comment-id]` / `[class~=tk-comment]`), with the comment ID in `data-comment-id`.
+
+```tsx
+import { Comment } from "@tipkit/extensions";
+import type { EditorDeps } from "@tipkit/editor";
+
+const deps: EditorDeps = {
+  onCommentCreate: (range) => {
+    // range: { from, to, text, commentId } —— open your comment drawer
+    openDrawer(range.commentId, range.text);
+  },
+  onCommentClick: (commentId) => locateComment(commentId),
+};
+
+extensions: [..., Comment.configure()]
+```
+
+> **Note**: the demo site (`/docs` → Online demo) implements the full inline-comment UI (side panel, hover card, anchor gutter); see `apps/demo/src/components/demo-editor.tsx`.
+
+### Canvas
+
+- **Purpose**: A full-line sketch / vector drawing board supporting brush, pencil, shapes, text, images, box select, zoom, grid snap, in-page fullscreen, and PNG export. **Not in the bundle by default** — it is an opt-in extension.
+- **Enable**: import it separately:
+
+```tsx
+import { Canvas } from "@tipkit/extensions";
+
+extensions: [..., Canvas]
+```
+
+- **Attributes `CanvasAttrs`**:
+
+| Attribute | Default | Description |
+| --- | --- | --- |
+| `width` | `800` | Board width |
+| `height` | `450` | Board height |
+| `shapes` | `[]` | All drawing elements (`CanvasShape[]`), persisted with the node |
+| `style` | `"auto"` | `auto` (follows theme) / `clean` / `sketch` |
+| `snap` | `false` | Grid snap |
+
+- **Commands**: `setCanvas`, `updateCanvas`.
+- **Content storage**: all drawing elements live in `attrs.shapes` and are persisted by updating attributes (new transactions), which gives undo / redo; the container is `contentEditable=false` so drawing does not interfere with the editor.
+- **Image tool**: inserting images goes through `EditorDeps.uploadImage` (falls back to a local object URL when not injected).
+- **Export**: the NodeView ships with "Export as image" (`shapesToSvg` + `svgToPng`, 2x scale).
+- **Serialization**: `div[data-type='canvas']`, with `data-shapes` as the JSON string of shapes.
+
+```tsx
+import { Canvas } from "@tipkit/extensions";
+
+extensions: [..., Canvas]
+
+editor.chain().focus().setCanvas().run();
+editor.chain().focus().updateCanvas({ style: "sketch", snap: true }).run();
+```
+
+### Slash Menu & Emoji Suggestion (`@tipkit/ui` overlays)
+
+- **Purpose**: `SlashMenu` (content-insert menu triggered by `/`) and `EmojiSuggestion` (emoji suggestion overlay triggered by `:xxx`) are **headless UI primitives** from `@tipkit/ui`. They are not in the extension bundle and are rendered by the consumer inside `<TipKitEditor>`'s children.
+- **`SlashMenu`**: built on `getInsertActions()` exported from `@tipkit/extensions`; optional `onUploadImage` prop (image upload) and `iconRenderer` (icon rendering).
+- **`EmojiSuggestion`**: triggered by `:` + a keyword, browsable with arrow keys, inserted with Enter / Tab.
+- Both only emit positioning, keyboard navigation, and `tk-*` semantic class names — all visuals belong to the theme CSS.
+
+```tsx
+import { SlashMenu, EmojiSuggestion } from "@tipkit/ui";
+
+<TipKitEditor extensions={[...]} deps={deps}>
+  {(editor) =>
+    editor ? (
+      <>
+        <SlashMenu editor={editor} onUploadImage={uploadImage} />
+        <EmojiSuggestion editor={editor} />
+      </>
+    ) : null
+  }
+</TipKitEditor>
+```
+
+### Combined Example
+
+Wire up the basic bundle, the advanced bundle (with `tocScrollOffset`), the opt-in `Comment` / `Canvas`, and the overlays (simplified from `apps/demo/src/components/demo-editor.tsx`):
+
+```tsx
+"use client";
+
+import { TipKitEditor, type EditorDeps } from "@tipkit/editor";
+import { createBasicExtensions, createAdvancedExtensions, Comment, Canvas } from "@tipkit/extensions";
+import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockHandleMenu, TableControls } from "@tipkit/ui";
+import { TooltipProvider } from "@tipkit/components";
+import "@tipkit/themes/default.css";
+
+/** Image upload: replace with a real upload service */
+const uploadImage = async (file: File) => URL.createObjectURL(file);
+
+const deps: EditorDeps = {
+  uploadImage,
+  onCommentCreate: (range) => console.log("comment created", range),
+};
+
+export default function App() {
+  return (
+    <TipKitEditor
+      deps={deps}
+      className="tk-theme-default"
+      placeholder="Type / to open the slash menu…"
+      extensions={[
+        ...createBasicExtensions(),
+        ...createAdvancedExtensions({ tocScrollOffset: 80 }),
+        Comment.configure(),
+        Canvas,
+      ]}
+    >
+      {(editor) =>
+        editor ? (
+          <TooltipProvider delayDuration={300}>
+            <SlashMenu editor={editor} onUploadImage={uploadImage} />
+            <EmojiSuggestion editor={editor} />
+            <TextMenu editor={editor} />
+            <LinkBubble editor={editor} />
+            <LinkDialogHost editor={editor} />
+            <BlockHandleMenu editor={editor} />
+            <TableControls editor={editor} />
+          </TooltipProvider>
+        ) : null
+      }
+    </TipKitEditor>
+  );
+}
+```
+
+The overlays are not an internal part of `TipKitEditor` — they are mounted by the consumer via the render prop. That is exactly what "headless" means: the behavior of advanced nodes, the interactive overlays, and the visuals are all under your control.

@@ -9,11 +9,24 @@ import { mdxComponents } from "@/components/docs/mdx-components";
 import { DocsEditorView } from "@/components/docs/docs-editor-view";
 import { DocsPager } from "@/components/docs/docs-pager";
 import { rehypeShiki } from "@/lib/rehype-shiki";
-import { DOC_SECTIONS, DOC_SLUGS, isValidDocSlug } from "@/lib/docs-sections";
+import { DOC_SECTIONS, DOC_PAGES, DOC_SLUGS, isValidDocSlug } from "@/lib/docs-sections";
 import { SITE_COPY } from "@/lib/site-i18n";
+import { DocsToc } from "@/components/docs/docs-toc";
 
 /** 由 TipKit 编辑器只读渲染的文档页（源文件为纯 Markdown），其余走 MDX 管线 */
-const EDITOR_RENDERED_SLUGS = new Set(["intro", "install", "quickstart", "concepts", "api", "advanced", "i18n"]);
+const EDITOR_RENDERED_SLUGS = new Set([
+  "intro",
+  "install",
+  "quickstart",
+  "concepts",
+  "api",
+  "plugins",
+  "plugins-basic",
+  "plugins-advanced",
+  "plugins-custom",
+  "advanced",
+  "i18n",
+]);
 
 /** 读文档源：en 优先 {slug}.en.mdx，缺失回退中文；zh 读 {slug}.mdx */
 function readDocSource(slug: string, lang: "zh" | "en"): string {
@@ -35,10 +48,10 @@ export function DocPageView({ slug, lang }: { slug: string; lang: "zh" | "en" })
   const source = readDocSource(slug, lang);
   const headCopy = SITE_COPY[lang].docsHead;
 
-  // 上一节 / 下一节（按侧边栏章节顺序）
-  const index = DOC_SECTIONS.findIndex((s) => s.slug === slug);
-  const prev = DOC_SECTIONS[index - 1];
-  const next = DOC_SECTIONS[index + 1];
+  // 上一节 / 下一节（按扁平化后的页面顺序）
+  const index = DOC_PAGES.findIndex((p) => p.slug === slug);
+  const prev = DOC_PAGES[index - 1];
+  const next = DOC_PAGES[index + 1];
 
   return (
     <div className="site-shell">
@@ -46,19 +59,24 @@ export function DocPageView({ slug, lang }: { slug: string; lang: "zh" | "en" })
       <div className="docs-layout">
         <DocsSidebar sections={DOC_SECTIONS} currentSlug={slug} />
         <main className="docs-content">
-          {EDITOR_RENDERED_SLUGS.has(slug) ? (
-            <DocsEditorView source={source} lang={lang} head={headCopy} />
-          ) : (
-            <MDXRemote
-              source={source}
-              components={mdxComponents}
-              options={{ mdxOptions: { rehypePlugins: [rehypeShiki] } }}
-            />
-          )}
+          <div id="docs-content">
+            {EDITOR_RENDERED_SLUGS.has(slug) ? (
+              <DocsEditorView source={source} lang={lang} head={headCopy} />
+            ) : (
+              <MDXRemote
+                source={source}
+                components={mdxComponents}
+                options={{ mdxOptions: { rehypePlugins: [rehypeShiki] } }}
+              />
+            )}
+          </div>
 
           {/* 文档翻页 */}
           <DocsPager prev={prev} next={next} />
         </main>
+
+        {/* 右侧页内目录（TOC）：基于 #docs-content 内的 H2/H3，标题不足时不渲染 */}
+        <DocsToc contentSelector="#docs-content" />
       </div>
       <SiteFooter />
     </div>
@@ -70,8 +88,8 @@ export function docStaticParams() {
 }
 
 export function docMetadata(slug: string, lang: "zh" | "en") {
-  const section = DOC_SECTIONS.find((s) => s.slug === slug);
-  const label = lang === "en" ? (section?.labelEn ?? section?.label) : section?.label;
+  const page = DOC_PAGES.find((p) => p.slug === slug);
+  const label = lang === "en" ? (page?.labelEn ?? page?.label) : page?.label;
   const title = lang === "en" ? `${label} — Docs` : `${label} —— 接入文档`;
   const prefix = lang === "en" ? `/en/docs/${slug}` : `/docs/${slug}`;
   return {
