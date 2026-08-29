@@ -64,7 +64,12 @@ export type { AttachmentAttrs } from "./attachment/attachment";
 export { BlockHandles, blockHandlesKey, getActiveBlockPos } from "./block-handles/block-handles";
 export { FileHandler } from "./file-handler/file-handler";
 export type { FileHandlerOptions } from "./file-handler/file-handler";
-export { emojisToName } from "./emoji/emoji-data";
+export { emojisToName, emojiSearch } from "./emoji/emoji-data";
+
+// Emoji（inline 节点 + 短代码输入规则；建议浮层在 @tipkit/ui）
+export { Emoji, findEmoji } from "./emoji/emoji-node";
+export type { EmojiAttrs, EmojiOptions } from "./emoji/emoji-node";
+export { EmojiSuggestion, getEmojiSuggestionState } from "./emoji/emoji-suggestion";
 
 // UniqueID（opt-in：节点自动 id，用于评论锚点/协同定位/目录跳转）
 export { UniqueID, uniqueIdKey } from "./unique-id/unique-id";

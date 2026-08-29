@@ -66,15 +66,20 @@ export function EmojiSuggestion({ editor }: { editor: Editor | null }) {
   }, [editor]);
 
   const insert = useCallback(
-    (emoji: string) => {
+    (item: { name: string; emoji: string }) => {
       if (!editor) return;
       const current = stateRef.current;
       if (!current.active) return;
+      // 注册了 Emoji 节点扩展时插入节点（可序列化 :name:），否则退回纯文本
+      const content = editor.schema.nodes.emoji
+        ? { type: "emoji", attrs: { name: item.name, glyph: item.emoji } }
+        : item.emoji;
       editor
         .chain()
         .focus()
         .deleteRange({ from: current.from, to: current.to })
-        .insertContent(emoji + " ")
+        .insertContent(content)
+        .insertContent(" ")
         .run();
     },
     [editor],
@@ -108,7 +113,7 @@ export function EmojiSuggestion({ editor }: { editor: Editor | null }) {
         const items = state.query
           ? emojisToName.filter((e) => e.name.includes(state.query))
           : emojisToName;
-        insert(items[Math.min(activeIndex, items.length - 1)].emoji);
+        insert(items[Math.min(activeIndex, items.length - 1)]);
       } else if (event.key === "Escape") {
         event.preventDefault();
         setState(INACTIVE);
@@ -134,7 +139,7 @@ export function EmojiSuggestion({ editor }: { editor: Editor | null }) {
             type="button"
             title={`:${item.name}:`}
             data-active={activeIndex === idx || undefined}
-            onClick={() => insert(item.emoji)}
+            onClick={() => insert(item)}
             onMouseEnter={() => setActiveIndex(idx)}
             className="tk-emoji-cell"
           >
