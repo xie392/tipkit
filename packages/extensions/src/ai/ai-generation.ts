@@ -1,5 +1,5 @@
 import { Extension } from "@tiptap/core";
-import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { Plugin, PluginKey, TextSelection } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { Editor } from "@tiptap/core";
 import type { AIProvider } from "@tipkit/core";
@@ -80,14 +80,23 @@ export const AiGeneration = Extension.create<AiGenerationOptions>({
 
           const mode: AiMode = options.mode ?? "insert";
           const { selection } = editor.state;
-          const replaceMode = mode === "replace" && !selection.empty;
+          // 仅文本选区可替换：NodeSelection（如斜杠菜单选中的空段落）empty 为 false
+          // 但没有可替换内容，走 replace 会删掉空节点并在块边界插入导致错乱
+          const hasContent = selection instanceof TextSelection && !selection.empty;
+          const replaceMode = mode === "replace" && hasContent;
           // 先捕获选区文本（tr 删除后 state 即失效）
           const selectionText = replaceMode
             ? editor.state.doc.textBetween(selection.from, selection.to, "\n")
             : undefined;
 
-          // replace：删除选区文本，生成内容落在同一起点
-          const from = replaceMode ? selection.from : selection.to;
+          // replace：删除选区文本，生成内容落在同一起点。
+          // 注意 selection.to 可能是块边界（如 NodeSelection 选中空段落），直接 insertText
+          // 会在边界上创建独立段落，必须用 TextSelection.near 规范到文本块内部。
+          const $to = tr.doc.resolve(selection.to);
+          const safe = TextSelection.near($to);
+          if (!replaceMode && safe.from !== selection.to) {
+            tr.setSelection(TextSelection.create(tr.doc, safe.from));
+          }
           if (replaceMode) tr.delete(selection.from, selection.to);
           tr.setMeta(aiKey, { generating: true, from: null, to: null });
           tr.setMeta("addToHistory", false);
@@ -109,7 +118,7 @@ export const AiGeneration = Extension.create<AiGenerationOptions>({
               instruction: options.instruction,
               selectionText,
               signal: controller.signal,
-              insertFrom: replaceMode ? tr.mapping.map(selection.from) : from,
+              insertFrom: replaceMode ? tr.mapping.map(selection.from) : safe.from,
               flushInterval,
               onDone,
             });
@@ -131,6 +140,8 @@ export const AiGeneration = Extension.create<AiGenerationOptions>({
         ({ editor, tr, dispatch }) => {
           const state = aiKey.getState(editor.state) as AiState | undefined;
           if (!state || state.from === null) return false;
+          // 丢弃时同时中断未完成的流
+          this.storage.controller?.abort();
           if (dispatch) {
             const from = state.from;
             const to = state.to;
@@ -207,9 +218,12 @@ async function runStream(params: RunStreamParams): Promise<void> {
     if (from === null) return;
     const start = from;
     const end = to;
+    const schema = editor.state.schema;
     const tr = editor.state.tr;
     if (end !== null && end > start) tr.delete(start, end);
-    tr.insertText(acc, start);
+    // 用精确的 replaceWith 而非 insertText：后者在空段落/块边界处会触发
+    // replaceRange 的"贴合"行为（吞并相邻空段落），导致后续 flush 位置漂移
+    tr.replaceWith(start, start, schema.text(acc));
     to = start + acc.length;
     tr.setMeta(aiKey, { generating: !final, from: start, to });
     tr.setMeta("addToHistory", false);
@@ -230,15 +244,14 @@ async function runStream(params: RunStreamParams): Promise<void> {
         flush(false);
       }
     }
-    flush(true);
+    // 中断时：若用户已放弃（预览状态被清空），不再把内容写回；仅取消则保留内容等待接受/放弃
+    const st = aiKey.getState(editor.state) as AiState | undefined;
+    if (!signal.aborted || st?.generating) flush(true);
   } catch (err) {
-    if (!signal.aborted) {
-      // 出错时保留已生成内容并结束 generating 状态，由 UI 层提示重试
-      flush(true);
-      console.error("[tipkit] ai generation failed:", err);
-    } else {
-      flush(true);
-    }
+    // 出错/中断时保留已生成内容并结束 generating 状态，由 UI 层提示重试
+    const st = aiKey.getState(editor.state) as AiState | undefined;
+    if (!signal.aborted || st?.generating) flush(true);
+    if (!signal.aborted) console.error("[tipkit] ai generation failed:", err);
   } finally {
     onDone();
   }

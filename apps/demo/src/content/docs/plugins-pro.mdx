@@ -73,17 +73,18 @@ const deps: EditorDeps = {
 <TipKitEditor deps={deps} />
 ```
 
-**2. 注册扩展 + 渲染浮层**：
+**2. 注册扩展 + 渲染浮层 + 启用斜杠入口**：
 
 ```tsx
 import { AiGeneration } from "@tipkit/extensions";
-import { AiMenu } from "@tipkit/ui";
+import { SlashMenu, AiMenu } from "@tipkit/ui";
 
 <TipKitEditor extensions={[...createBasicExtensions(), AiGeneration]}>
   {(editor) => (
     <>
-      <button onClick={() => setAiOpen(true)}>AI 助手</button>
-      <AiMenu editor={editor} open={aiOpen} onOpenChange={setAiOpen} />
+      <SlashMenu editor={editor} aiEnabled />
+      {/* 输入 / → AI 助手 打开浮层；也可自行触发 tk-ai:open 事件 */}
+      <AiMenu editor={editor} />
     </>
   )}
 </TipKitEditor>
@@ -102,4 +103,4 @@ import { AiMenu } from "@tipkit/ui";
 
 ### 演示
 
-Demo 站点的演示编辑器已接入上述三个插件（AI 使用本地 mock 流，无需 API Key）：右侧悬浮 ✨AI 按钮打开助手浮层，选中文本后可体验流式改写与接受/放弃流程。
+Demo 站点的演示编辑器已接入上述三个插件（AI 使用本地 mock 流，无需 API Key）：输入 `/` 选择「AI 助手」打开浮层，选中文本后可体验流式改写与接受/放弃流程；Esc 或点击面板外部中断并放弃。

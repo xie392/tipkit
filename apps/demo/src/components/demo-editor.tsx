@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { TipKitEditor } from "@tipkit/editor";
 import type { EditorDeps, IconRef, CommentRange, AIProvider } from "@tipkit/editor";
-import { createBasicExtensions, createAdvancedExtensions, Comment, Canvas, AiGeneration } from "@tipkit/extensions";
+import { createBasicExtensions, createAdvancedExtensions, Comment, Canvas, AiGeneration, Emoji } from "@tipkit/extensions";
 import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockHandleMenu, TableControls, ReadonlyTextMenu, AiMenu } from "@tipkit/ui";
 import { useDemoLang } from "@/components/use-demo-lang";
 import type { DemoLang } from "@/components/site-lang-switch";
@@ -93,6 +93,7 @@ const iconMap: Record<IconRef, LucideIcon> = {
   Smile,
   Badge,
   Brush,
+  Sparkles,
 };
 
 /** demo 图片上传：本地 blob 预览 */
@@ -226,7 +227,6 @@ export function DemoEditor({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [aiOpen, setAiOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
   const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
@@ -728,6 +728,7 @@ export function DemoEditor({
             ...createBasicExtensions(),
             commentExt,
             Canvas,
+            Emoji,
             AiGeneration,
             ...createAdvancedExtensions({ tocScrollOffset: 120 }),
           ]}
@@ -737,7 +738,7 @@ export function DemoEditor({
             if (editor) editorRef.current = editor;
             return editor ? (
               <TooltipProvider delayDuration={300}>
-                <SlashMenu editor={editor} onUploadImage={uploadImage} iconRenderer={renderSlashIcon} />
+                <SlashMenu editor={editor} onUploadImage={uploadImage} iconRenderer={renderSlashIcon} aiEnabled={editable} />
                 <EmojiSuggestion editor={editor} />
                 <TextMenu editor={editor} />
                 <ReadonlyTextMenu editor={editor} onCommentCreate={handleReadonlyCommentCreate} />
@@ -745,7 +746,7 @@ export function DemoEditor({
                 <LinkDialogHost editor={editor} />
                 {editable && <BlockHandleMenu editor={editor} />}
                 <TableControls editor={editor} />
-                {editable && <AiMenu editor={editor} open={aiOpen} onOpenChange={setAiOpen} />}
+                {editable && <AiMenu editor={editor} />}
               </TooltipProvider>
             ) : null;
           }}
@@ -801,22 +802,6 @@ export function DemoEditor({
               {comments.length > 0 && (
                 <span className="demo-comment-fab-badge">{comments.length}</span>
               )}
-            </button>
-          )}
-
-          {/* AI 助手入口：编辑态显示，点击在光标/选区处打开 AI 浮层 */}
-          {editable && !drawerOpen && (
-            <button
-              type="button"
-              className="demo-ai-fab"
-              onClick={() => {
-                editorRef.current?.commands.focus();
-                setAiOpen(true);
-              }}
-              aria-label={lang === "zh" ? "AI 助手" : "AI Assistant"}
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>AI</span>
             </button>
           )}
 

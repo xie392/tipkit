@@ -73,17 +73,18 @@ const deps: EditorDeps = {
 <TipKitEditor deps={deps} />
 ```
 
-**2. Register the extension + render the popup**:
+**2. Register the extension + render the popup + enable the slash entry**:
 
 ```tsx
 import { AiGeneration } from "@tipkit/extensions";
-import { AiMenu } from "@tipkit/ui";
+import { SlashMenu, AiMenu } from "@tipkit/ui";
 
 <TipKitEditor extensions={[...createBasicExtensions(), AiGeneration]}>
   {(editor) => (
     <>
-      <button onClick={() => setAiOpen(true)}>AI Assistant</button>
-      <AiMenu editor={editor} open={aiOpen} onOpenChange={setAiOpen} />
+      <SlashMenu editor={editor} aiEnabled />
+      {/* Type / → AI Assistant opens the popup; or dispatch tk-ai:open yourself */}
+      <AiMenu editor={editor} />
     </>
   )}
 </TipKitEditor>
@@ -102,4 +103,4 @@ import { AiMenu } from "@tipkit/ui";
 
 ### Demo
 
-The demo editor already ships with all three plugins (AI uses a local mock stream — no API key needed): click the floating ✨AI button on the right to open the assistant popup, select some text to try streaming rewrite with accept/discard.
+The demo editor already ships with all three plugins (AI uses a local mock stream — no API key needed): type `/` and pick "AI Assistant" to open the popup, select some text to try streaming rewrite with accept/discard. Esc or clicking outside the panel aborts and discards.

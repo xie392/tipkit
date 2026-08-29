@@ -17,6 +17,8 @@ export interface SlashMenuProps {
   editor: Editor | null;
   onUploadImage?: (file: File) => Promise<string>;
   iconRenderer?: (icon: string) => React.ReactNode;
+  /** 是否展示「AI 助手」入口（消费方需已注册 AiGeneration + AiMenu 并注入 deps.ai） */
+  aiEnabled?: boolean;
 }
 
 const INACTIVE: SlashCommandState = {
@@ -33,7 +35,7 @@ const PREVIEW_GAP = 8;
 const MENU_MAX_HEIGHT = 340;
 const OFFSET = 8;
 
-export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProps) {
+export function SlashMenu({ editor, onUploadImage, iconRenderer, aiEnabled = false }: SlashMenuProps) {
   const t = useT();
   const [slash, setSlash] = useState<SlashCommandState>(INACTIVE);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -56,9 +58,10 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer }: SlashMenuProp
             openLinkDialog,
             clearSlashQuery: true,
             t,
+            aiEnabled,
           })
         : [],
-    [editor, onUploadImage, t],
+    [editor, onUploadImage, t, aiEnabled],
   );
   const actions = useMemo(
     () => filterInsertActions(allActions, slash.query),

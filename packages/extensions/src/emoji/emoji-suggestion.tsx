@@ -104,10 +104,18 @@ export function EmojiSuggestion({ editor }: { editor: Editor | null }) {
         setActiveIndex((i) => (i - 1 + filteredCount) % filteredCount);
       } else if (event.key === "ArrowDown") {
         event.preventDefault();
-        setActiveIndex((i) => Math.min(i + COLS, filteredCount - 1));
+        // 按列数跳格；只剩一行（过滤后常用场景）时退化为逐个移动，与斜杠菜单习惯一致
+        setActiveIndex((i) => {
+          const next = i + COLS;
+          return next < filteredCount ? next : i + 1 < filteredCount ? i + 1 : i;
+        });
       } else if (event.key === "ArrowUp") {
         event.preventDefault();
-        setActiveIndex((i) => Math.max(i - COLS, 0));
+        setActiveIndex((i) => {
+          const prev = i - COLS;
+          if (prev >= 0) return prev;
+          return i - 1 >= 0 ? i - 1 : i;
+        });
       } else if (event.key === "Enter" || event.key === "Tab") {
         event.preventDefault();
         const items = state.query
