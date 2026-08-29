@@ -68,7 +68,15 @@ function findFirstLineEl(blockEl: HTMLElement): HTMLElement | null {
 function findBlockEl(start: EventTarget | null, root: HTMLElement): HTMLElement | null {
   let el = start as HTMLElement | null;
   while (el && el !== root) {
-    if (el.parentElement === root) return el;
+    if (el.parentElement === root) {
+      // 表格悬浮控件的锚点 widget 不是块：映射到它前面的表格块，
+      // 否则悬停控件时块手柄会消失或锚定到表格下方的块
+      if (el.classList.contains("tk-table-hover-anchor")) {
+        const prev = el.previousElementSibling as HTMLElement | null;
+        return prev ?? null;
+      }
+      return el;
+    }
     el = el.parentElement;
   }
   return null;

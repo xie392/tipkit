@@ -309,6 +309,7 @@ export const en: Messages = {
   "table.insertColAfter": "Insert column after",
   "table.insertRowBefore": "Insert row before",
   "table.insertRowAfter": "Insert row after",
+  "table.selectTable": "Select entire table",
   "table.toggleHeaderRow": "Toggle header row",
   "table.toggleHeaderCol": "Toggle header column",
   "table.toggleHeaderCell": "Toggle header cell",

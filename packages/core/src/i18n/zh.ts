@@ -309,6 +309,7 @@ export const zh: Messages = {
   "table.insertColAfter": "右侧插入列",
   "table.insertRowBefore": "上方插入行",
   "table.insertRowAfter": "下方插入行",
+  "table.selectTable": "选中整个表格",
   "table.toggleHeaderRow": "切换表头行",
   "table.toggleHeaderCol": "切换表头列",
   "table.toggleHeaderCell": "切换表头单元格",

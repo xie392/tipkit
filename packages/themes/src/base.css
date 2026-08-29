@@ -2245,12 +2245,34 @@
   }
 }
 
-/* 表格 hover 快捷控制：行/列加号 + 左上角全选把手 */
-.tk-table-hover-controls {
-  position: fixed;
-  inset: 0;
+/* 表格 hover 快捷控制（yiitap 风格）：控件经 widget 装饰挂进文档流，
+ * 随表格滚动；显隐由边缘热区 hover 驱动，指针从单元格到热区到加号
+ * 全程连续 hover，不会出现浮层半路消失/滚动残留 */
+.tk-table-hover-anchor {
+  /* 零高度、绝对定位停留在原静态位置：不参与布局，又能作为子元素定位基准 */
+  position: absolute;
   z-index: 60;
+}
+.tk-table-hover-controls {
+  position: absolute;
   pointer-events: none;
+}
+.tk-table-hover-strip {
+  position: absolute;
+  pointer-events: auto;
+}
+.tk-table-hover-strip.is-row {
+  /* 热区必须覆盖加号与全选把手（把手顶到 -28px），否则移向它们的路上会 mouseleave */
+  left: -24px;
+  top: -28px;
+  bottom: -4px;
+  width: 30px;
+}
+.tk-table-hover-strip.is-col {
+  top: -24px;
+  left: -28px;
+  right: -4px;
+  height: 30px;
 }
 .tk-table-hover-btn {
   position: absolute;
@@ -2268,6 +2290,15 @@
   pointer-events: auto;
   cursor: pointer;
   transition: background 0.12s, color 0.12s, transform 0.12s;
+}
+/* 全选把手：挂在热区内保证 hover 连续，斜向外避开行/列加号 */
+.tk-table-hover-strip.is-row .is-corner {
+  left: 0;
+  top: 0;
+}
+.tk-table-hover-strip.is-col .is-corner {
+  left: 4px;
+  top: 0;
 }
 .tk-table-hover-btn:hover {
   background: var(--primary, #2563eb);

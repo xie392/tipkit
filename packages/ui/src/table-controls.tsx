@@ -550,6 +550,33 @@ export function TableContextMenu({ editor }: { editor: Editor }) {
       const target = e.target as HTMLElement;
       if (!target.closest("td, th")) return;
       e.preventDefault();
+      // 右键时先把单元格选区移到目标格（飞书/语雀习惯），否则菜单会作用于
+      // 旧光标位置，删错行/列。多格选区内右键则保留选区。
+      const result = editor.view.posAtCoords({ left: e.clientX, top: e.clientY });
+      if (result) {
+        const $pos = editor.state.doc.resolve(result.pos);
+        let cellDepth = -1;
+        for (let d = $pos.depth; d > 0; d--) {
+          const name = $pos.node(d).type.name;
+          if (name === "tableCell" || name === "tableHeader") {
+            cellDepth = d;
+            break;
+          }
+        }
+        if (cellDepth >= 0) {
+          const cellPos = $pos.before(cellDepth);
+          const sel = editor.state.selection;
+          const inSelection =
+            sel instanceof CellSelection &&
+            cellPos >= Math.min(sel.$anchorCell.pos, sel.$headCell.pos) &&
+            cellPos <= Math.max(sel.$anchorCell.pos, sel.$headCell.pos);
+          if (!inSelection) {
+            editor.view.dispatch(
+              editor.state.tr.setSelection(CellSelection.create(editor.state.doc, cellPos)),
+            );
+          }
+        }
+      }
       setPos({ x: e.clientX, y: e.clientY });
       setAdjusted({ x: e.clientX, y: e.clientY });
     };
