@@ -101,6 +101,12 @@ const iconMap: Record<IconRef, LucideIcon> = {
 /** demo 图片上传：本地 blob 预览 */
 const uploadImage = async (file: File): Promise<string> => URL.createObjectURL(file);
 
+/** demo 附件/视频上传：模拟 600ms 网络延迟后返回本地 blob URL（无需真实服务端） */
+const uploadAttachment = async (file: File) => {
+  await new Promise((r) => setTimeout(r, 600));
+  return { url: URL.createObjectURL(file), name: file.name, size: file.size, mimeType: file.type };
+};
+
 /** demo AI provider：本地假流式（按指令返回 canned 文案），接真实 LLM 时替换即可 */
 const mockAI: AIProvider = {
   async *streamText({ prompt, selection, signal }) {
@@ -157,12 +163,16 @@ const CURRENT_USER = "我";
 const DEMO_CONTENT = `
 <h1>TipKit 编辑器演示</h1>
 <p>这是一段 <strong>加粗</strong>、<em>斜体</em>、<s>删除线</s> 和 <code>行内代码</code> 的正文，试试 <mark>高亮</mark> 与 <u>下划线</u>，以及一个 <a href="https://tiptap.dev">外部链接</a>。</p>
+<p>还有上下标：H<sub>2</sub>O、E = mc<sup>2</sup>；<span style="color: #e11d48">彩色文字</span>、<span style="color: #2563eb">蓝色文字</span>、<span style="font-size: 20px">20px 大号文字</span>、<span style="font-family: Georgia, serif">Georgia 字体</span>。</p>
+<h2>目录 TOC</h2>
+<div data-type="table-of-content"></div>
 <p>👉 <span class="tk-comment" data-comment-id="${DEMO_COMMENT_ID}">选中任意一段文字，在弹出的气泡菜单中点击最右侧 💬 图标即可添加划词评论；写好的评论会保存在右侧悬浮面板里。</span>点击已高亮的文字可在面板中定位对应评论。</p>
 <h2>功能一览</h2>
 <ul>
-  <li>输入 <code>/</code> 打开斜杠菜单，插入 21 种内容</li>
+  <li>输入 <code>/</code> 打开斜杠菜单，插入 20 余种内容</li>
   <li>直接粘贴 Markdown，或输入 <code>##</code>、<code>- </code>、<code>1. </code> 即时转换</li>
   <li>输入 <code>:smile</code> 触发 Emoji 建议：😄 🎉 🚀 ✨</li>
+  <li>拖拽文件/图片到编辑器即可插入附件或图片块</li>
 </ul>
 <blockquote><p>悬停块左侧出现 ⋮⋮ 手柄，可拖拽调整顺序；点 + 在块前插入。</p></blockquote>
 <h2>任务列表</h2>
@@ -179,6 +189,13 @@ export default function App() {
 }</code></pre>
 <h2>表格</h2>
 <table><tbody><tr><th>能力</th><th>入口</th><th>说明</th></tr><tr><td>斜杠菜单</td><td><code>/</code></td><td>21 种内容节点</td></tr><tr><td>Markdown</td><td>直接粘贴</td><td>即时转换</td></tr><tr><td>Emoji</td><td><code>:smile</code></td><td>方向键浏览</td></tr></tbody></table>
+<h2>Mermaid 图表</h2>
+<p>代码块语言切换到 <code>mermaid</code> 即可渲染图表：默认只显示图，<strong>双击图表</strong>或点右上角 <code>&lt;/&gt;</code> 按钮进入代码编辑（此时隐藏图表），改完点 👁 按钮回到图表视图。</p>
+<pre><code class="language-mermaid">flowchart LR
+  A[输入 Markdown] --> B{是代码块?}
+  B -- 是 --> C[高亮渲染]
+  B -- 否 --> D[普通文本]
+  C --> E[Mermaid 预览]</code></pre>
 <h2>图片</h2>
 <p>粘贴或上传图片自动转为图片块：选中后可拖拽四角缩放、调整对齐方式与宽度。</p>
 <div data-type="image-block" data-align="center" data-width="100%"><img src="data:image/svg+xml;utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='800'%20height='450'%20viewBox='0%200%20800%20450'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%23f6f5f4'/%3E%3Cstop%20offset='1'%20stop-color='%23e4ded3'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='800'%20height='450'%20fill='url(%23g)'/%3E%3Crect%20x='40'%20y='40'%20width='720'%20height='370'%20rx='18'%20fill='none'%20stroke='%23cfc7ba'%20stroke-width='2'/%3E%3Ctext%20x='400'%20y='212'%20font-family='Georgia,serif'%20font-size='44'%20fill='%2331302e'%20text-anchor='middle'%3ETipKit%20图片块%3C/text%3E%3Ctext%20x='400'%20y='256'%20font-family='sans-serif'%20font-size='17'%20fill='%238a857c'%20text-anchor='middle'%3E选中图片可拖拽四角缩放，也可调对齐与宽度%3C/text%3E%3C/svg%3E" alt="TipKit 图片块示例"></div>
@@ -193,6 +210,21 @@ export default function App() {
 <div data-type="columns" class="tk-columns layout-two-column"><div data-type="column" class="tk-column" data-position="left"><p><strong>左栏</strong></p><p>这里是第一列的内容。</p></div><div data-type="column" class="tk-column" data-position="right"><p><strong>右栏</strong></p><blockquote><p>栏内引用块示例。</p></blockquote></div></div>
 <h3>折叠块 Details</h3>
 <details data-type="details" class="tk-details" open="open"><summary data-type="summary" class="tk-details-summary">点击展开 / 收起：常见问题</summary><div data-type="details-content" class="tk-details-content"><ol><li>第一步内容</li><li>第二步内容</li></ol></div></details>
+<h3>状态标签 Status</h3>
+<p>行内状态标签：任务当前 <span class="tk-status" data-status="true" data-text="进行中" data-color="#bfdbfe">进行中</span>，完成变为 <span class="tk-status" data-status="true" data-text="已完成" data-color="#bbf7d0">已完成</span>，也可以是 <span class="tk-status" data-status="true" data-text="已阻塞" data-color="#fecaca">已阻塞</span>。点击可弹出取色与改名的浮层。</p>
+<h3>Emoji 节点</h3>
+<p>斜杠菜单或 <code>:shortname</code> 插入的 Emoji 是独立节点：<span class="tk-emoji" data-name="rocket">🚀</span> <span class="tk-emoji" data-name="tada">🎉</span> <span class="tk-emoji" data-name="fire">🔥</span> <span class="tk-emoji" data-name="sparkles">✨</span>，复制粘贴/序列化不会丢。</p>
+<h3>嵌入 Iframe</h3>
+<div class="tk-iframe" data-url="https://www.youtube.com/embed/aqz-KE-bpKQ" data-width="100%" data-height="360"></div>
+<h3>视频 Video</h3>
+<div data-type="video" data-src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"></div>
+<h3>附件 Attachment</h3>
+<p>第一条带下载链接；第二条是空附件，点击卡片即可选择文件 —— demo 用本地 blob URL 模拟上传（含 600ms 假延迟），无需真实服务端。</p>
+<div class="tk-attachment" data-filename="TipKit-产品需求文档.pdf" data-fileext="pdf" data-filetype="application/pdf" data-filesize="2048000" data-url="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"></div>
+<div class="tk-attachment"></div>
+<h3>画板 Canvas</h3>
+<p>下方是一块可交互画板：点击进入编辑，可切换画笔/图形工具，支持手绘(sketch)风格与网格吸附，内容随文档一起序列化。</p>
+<div data-type="canvas" data-width="800" data-height="320" data-style="sketch" data-snap="true" data-shapes="[]"></div>
 `;
 
 export function DemoEditor({
@@ -260,6 +292,7 @@ export function DemoEditor({
   const deps = useMemo<EditorDeps>(
     () => ({
       uploadImage,
+      uploadAttachment,
       ai: mockAI,
       t,
       onCommentCreate: (range) => {

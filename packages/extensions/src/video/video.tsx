@@ -208,20 +208,44 @@ function VideoView({ editor, node, updateAttributes, deleteNode }: NodeViewProps
               onClick={async () => {
                 if (src) await navigator.clipboard.writeText(src);
               }}
+              data-tip="复制视频链接"
             >
               <IconCopy />
+            </button>
+            <button
+              type="button"
+              className="tk-ct-btn"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => fileInputRef.current?.click()}
+              data-tip="替换视频"
+            >
+              <IconUpload />
             </button>
             <button
               type="button"
               className="tk-ct-btn is-danger"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => deleteNode()}
+              data-tip="删除"
             >
               <IconTrash />
             </button>
           </div>
         </div>
       )}
+
+      {/* 隐藏文件选择器：无论是否已有视频都要渲染（替换视频按钮依赖它） */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="video/*"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void upload(file);
+          e.target.value = "";
+        }}
+      />
 
       {src ? (
         <video src={src} controls preload="metadata" className="tk-video-player" />
@@ -259,17 +283,6 @@ function VideoView({ editor, node, updateAttributes, deleteNode }: NodeViewProps
               <button type="button" className="tk-video-card-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => fileInputRef.current?.click()}>
                 <IconUpload /> 上传视频
               </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="video/*"
-                hidden
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) void upload(file);
-                  e.target.value = "";
-                }}
-              />
             </>
           )}
         </div>

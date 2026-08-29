@@ -136,10 +136,18 @@ function MermaidViewer({ svg, theme, onClose, t }: MermaidViewerProps) {
     return () => document.removeEventListener("keydown", onKeyDown, true);
   }, [onClose, zoomAt]);
 
-  const onWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    zoomAt(stateRef.current.scale - e.deltaY * WHEEL_SENSITIVITY, e.clientX, e.clientY);
-  };
+  /* 滚轮缩放：必须用非 passive 原生监听，preventDefault 才能拦住页面滚动 */
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      zoomAt(stateRef.current.scale - e.deltaY * WHEEL_SENSITIVITY, e.clientX, e.clientY);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [zoomAt]);
 
   const onMouseDown = (e: React.MouseEvent) => {
     if (stateRef.current.scale <= 1) return;
@@ -182,7 +190,6 @@ function MermaidViewer({ svg, theme, onClose, t }: MermaidViewerProps) {
       <div
         ref={containerRef}
         className="tk-mermaid-viewer-stage"
-        onWheel={onWheel}
         onMouseDown={onMouseDown}
         onDoubleClick={() => {
           setScale(1);

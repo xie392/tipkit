@@ -141,7 +141,9 @@ function CodeBlockView(props: NodeViewProps) {
   const isMermaid = language === "mermaid";
 
   const [langOpen, setLangOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(true);
+  /* Mermaid KaTeX 式交互：默认只显示渲染图；代码在内容为空时自动展开，
+   * 双击图表或点工具栏按钮进入代码编辑。非 mermaid 块忽略此状态。 */
+  const [codeOpen, setCodeOpen] = useState(() => isMermaid && !node.textContent.trim());
   const [viewerOpen, setViewerOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [autoDetected, setAutoDetected] = useState(false);
@@ -156,6 +158,11 @@ function CodeBlockView(props: NodeViewProps) {
     placement: "bottom" | "top";
   }>({ top: 0, left: 0, minWidth: 160, maxHeight: 280, placement: "bottom" });
   const prevContentRef = useRef(node.textContent);
+
+  /* mermaid 内容被清空（切换语言/删空代码）时自动展开代码编辑区 */
+  useEffect(() => {
+    if (isMermaid && !node.textContent.trim()) setCodeOpen(true);
+  }, [isMermaid, node.textContent]);
 
   const DROPDOWN_WIDTH = 200;
   const GAP = 4;
@@ -334,10 +341,10 @@ function CodeBlockView(props: NodeViewProps) {
               <button
                 type="button"
                 className="tk-code-block-action-btn"
-                onClick={() => setPreviewOpen((v) => !v)}
-                title={previewOpen ? t("codeBlock.showCode") : t("codeBlock.showDiagram")}
+                onClick={() => setCodeOpen((v) => !v)}
+                title={codeOpen ? t("codeBlock.showDiagram") : t("codeBlock.showCode")}
               >
-                {previewOpen ? <IconCode /> : <IconEye />}
+                {codeOpen ? <IconEye /> : <IconCode />}
               </button>
               <button
                 type="button"
@@ -379,7 +386,7 @@ function CodeBlockView(props: NodeViewProps) {
 
       <pre
         className="tk-code-block-pre"
-        style={isMermaid && !isEditable ? { display: "none" } : undefined}
+        style={isMermaid && !codeOpen ? { display: "none" } : undefined}
       >
         <NodeViewContent
           as={"code" as never}
@@ -388,13 +395,18 @@ function CodeBlockView(props: NodeViewProps) {
         />
       </pre>
 
-      {isMermaid && (isEditable || previewOpen) && (
-        <MermaidPreview
-          code={node.textContent}
-          theme={dark ? "dark" : "light"}
-          fullscreen={viewerOpen}
-          onCloseFullscreen={() => setViewerOpen(false)}
-        />
+      {isMermaid && !codeOpen && (
+        <div
+          onDoubleClick={isEditable ? () => setCodeOpen(true) : undefined}
+          style={isEditable ? { cursor: "pointer" } : undefined}
+        >
+          <MermaidPreview
+            code={node.textContent}
+            theme={dark ? "dark" : "light"}
+            fullscreen={viewerOpen}
+            onCloseFullscreen={() => setViewerOpen(false)}
+          />
+        </div>
       )}
 
       {!isEditable && (

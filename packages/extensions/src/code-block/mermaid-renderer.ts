@@ -15,6 +15,16 @@ async function loadMermaid(theme: string): Promise<Mermaid> {
       startOnLoad: false,
       securityLevel: "strict",
       theme: theme === "dark" ? "dark" : "default",
+      // 不按容器宽度压缩 SVG，保持原始尺寸（大图由预览区横向滚动查看）
+      flowchart: { useMaxWidth: false },
+      sequence: { useMaxWidth: false },
+      gantt: { useMaxWidth: false },
+      class: { useMaxWidth: false },
+      state: { useMaxWidth: false },
+      er: { useMaxWidth: false },
+      journey: { useMaxWidth: false },
+      pie: { useMaxWidth: false },
+      gitGraph: { useMaxWidth: false },
     });
     initializedTheme = theme;
   }
