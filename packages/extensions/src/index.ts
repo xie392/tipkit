@@ -66,6 +66,10 @@ export { FileHandler } from "./file-handler/file-handler";
 export type { FileHandlerOptions } from "./file-handler/file-handler";
 export { emojisToName } from "./emoji/emoji-data";
 
+// UniqueID（opt-in：节点自动 id，用于评论锚点/协同定位/目录跳转）
+export { UniqueID, uniqueIdKey } from "./unique-id/unique-id";
+export type { UniqueIDOptions, UniqueIdOptions } from "./unique-id/unique-id";
+
 // Comment（划词评论）
 export { Comment } from "./comment/comment";
 export type { CommentOptions } from "./comment/comment";
