@@ -91,9 +91,14 @@ export const AiGeneration = Extension.create<AiGenerationOptions>({
 
           // replace：删除选区文本，生成内容落在同一起点。
           // 注意 selection.to 可能是块边界（如 NodeSelection 选中空段落），直接 insertText
-          // 会在边界上创建独立段落，必须用 TextSelection.near 规范到文本块内部。
+          // 会在边界上创建独立段落。必须规范到文本块内部：
+          // bias=-1 向前找——NodeSelection 选中空段落时 to 在段落之后，
+          // 向前 bias 才能落进该空段落本身，而不是跳到下一个节点（否则会并进下方的标题）。
           const $to = tr.doc.resolve(selection.to);
-          const safe = TextSelection.near($to);
+          const safe =
+            $to.parent.isTextblock && $to.pos < $to.end()
+              ? TextSelection.create(tr.doc, $to.pos)
+              : TextSelection.near($to, -1);
           if (!replaceMode && safe.from !== selection.to) {
             tr.setSelection(TextSelection.create(tr.doc, safe.from));
           }

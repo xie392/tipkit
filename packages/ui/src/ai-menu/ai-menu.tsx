@@ -167,6 +167,10 @@ export function AiMenu({ editor }: { editor: Editor | null }) {
     Math.max(anchor.left, 8),
     Math.max(8, (typeof window !== "undefined" ? window.innerWidth : 1200) - PANEL_WIDTH - 8),
   );
+  // 默认在光标上方打开，避免盖住下方流式生成的内容；上方空间不足时退到下方
+  const PANEL_HEIGHT_ESTIMATE = 140;
+  const above = anchor.top - PANEL_HEIGHT_ESTIMATE - 12;
+  const top = above >= 70 ? above : Math.min(anchor.bottom + 8, (typeof window !== "undefined" ? window.innerHeight : 800) - 160);
 
   const panel = (
     <div
@@ -175,7 +179,7 @@ export function AiMenu({ editor }: { editor: Editor | null }) {
       data-phase={phase}
       style={{
         position: "fixed",
-        top: Math.min(anchor.bottom + 8, (typeof window !== "undefined" ? window.innerHeight : 800) - 160),
+        top,
         left,
         width: PANEL_WIDTH,
         zIndex: 10000,
