@@ -45,6 +45,7 @@ export { LinkDialog, LinkDialogHost, openLinkDialog } from "./bubble-menu/link-d
 export { BlockBubbleMenu } from "./bubble-menu/block-bubble";
 export { BlockHandleMenu } from "./bubble-menu/block-handle-menu";
 export { TablePicker, TableBubbleToolbar, TableContextMenu, TableControls } from "./table-controls";
+export { TableHoverControls } from "./table-hover-controls";
 
 // 工具栏菜单（完整版）
 export { ToolbarBtn } from "./toolbar/toolbar-button";

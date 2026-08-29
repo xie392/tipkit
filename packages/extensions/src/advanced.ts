@@ -8,6 +8,7 @@ import { Details, DetailsSummary, DetailsContent } from "./details/details";
 import { TableOfContentsNode } from "./toc/toc-node";
 import { Iframe } from "./iframe/iframe";
 import { Attachment } from "./attachment/attachment";
+import { Video } from "./video/video";
 import { BlockHandles } from "./block-handles/block-handles";
 import { FileHandler } from "./file-handler/file-handler";
 import { Status } from "./status/status";
@@ -70,6 +71,7 @@ function buildAdvancedExtensions(toc: AnyExtension): AnyExtension[] {
     toc,
     Iframe,
     Attachment,
+    Video,
     BlockHandles,
     FileHandler,
     Status,

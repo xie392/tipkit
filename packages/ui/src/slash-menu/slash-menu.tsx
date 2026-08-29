@@ -158,6 +158,8 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer, aiEnabled = fal
   useEffect(() => {
     if (!editor) return;
     const handleKeyDown = (event: KeyboardEvent) => {
+      // 输入法组合期（拼音候选确认）的按键不触发命令选择
+      if (event.isComposing || event.keyCode === 229) return;
       const { slash: cur, actions: list } = stateRef.current;
       if (!cur.active || hiddenKey === cur.key || list.length === 0) return;
       if (event.key === "ArrowDown") {
@@ -172,6 +174,9 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer, aiEnabled = fal
         if (action && action.available) action.run();
         setHiddenKey(cur.key);
         setPos(null);
+        // 阻止同一次 Enter 继续传给后续监听器（如 emoji 浮层），
+        // 否则选完命令的同一按键会被 emoji 浮层当作"确认插入"
+        event.stopImmediatePropagation();
       } else if (event.key === "Escape") {
         event.preventDefault();
         setHiddenKey(cur.key);

@@ -469,6 +469,22 @@ export function getInsertActions({
       },
     },
     {
+      id: "video",
+      group: "media",
+      label: tr("slash.video.label"),
+      description: tr("slash.video.description"),
+      aliases: ["shipin", "video", "movie"],
+      icon: "Video",
+      available: true,
+      previewTitle: tr("slash.video.previewTitle"),
+      preview:
+        '<div style="background:#fff;border-radius:6px;overflow:hidden"><div style="display:flex;align-items:center;justify-content:center;height:64px;background:#111827"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></div></div>',
+      run: () => {
+        prepareInsert();
+        editor.chain().focus().setVideo({ src: null }).run();
+      },
+    },
+    {
       id: "attachment",
       group: "media",
       label: tr("slash.attachment.label"),

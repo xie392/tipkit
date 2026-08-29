@@ -61,10 +61,13 @@ export { Iframe } from "./iframe/iframe";
 export type { IframeAttrs } from "./iframe/iframe";
 export { Attachment } from "./attachment/attachment";
 export type { AttachmentAttrs } from "./attachment/attachment";
+export { Video } from "./video/video";
+export type { VideoAttrs } from "./video/video";
 export { BlockHandles, blockHandlesKey, getActiveBlockPos } from "./block-handles/block-handles";
 export { FileHandler } from "./file-handler/file-handler";
 export type { FileHandlerOptions } from "./file-handler/file-handler";
-export { emojisToName, emojiSearch } from "./emoji/emoji-data";
+export { emojisToName, emojiSearch, emojiFilter, emojiByGroup, emojiLibrary, EMOJI_GROUPS, COMMON_EMOJI_COUNT } from "./emoji/emoji-data";
+export type { EmojiEntry, EmojiGroup } from "./emoji/emoji-data";
 
 // Emoji（inline 节点 + 短代码输入规则；建议浮层在 @tipkit/ui）
 export { Emoji, findEmoji } from "./emoji/emoji-node";

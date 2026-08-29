@@ -15,6 +15,7 @@ import {
 } from "@tiptap/pm/tables";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@tipkit/components";
 import { useT, useEditorEditable, type Translate } from "@tipkit/core";
+import { TableHoverControls } from "./table-hover-controls";
 
 const PICKER_COLS = 8;
 const PICKER_ROWS = 6;
@@ -350,6 +351,24 @@ function IconRowAfter() {
   );
 }
 
+function IconDeleteCol() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="8" height="10" rx="1" />
+      <path d="M11 6.5l4 3.5M15 6.5l-4 3.5" />
+    </svg>
+  );
+}
+
+function IconDeleteRow() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2.5" y="2.5" width="11" height="8" rx="1" />
+      <path d="M6 13.5h4M6.5 12l1.5 1.5L9.5 12" />
+    </svg>
+  );
+}
+
 function IconTrash() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
@@ -447,6 +466,12 @@ export function TableBubbleToolbar({ editor }: { editor: Editor }) {
         </TbBtn>
         <TbBtn title={t("table.insertRowAfter")} onClick={() => editor.chain().focus().addRowAfter().run()}>
           <IconRowAfter />
+        </TbBtn>
+        <TbBtn title={t("table.deleteCol")} onClick={() => editor.chain().focus().deleteColumn().run()}>
+          <IconDeleteCol />
+        </TbBtn>
+        <TbBtn title={t("table.deleteRow")} onClick={() => editor.chain().focus().deleteRow().run()}>
+          <IconDeleteRow />
         </TbBtn>
         <TbDivider />
         <TbBtn
@@ -638,6 +663,7 @@ export function TableControls({ editor }: { editor: Editor }) {
   return (
     <>
       <TableBubbleToolbar editor={editor} />
+      <TableHoverControls editor={editor} />
       <TableContextMenu editor={editor} />
     </>
   );

@@ -142,6 +142,19 @@ export const zh: Messages = {
   "slash.attachment.label": "附件",
   "slash.attachment.description": "上传文件并预览（PDF / Office / 压缩包等）",
   "slash.attachment.previewTitle": "附件",
+  "slash.video.label": "视频",
+  "slash.video.description": "上传视频文件或嵌入视频链接",
+  "slash.video.previewTitle": "视频",
+  "emoji.group.common": "常用",
+  "emoji.group.smileys": "表情与情感",
+  "emoji.group.people": "人物与身体",
+  "emoji.group.animals": "动物与自然",
+  "emoji.group.food": "食物与饮料",
+  "emoji.group.travel": "旅行与地点",
+  "emoji.group.activities": "活动",
+  "emoji.group.objects": "物品",
+  "emoji.group.symbols": "符号",
+  "emoji.group.flags": "旗帜",
   "slash.emoji.label": "插入 emoji",
   "slash.emoji.description": "输入 : 触发或点此浏览",
   "slash.emoji.previewTitle": "Emoji 表情",
@@ -280,6 +293,8 @@ export const zh: Messages = {
   "columns.twoColumn": "两栏等宽",
   "columns.sidebarLeft": "左窄右宽",
   "columns.sidebarRight": "右窄左宽",
+  "columns.addColumn": "在右侧添加一栏",
+  "columns.deleteColumn": "删除此栏",
 
   /* ── 折叠块操作 ── */
   "details.collapse": "折叠",
@@ -329,6 +344,10 @@ export const zh: Messages = {
   "codeBlock.copy": "复制代码",
   "codeBlock.delete": "删除代码块",
   "codeBlock.copied": "已复制",
+  "codeBlock.showDiagram": "查看图表",
+  "codeBlock.showCode": "编辑源码",
+  "codeBlock.fullscreen": "全屏预览",
+  "codeBlock.downloadSvg": "下载 SVG",
 
   /* ── 目录 ── */
   "toc.title": "▍本页目录",
@@ -338,6 +357,7 @@ export const zh: Messages = {
   "katex.cancel": "取消",
   "katex.save": "保存 (⌘↵)",
   "katex.placeholder": "输入 LaTeX 公式，如 \\frac{1}{2} 或 e^{i\\pi}+1=0",
+  "katex.preview": "实时预览",
   "katex.emptyPlaceholder": "+ 输入数学公式",
   "katex.renderError": "公式渲染失败：",
 

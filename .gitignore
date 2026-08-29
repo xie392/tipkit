@@ -38,3 +38,5 @@ skills-lock.json
 
 # 独立消费方测试项目（不入库，本地验证用）
 test-consumer/
+# 参考项目本地阅读，不入库
+/demo/

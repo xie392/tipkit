@@ -142,6 +142,19 @@ export const en: Messages = {
   "slash.attachment.label": "Attachment",
   "slash.attachment.description": "Upload file (PDF / Office / archive)",
   "slash.attachment.previewTitle": "Attachment",
+  "slash.video.label": "Video",
+  "slash.video.description": "Upload a video file or embed a video URL",
+  "slash.video.previewTitle": "Video",
+  "emoji.group.common": "Frequently Used",
+  "emoji.group.smileys": "Smileys & Emotion",
+  "emoji.group.people": "People & Body",
+  "emoji.group.animals": "Animals & Nature",
+  "emoji.group.food": "Food & Drink",
+  "emoji.group.travel": "Travel & Places",
+  "emoji.group.activities": "Activities",
+  "emoji.group.objects": "Objects",
+  "emoji.group.symbols": "Symbols",
+  "emoji.group.flags": "Flags",
   "slash.emoji.label": "Insert Emoji",
   "slash.emoji.description": "Type : or click to browse",
   "slash.emoji.previewTitle": "Emoji",
@@ -280,6 +293,8 @@ export const en: Messages = {
   "columns.twoColumn": "Two equal columns",
   "columns.sidebarLeft": "Narrow left, wide right",
   "columns.sidebarRight": "Wide left, narrow right",
+  "columns.addColumn": "Add column after",
+  "columns.deleteColumn": "Delete column",
 
   /* ── Details actions ── */
   "details.collapse": "Collapse",
@@ -329,6 +344,10 @@ export const en: Messages = {
   "codeBlock.copy": "Copy code",
   "codeBlock.delete": "Delete code block",
   "codeBlock.copied": "Copied",
+  "codeBlock.showDiagram": "View diagram",
+  "codeBlock.showCode": "Edit source",
+  "codeBlock.fullscreen": "Fullscreen preview",
+  "codeBlock.downloadSvg": "Download SVG",
 
   /* ── TOC ── */
   "toc.title": "▍On this page",
@@ -338,6 +357,7 @@ export const en: Messages = {
   "katex.cancel": "Cancel",
   "katex.save": "Save (⌘↵)",
   "katex.placeholder": "Enter LaTeX formula, e.g. \\frac{1}{2} or e^{i\\pi}+1=0",
+  "katex.preview": "Live preview",
   "katex.emptyPlaceholder": "+ Enter math formula",
   "katex.renderError": "Formula render error: ",
 

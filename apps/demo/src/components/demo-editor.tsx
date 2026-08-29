@@ -43,6 +43,7 @@ import {
   Frame,
   Paperclip,
   Smile,
+  Video,
   Badge,
   MessageSquare,
   Send,
@@ -62,6 +63,7 @@ import {
  */
 
 const iconMap: Record<IconRef, LucideIcon> = {
+  Video,
   Undo2,
   Redo2,
   Bold,

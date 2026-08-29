@@ -155,6 +155,19 @@ function KatexView(props: NodeViewProps) {
     }
   }, [text, t]);
 
+  const previewHtml = useMemo(() => {
+    if (!draft.trim()) return "";
+    try {
+      return katex.renderToString(draft, {
+        throwOnError: false,
+        displayMode: true,
+        output: "html",
+      });
+    } catch {
+      return "";
+    }
+  }, [draft]);
+
   const commit = () => {
     updateAttributes({ text: draft });
     setEditing(false);
@@ -187,18 +200,30 @@ function KatexView(props: NodeViewProps) {
     >
       {editing ? (
         <div className="tk-katex-editor">
-          <textarea
-            ref={textareaRef}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") setEditing(false);
-              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) commit();
-            }}
-            placeholder={t("katex.placeholder")}
-            className="tk-katex-textarea"
-            rows={3}
-          />
+          <div className="tk-katex-editor-body">
+            <textarea
+              ref={textareaRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setEditing(false);
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) commit();
+              }}
+              placeholder={t("katex.placeholder")}
+              className="tk-katex-textarea"
+              rows={3}
+            />
+            <div className="tk-katex-editor-preview" aria-label={t("katex.preview")}>
+              {draft.trim() ? (
+                <div
+                  className="tk-katex-render"
+                  dangerouslySetInnerHTML={{ __html: previewHtml }}
+                />
+              ) : (
+                <span className="tk-katex-editor-preview-empty">{t("katex.preview")}</span>
+              )}
+            </div>
+          </div>
           <div className="tk-katex-editor-actions">
             <button
               type="button"

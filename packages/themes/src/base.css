@@ -988,6 +988,139 @@
   color: #6e7781;
 }
 
+/* mermaid 流程图：预览面板 + 全屏查看器（视觉归主题） */
+.tk-mermaid-preview {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding: 12px 16px;
+}
+
+.tk-mermaid-preview .tk-mermaid-svg svg,
+.tk-mermaid-viewer .tk-mermaid-viewer-svg svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.tk-mermaid-preview .tk-mermaid-error {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #dc2626;
+  text-align: left;
+  word-break: break-all;
+}
+
+.tk-code-block-dark .tk-mermaid-preview {
+  background: #0d1117;
+  border-top: 1px solid #21262d;
+  border-radius: 0 0 10px 10px;
+}
+.tk-code-block-light .tk-mermaid-preview {
+  background: #ffffff;
+  border-top: 1px dashed #d0d7de;
+  border-radius: 0 0 10px 10px;
+}
+
+/* 全屏查看器 */
+.tk-mermaid-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+}
+.tk-mermaid-viewer-dark {
+  background: rgb(0 0 0 / 0.88);
+}
+.tk-mermaid-viewer-light {
+  background: rgb(0 0 0 / 0.75);
+}
+
+.tk-mermaid-viewer-stage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.tk-mermaid-viewer-svg {
+  transition: transform 0.05s ease-out;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.tk-mermaid-viewer-svg svg {
+  width: 100%;
+  height: 100%;
+  max-width: 90vw;
+  max-height: 82vh;
+  object-fit: contain;
+}
+.tk-mermaid-viewer-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.4);
+  color: rgb(255 255 255 / 0.7);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.tk-mermaid-viewer-close:hover {
+  background: rgb(0 0 0 / 0.6);
+  color: #fff;
+}
+
+.tk-mermaid-viewer-actions {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 8px;
+  background: rgb(0 0 0 / 0.55);
+  backdrop-filter: blur(8px);
+}
+.tk-mermaid-viewer-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgb(255 255 255 / 0.75);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.tk-mermaid-viewer-actions button:hover {
+  background: rgb(255 255 255 / 0.12);
+  color: #fff;
+}
+.tk-mermaid-viewer-scale {
+  min-width: 48px;
+  text-align: center;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.6);
+}
+
 /* 斜杠菜单（交互定位，视觉归主题）：左侧命令列表 + 右侧预览面板 */
 .tk-slash-menu {
   display: flex;
@@ -1302,6 +1435,36 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary, #0075de) 20%, transparent);
 }
 
+/* 编辑态实时预览：左输入右渲染 */
+.tk-katex-editor-body {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.tk-katex-editor-body .tk-katex-textarea {
+  flex: 1;
+  min-width: 0;
+}
+.tk-katex-editor-preview {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  padding: 8px;
+  border: 1px dashed var(--border, #ccc);
+  border-radius: 6px;
+  background: var(--muted, #f6f6f6);
+}
+.tk-katex-editor-preview .katex {
+  font-size: 1em;
+}
+.tk-katex-editor-preview-empty {
+  font-size: 12px;
+  color: var(--muted-foreground, #999);
+}
+
 .tk-katex-editor-actions {
   display: flex;
   gap: 8px;
@@ -1572,7 +1735,7 @@
 /* ReactNodeView 内部包裹层：真正的 grid 容器 */
 .tk-columns-grid[data-node-view-content] > [data-node-view-content-react] {
   display: grid !important;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(var(--tk-columns-n, 2), minmax(0, 1fr));
   gap: 16px;
   padding: 8px 4px;
   background: transparent !important;
@@ -1590,6 +1753,52 @@
 
 .tk-column {
   min-width: 0;
+  position: relative;
+  border-radius: 6px;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+/* 悬停列：淡底色 + 内描边，明确区分当前操作的是哪一栏 */
+.tk-column.is-hovered {
+  background: color-mix(in srgb, var(--primary, #2563eb) 5%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 22%, transparent);
+}
+
+/* 列悬浮工具：右侧加列 / 删除本列 */
+.tk-column-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 5;
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.12);
+}
+.tk-column-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted-foreground, #656d76);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.tk-column-actions button:hover {
+  background: rgb(0 0 0 / 0.06);
+  color: var(--foreground, #24292f);
+}
+.tk-column-actions button:last-child:hover {
+  background: rgb(220 38 38 / 0.1);
+  color: #dc2626;
 }
 
 .tk-columns-toolbar,
@@ -1951,6 +2160,122 @@
   cursor: pointer;
 }
 
+/* 视频块 */
+.tk-video-wrap {
+  position: relative;
+  margin: 0.75em 0;
+  border-radius: 8px;
+  transition: box-shadow 0.15s;
+}
+.tk-video-wrap.is-hovered,
+.tk-video-wrap:hover {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
+}
+.tk-video-player {
+  display: block;
+  width: 100%;
+  max-height: 480px;
+  border-radius: 8px;
+  background: #000;
+}
+.tk-video-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 16px;
+  border: 1px dashed var(--border, #d0d7de);
+  border-radius: 8px;
+  background: var(--muted, #f6f6f6);
+}
+.tk-video-card-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  color: var(--muted-foreground, #656d76);
+}
+.tk-video-card-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  border: 1px solid var(--border, #d0d7de);
+  border-radius: 6px;
+  background: var(--background, #fff);
+  color: var(--foreground, #24292f);
+  outline: none;
+}
+.tk-video-card-input:focus {
+  border-color: var(--primary, #2563eb);
+}
+.tk-video-card-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  font-size: 13px;
+  border: 1px solid var(--border, #d0d7de);
+  border-radius: 6px;
+  background: var(--popover, #fff);
+  color: var(--foreground, #24292f);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.tk-video-card-btn:hover {
+  background: rgb(0 0 0 / 0.04);
+}
+.tk-video-card-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted-foreground, #656d76);
+}
+.tk-video-card-status.is-error {
+  color: #dc2626;
+  cursor: pointer;
+}
+.tk-video-spinner {
+  animation: tk-video-spin 0.8s linear infinite;
+}
+@keyframes tk-video-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 表格 hover 快捷控制：行/列加号 + 左上角全选把手 */
+.tk-table-hover-controls {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+.tk-table-hover-btn {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--border, #d0d7de);
+  border-radius: 5px;
+  background: var(--popover, #fff);
+  color: var(--muted-foreground, #656d76);
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.12);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, transform 0.12s;
+}
+.tk-table-hover-btn:hover {
+  background: var(--primary, #2563eb);
+  border-color: var(--primary, #2563eb);
+  color: #fff;
+  transform: scale(1.12);
+}
+
 /* 附件 */
 .tk-attachment {
   margin: 0.75em 0;
@@ -2155,6 +2480,48 @@
   z-index: 9999;
 }
 
+/* 浮层容器：网格 + 底部分类切换条 */
+.tk-emoji-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.tk-emoji-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border, #e5e5e5);
+}
+
+.tk-emoji-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: background 0.12s, opacity 0.12s, transform 0.12s;
+}
+.tk-emoji-tab:hover {
+  opacity: 0.85;
+  background: rgb(0 0 0 / 0.05);
+}
+.tk-emoji-tab.is-active {
+  opacity: 1;
+  background: color-mix(in srgb, var(--primary, #2563eb) 12%, transparent);
+  transform: scale(1.08);
+}
+
 .tk-emoji-grid {
   display: grid;
   grid-template-columns: repeat(8, 30px);
@@ -2177,6 +2544,8 @@
   height: 30px;
   font-size: 18px;
   line-height: 1;
+  /* 强制彩色 emoji 字体，避免箭头/符号类渲染成蓝色文本字形 */
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   padding: 0;
   background: transparent;
   border: none;
@@ -2191,7 +2560,8 @@
 }
 
 .tk-emoji-cell[data-active="true"] {
-  box-shadow: inset 0 0 0 1.5px var(--accent, #111);
+  background: color-mix(in srgb, var(--primary, #2563eb) 16%, transparent);
+  box-shadow: inset 0 0 0 2px var(--primary, #2563eb);
 }
 
 /* AI 助手浮层 */
