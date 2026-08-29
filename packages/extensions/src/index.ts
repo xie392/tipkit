@@ -75,6 +75,10 @@ export { EmojiSuggestion, getEmojiSuggestionState } from "./emoji/emoji-suggesti
 export { UniqueID, uniqueIdKey } from "./unique-id/unique-id";
 export type { UniqueIDOptions, UniqueIdOptions } from "./unique-id/unique-id";
 
+// AI 生成（headless 命令层；UI 浮层 AiMenu 在 @tipkit/ui，provider 走 EditorDeps.ai）
+export { AiGeneration, aiKey } from "./ai/ai-generation";
+export type { AiRunOptions, AiMode, AiGenerationOptions } from "./ai/ai-generation";
+
 // Comment（划词评论）
 export { Comment } from "./comment/comment";
 export type { CommentOptions } from "./comment/comment";

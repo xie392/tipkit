@@ -50,6 +50,26 @@ export interface OutlineItem {
 }
 
 /**
+ * AI 能力契约：core 不含任何厂商 SDK，只描述"流式文本生成"的最小接口。
+ * 消费方注入具体实现（OpenAI / Anthropic / 自建网关），扩展层只消费此契约。
+ */
+export interface AIStreamRequest {
+  /** 用户指令（如 "改写为更正式的语气"） */
+  prompt: string;
+  /** 当前选区文本（改写/续写场景） */
+  selection?: string;
+  /** 中断信号（放弃生成/组件卸载时 abort） */
+  signal?: AbortSignal;
+}
+
+/** 返回增量文本的异步流 */
+export type AIStreamProvider = (req: AIStreamRequest) => AsyncIterable<string>;
+
+export interface AIProvider {
+  streamText: AIStreamProvider;
+}
+
+/**
  * 依赖注入契约：所有"项目特定"的能力都从这里注入，
  * core/extensions 内部不得直接调用上传、存储、渲染服务。
  */
@@ -60,6 +80,8 @@ export interface EditorDeps {
   uploadAttachment?: (file: File, editor: Editor) => Promise<AttachmentMeta>;
   /** Katex 渲染：返回渲染后的 HTML（服务端/客户端均可） */
   renderKatex?: (tex: string, displayMode: boolean) => Promise<string>;
+  /** AI 能力：流式文本生成（AI 浮层 UI 与 AI 命令共用） */
+  ai?: AIProvider;
   /** i18n 翻译函数。不传时默认中文（zh 词典） */
   t?: Translate;
   /** 评论创建回调：当选中文本创建评论时触发 */

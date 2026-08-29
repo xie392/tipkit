@@ -2191,6 +2191,98 @@
   box-shadow: inset 0 0 0 1.5px var(--accent, #111);
 }
 
+/* AI 助手浮层 */
+.tk-ai-menu {
+  background: var(--popover, #fff);
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.18), 0 2px 8px rgb(0 0 0 / 0.08);
+  z-index: 9999;
+}
+
+.tk-ai-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 320px;
+}
+
+.tk-ai-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-foreground, #71717a);
+  letter-spacing: 0.04em;
+}
+
+.tk-ai-input-row,
+.tk-ai-progress-row,
+.tk-ai-review-row,
+.tk-ai-action-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tk-ai-input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  font-size: 13px;
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 7px;
+  background: var(--background, #fff);
+  color: var(--foreground, #18181b);
+  outline: none;
+}
+
+.tk-ai-input:focus {
+  border-color: var(--accent, #111);
+}
+
+.tk-ai-btn {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 13px;
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 7px;
+  background: var(--muted, #f4f4f5);
+  color: var(--foreground, #18181b);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tk-ai-btn:hover {
+  background: var(--accent, #e4e4e7);
+}
+
+.tk-ai-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tk-ai-status {
+  font-size: 13px;
+  color: var(--muted-foreground, #71717a);
+}
+
+.tk-ai-hint {
+  font-size: 11px;
+  color: var(--muted-foreground, #a1a1aa);
+}
+
+.tk-ai-error {
+  font-size: 12px;
+  color: var(--destructive, #dc2626);
+}
+
+/* AI 预览高亮（生成中/待确认的流式内容） */
+.tk-ai-preview {
+  background: color-mix(in srgb, var(--accent, #7c3aed) 14%, transparent);
+  border-bottom: 2px dotted var(--accent, #7c3aed);
+}
+
 /* ============================================================
  * 气泡菜单（选中文字浮层 / 链接气泡 / 块工具条）
  * ============================================================ */

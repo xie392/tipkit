@@ -22,6 +22,9 @@ export type {
   ImageAttrs,
   IconRef,
   CommentRange,
+  AIStreamRequest,
+  AIStreamProvider,
+  AIProvider,
 } from "./types";
 
 // i18n

@@ -4,9 +4,9 @@ import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { TipKitEditor } from "@tipkit/editor";
-import type { EditorDeps, IconRef, CommentRange } from "@tipkit/editor";
-import { createBasicExtensions, createAdvancedExtensions, Comment, Canvas } from "@tipkit/extensions";
-import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockHandleMenu, TableControls, ReadonlyTextMenu } from "@tipkit/ui";
+import type { EditorDeps, IconRef, CommentRange, AIProvider } from "@tipkit/editor";
+import { createBasicExtensions, createAdvancedExtensions, Comment, Canvas, AiGeneration } from "@tipkit/extensions";
+import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockHandleMenu, TableControls, ReadonlyTextMenu, AiMenu } from "@tipkit/ui";
 import { useDemoLang } from "@/components/use-demo-lang";
 import type { DemoLang } from "@/components/site-lang-switch";
 import { BlockCommentHover } from "@/components/block-comment-hover";
@@ -47,6 +47,7 @@ import {
   MessageSquare,
   Send,
   X,
+  Sparkles,
   Pencil,
   Reply,
   Check,
@@ -96,6 +97,30 @@ const iconMap: Record<IconRef, LucideIcon> = {
 
 /** demo 图片上传：本地 blob 预览 */
 const uploadImage = async (file: File): Promise<string> => URL.createObjectURL(file);
+
+/** demo AI provider：本地假流式（按指令返回 canned 文案），接真实 LLM 时替换即可 */
+const mockAI: AIProvider = {
+  async *streamText({ prompt, selection, signal }) {
+    const text = mockReply(prompt, selection);
+    for (const ch of text) {
+      if (signal?.aborted) return;
+      await new Promise((r) => setTimeout(r, 12));
+      yield ch;
+    }
+  },
+};
+
+function mockReply(prompt: string, selection?: string): string {
+  const p = prompt.toLowerCase();
+  const base = selection ? `「${selection.slice(0, 24)}${selection.length > 24 ? "…" : ""}」` : "";
+  if (p.includes("formal") || p.includes("正式")) {
+    return `${base ? base + " 的正式表述如下：" : ""}兹就相关事项说明如下：本段内容为演示用示例文本，用于展示 TipKit 的 AI 流式改写能力。实际接入时，只需在 EditorDeps.ai 中注入真实的大模型服务即可。`;
+  }
+  if (p.includes("续") || p.includes("continue")) {
+    return "接下来的部分依然由 AI 续写完成：TipKit 的扩展体系是自包含的，每个插件一个目录，可以整体裁剪。你需要的能力，也许只需要几行配置。";
+  }
+  return `${base || "这里是 AI 生成的内容。"}演示提示：这是一个本地 mock 流，输出按字符逐个推送，用于验证流式插入、高亮预览与接受/放弃流程。`;
+}
 
 const PLACEHOLDER: Record<DemoLang, string> = {
   zh: "输入 / 打开斜杠菜单，或直接粘贴 Markdown…",
@@ -201,6 +226,7 @@ export function DemoEditor({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
   const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
@@ -232,6 +258,7 @@ export function DemoEditor({
   const deps = useMemo<EditorDeps>(
     () => ({
       uploadImage,
+      ai: mockAI,
       t,
       onCommentCreate: (range) => {
         setPendingRange(range);
@@ -701,6 +728,7 @@ export function DemoEditor({
             ...createBasicExtensions(),
             commentExt,
             Canvas,
+            AiGeneration,
             ...createAdvancedExtensions({ tocScrollOffset: 120 }),
           ]}
           placeholder={placeholder ?? PLACEHOLDER[lang]}
@@ -717,6 +745,7 @@ export function DemoEditor({
                 <LinkDialogHost editor={editor} />
                 {editable && <BlockHandleMenu editor={editor} />}
                 <TableControls editor={editor} />
+                {editable && <AiMenu editor={editor} open={aiOpen} onOpenChange={setAiOpen} />}
               </TooltipProvider>
             ) : null;
           }}
@@ -772,6 +801,22 @@ export function DemoEditor({
               {comments.length > 0 && (
                 <span className="demo-comment-fab-badge">{comments.length}</span>
               )}
+            </button>
+          )}
+
+          {/* AI 助手入口：编辑态显示，点击在光标/选区处打开 AI 浮层 */}
+          {editable && !drawerOpen && (
+            <button
+              type="button"
+              className="demo-ai-fab"
+              onClick={() => {
+                editorRef.current?.commands.focus();
+                setAiOpen(true);
+              }}
+              aria-label={lang === "zh" ? "AI 助手" : "AI Assistant"}
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>AI</span>
             </button>
           )}
 

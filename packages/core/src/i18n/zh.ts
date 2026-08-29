@@ -372,6 +372,21 @@ export const zh: Messages = {
   "canvas.zDown": "下移一层",
   "canvas.zBottom": "置底",
 
+  /* ── AI ── */
+  "ai.title": "AI 助手",
+  "ai.placeholder": "输入指令，如：改写为更正式的语气…",
+  "ai.generate": "生成",
+  "ai.rewrite": "改写",
+  "ai.continue": "续写",
+  "ai.accept": "接受",
+  "ai.discard": "放弃",
+  "ai.cancel": "停止",
+  "ai.retry": "重试",
+  "ai.generating": "生成中…",
+  "ai.error": "生成失败",
+  "ai.emptySelection": "选中文本后可改写；光标处可续写",
+  "ai.needProvider": "未配置 AI 能力（EditorDeps.ai）",
+
   /* ── 占位符 ── */
   "placeholder.default": "写下点什么…",
 };

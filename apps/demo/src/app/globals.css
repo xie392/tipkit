@@ -562,6 +562,33 @@ body::after {
   pointer-events: none;
   transform: scale(0.8);
 }
+
+/* AI 助手 FAB（评论 FAB 上方） */
+.demo-ai-fab {
+  position: fixed;
+  right: 12px;
+  bottom: 130px;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid var(--border, #e5e5e5);
+  background: var(--card, #fff);
+  color: var(--foreground, #222);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+  z-index: 70;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.demo-ai-fab:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.16);
+}
 .demo-comment-fab-badge {
   position: absolute;
   top: -2px;

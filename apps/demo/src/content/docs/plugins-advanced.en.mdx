@@ -31,6 +31,11 @@ import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensi
 | Canvas | `Canvas` | ⭕ opt-in | Sketch / clean drawing board, PNG export |
 | Slash menu | `SlashMenu` (`@tipkit/ui`) | ⭕ opt-in | Rendered by the consumer |
 | Emoji suggestion | `EmojiSuggestion` (`@tipkit/ui`) | ⭕ opt-in | Rendered by the consumer |
+| Unique node ID | `UniqueID` | ⭕ opt-in | Auto `data-id` on block nodes |
+| Emoji node | `Emoji` | ⭕ opt-in | `:short_code:` input rule + Markdown export |
+| AI generation | `AiGeneration` | ⭕ opt-in | Streaming generation with preview accept/discard (injected provider) |
+
+> The last three are open-source alternatives to Tiptap's paid Pro extensions — see [Pro alternatives](/en/docs/plugins-pro).
 
 > **Note**: `createAdvancedExtensions()` caches its result when called without options; passing `tocScrollOffset` creates a dedicated TOC instance, so it is safe to call it multiple times.
 

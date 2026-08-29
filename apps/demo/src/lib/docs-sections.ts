@@ -18,6 +18,7 @@ export const DOC_SECTIONS: DocSection[] = [
     children: [
       { slug: "plugins-basic", label: "基础插件", labelEn: "Basic" },
       { slug: "plugins-advanced", label: "高级插件", labelEn: "Advanced" },
+      { slug: "plugins-pro", label: "Pro 平替插件", labelEn: "Pro alternatives" },
       { slug: "plugins-custom", label: "自定义扩展", labelEn: "Custom extensions" },
     ],
   },

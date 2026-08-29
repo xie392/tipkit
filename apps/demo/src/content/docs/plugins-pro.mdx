@@ -1,0 +1,105 @@
+## Pro 平替插件
+
+Tiptap 官方的付费 Pro 扩展中，有一部分可以在 TipKit 里以开源方案自研实现。本页列出 TipKit 内置的平替实现与对应接入方式。
+
+| 能力 | 对应 Tiptap Pro 扩展 | TipKit 实现 | 集合内 |
+| --- | --- | --- | --- |
+| 唯一节点 ID | `UniqueID` | `UniqueID` | ⭕ opt-in |
+| Emoji（短代码 + 节点） | `Emoji` | `Emoji` + `EmojiSuggestion` | ⭕ opt-in |
+| AI 生成 | `AI Generation` / `AI Agent` | `AiGeneration` + `AiMenu` | ⭕ opt-in |
+| 数学公式 | `Mathematics` | `Katex` | ✅ |
+| 块拖拽把手 | `DragHandle` | `BlockHandles` | ✅ |
+| 目录 | `Table of Contents` | `TableOfContentsNode` | ✅ |
+| 划词评论（单机版） | `Comments` | `Comment` | ⭕ opt-in |
+| 上传（图片/附件/粘贴拖拽） | `FileBlock` / `Image` | `ImageBlock` + `Attachment` + `FileHandler` | ✅ |
+
+> **协同（Collaboration）与版本历史**：建议直接使用开源的 Yjs + y-prosemirror（MIT），后续 TipKit 会提供 opt-in 的协同扩展封装。
+
+### 唯一节点 ID UniqueID
+
+为块级节点自动补 `id` attr（渲染为 `data-id`），用于评论锚点、协同定位、目录跳转等场景。
+
+- 初始内容、新建节点、回车拆分都会自动补齐/去重，已有 `data-id` 永不覆盖
+- 配置项：
+
+| 选项 | 默认 | 说明 |
+| --- | --- | --- |
+| `types` | paragraph / heading / blockquote / listItem / taskItem / codeBlock / imageBlock / callout | 需要携带 id 的节点类型 |
+| `generateID` | 基于 `crypto.randomUUID` 的 20 位短 id | 自定义 id 生成器 |
+| `attributeName` | `"id"` | attr 名（渲染为 `data-{attributeName}`） |
+
+```tsx
+import { UniqueID } from "@tipkit/extensions";
+
+<TipKitEditor extensions={[...createBasicExtensions(), UniqueID]} />
+```
+
+### Emoji 节点
+
+inline atom 节点，渲染 `<span class="tk-emoji" data-name="smile">😄</span>`：
+
+- **输入规则**：键入 `:smile:` 自动替换为 emoji 节点；未知短代码保持原样
+- **建议浮层**：`EmojiSuggestion`（`@tipkit/ui`）选中后插入节点（未注册 `Emoji` 节点时退回纯文本）
+- **Markdown 导出**：序列化为 `:name:` 短代码
+- 命令：`insertEmoji("smile")`
+
+```tsx
+import { Emoji } from "@tipkit/extensions";
+import { EmojiSuggestion } from "@tipkit/ui";
+
+<TipKitEditor extensions={[...createBasicExtensions(), Emoji]}>
+  {(editor) => <EmojiSuggestion editor={editor} />}
+</TipKitEditor>
+```
+
+> 注意：Markdown **导入**暂不含短代码 tokenizer，粘贴 `:smile:` 文本不会自动转换（打字场景由输入规则覆盖）。
+
+### AI 生成
+
+流式 AI 写作：光标处插入（insert）/ 替换选区（replace），生成内容以 `tk-ai-preview` 高亮预览，可接受 / 放弃 / 中断重试。全部 headless 命令，UI 由消费方装配。
+
+**1. 注入 provider**（core 不含任何厂商 SDK）：
+
+```tsx
+const deps: EditorDeps = {
+  ai: {
+    async *streamText({ prompt, selection, signal }) {
+      const stream = await myLLM.chat({ prompt, selection, stream: true, signal });
+      for await (const chunk of stream) yield chunk;
+    },
+  },
+};
+
+<TipKitEditor deps={deps} />
+```
+
+**2. 注册扩展 + 渲染浮层**：
+
+```tsx
+import { AiGeneration } from "@tipkit/extensions";
+import { AiMenu } from "@tipkit/ui";
+
+<TipKitEditor extensions={[...createBasicExtensions(), AiGeneration]}>
+  {(editor) => (
+    <>
+      <button onClick={() => setAiOpen(true)}>AI 助手</button>
+      <AiMenu editor={editor} open={aiOpen} onOpenChange={setAiOpen} />
+    </>
+  )}
+</TipKitEditor>
+```
+
+**3. 命令**（也可完全自建 UI，直接调命令）：
+
+| 命令 | 说明 |
+| --- | --- |
+| `aiRun({ instruction, mode })` | 启动流式生成；`mode: "insert"` 光标处插入 / `"replace"` 替换选区 |
+| `aiAccept()` | 接受生成内容（保留文本，清除预览） |
+| `aiDiscard()` | 放弃生成内容（删除预览文本） |
+| `aiCancel()` | 中断流（已生成内容保留，等待接受/放弃） |
+
+> 生成中的事务不进入撤销历史（`addToHistory: false`），接受后才与文档融为一体。
+
+### 演示
+
+Demo 站点的演示编辑器已接入上述三个插件（AI 使用本地 mock 流，无需 API Key）：右侧悬浮 ✨AI 按钮打开助手浮层，选中文本后可体验流式改写与接受/放弃流程。

@@ -31,6 +31,11 @@ import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensi
 | 画板 | `Canvas` | ⭕ opt-in | 手绘 / 清晰画板，可导出 PNG |
 | 斜杠菜单 | `SlashMenu`（`@tipkit/ui`） | ⭕ opt-in | 由消费方渲染 |
 | Emoji 建议 | `EmojiSuggestion`（`@tipkit/ui`） | ⭕ opt-in | 由消费方渲染 |
+| 唯一节点 ID | `UniqueID` | ⭕ opt-in | 块级节点自动补 `data-id` |
+| Emoji 节点 | `Emoji` | ⭕ opt-in | `:short_code:` 输入规则 + Markdown 导出 |
+| AI 生成 | `AiGeneration` | ⭕ opt-in | 流式生成 + 预览接受/放弃（provider 注入） |
+
+> 以上后三项为 Tiptap Pro 付费扩展的开源平替，详见 [Pro 平替插件](/zh/docs/plugins-pro)。
 
 > **提示**：`createAdvancedExtensions()` 是无参调用时的单例缓存；传入 `tocScrollOffset` 时会生成独立的目录实例，可放心多次调用。
 

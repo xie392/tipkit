@@ -31,10 +31,12 @@ import "@tiptap/extension-font-family";
 import "@tiptap/extension-text-style";
 import "@tiptap/extension-link";
 import "@tiptap/extension-underline";
+import "@tipkit/extensions";
 
 export { SlashMenu } from "./slash-menu/slash-menu";
 export type { SlashMenuProps } from "./slash-menu/slash-menu";
 export { EmojiSuggestion, getEmojiSuggestionState } from "./emoji/emoji-suggestion";
+export { AiMenu } from "./ai-menu/ai-menu";
 export { TextMenu } from "./bubble-menu/text-menu";
 export { ReadonlyTextMenu } from "./bubble-menu/readonly-text-menu";
 export type { ReadonlyTextMenuProps } from "./bubble-menu/readonly-text-menu";

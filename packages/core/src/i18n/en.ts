@@ -372,6 +372,21 @@ export const en: Messages = {
   "canvas.zDown": "Send backward",
   "canvas.zBottom": "Send to back",
 
+  /* ── AI ── */
+  "ai.title": "AI Assistant",
+  "ai.placeholder": "Enter an instruction, e.g. rewrite in a formal tone…",
+  "ai.generate": "Generate",
+  "ai.rewrite": "Rewrite",
+  "ai.continue": "Continue",
+  "ai.accept": "Accept",
+  "ai.discard": "Discard",
+  "ai.cancel": "Stop",
+  "ai.retry": "Retry",
+  "ai.generating": "Generating…",
+  "ai.error": "Generation failed",
+  "ai.emptySelection": "Select text to rewrite; place cursor to continue writing",
+  "ai.needProvider": "AI capability not configured (EditorDeps.ai)",
+
   /* ── Placeholder ── */
   "placeholder.default": "Start writing…",
 };
