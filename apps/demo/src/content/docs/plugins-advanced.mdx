@@ -2,8 +2,8 @@
 
 高级插件覆盖图片、代码、公式、排版等更复杂的内容节点，来自两条路径：
 
-- **`createAdvancedExtensions()`** —— M2 + M3 全量集合，一行接入：图片块、代码块、数学公式、提示框、分栏、折叠块、目录、嵌入、附件、块句柄（BlockHandles）、文件拖拽（FileHandler）、状态标签。
-- **opt-in 扩展** —— 默认不在集合内，按需单独引入：划词评论（`Comment`）、画板（`Canvas`）；以及 `@tipkit/ui` 提供的交互浮层（`SlashMenu`、`EmojiSuggestion` 等）。
+- **`createAdvancedExtensions()`** —— M2 + M3 全量集合，一行接入：图片块、代码块（含 Mermaid 渲染）、数学公式、提示框、分栏、折叠块、目录、嵌入、附件、视频、块句柄（BlockHandles）、文件拖拽（FileHandler）、状态标签。
+- **opt-in 扩展** —— 默认不在集合内，按需单独引入：划词评论（`Comment`）、画板（`Canvas`）、脚注（`Footnotes`）、查找替换（`SearchAndReplace`）、语法检查（`LanguageTool`）、唯一节点 ID（`UniqueID`）、Emoji 节点（`Emoji`）、AI 生成（`AiGeneration`）；以及 `@tipkit/ui` 提供的交互浮层（`SlashMenu`、`EmojiSuggestion` 等）。
 
 高级扩展通过 `extensions` 数组传入，与 `createBasicExtensions()` 叠加使用：
 
@@ -18,7 +18,7 @@ import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensi
 | 扩展 | 导出（`@tipkit/extensions`） | 集合内 | 说明 |
 | --- | --- | --- | --- |
 | 图片块 | `ImageBlock` | ✅ | 图片 + 缩放 / 对齐 / 说明文字 |
-| 代码块 | `CustomCodeBlock`、`CODE_LANGUAGES` | ✅ | 语法高亮 + 语言切换 + 明暗主题 |
+| 代码块 | `CustomCodeBlock`、`CODE_LANGUAGES` | ✅ | 语法高亮 + 语言切换 + 明暗主题；`mermaid` 语言实时渲染图表 |
 | 数学公式 | `Katex` | ✅ | LaTeX 块级公式 |
 | 提示框 | `Callout`、`CALLOUT_VARIANTS` | ✅ | 5 种变体 + 自定义 emoji |
 | 分栏 | `Columns`、`Column`、`ColumnLayout` | ✅ | 两栏 / 左窄 / 右窄 |
@@ -26,6 +26,7 @@ import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensi
 | 页面目录 | `TableOfContentsNode` | ✅ | 自动扫描标题生成目录 |
 | 嵌入 | `Iframe` | ✅ | 嵌入网页 / B 站 / YouTube |
 | 附件 | `Attachment` | ✅ | 上传 + 下载 |
+| 视频 | `Video` | ✅ | 视频块：上传 / 替换 / 悬浮控件 |
 | 状态标签 | `Status` | ✅ | Confluence 风格内联标签 |
 | 划词评论 | `Comment` | ⭕ opt-in | 评论 Mark + 回调，UI 由消费方实现 |
 | 画板 | `Canvas` | ⭕ opt-in | 手绘 / 清晰画板，可导出 PNG |
@@ -34,6 +35,9 @@ import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensi
 | 唯一节点 ID | `UniqueID` | ⭕ opt-in | 块级节点自动补 `data-id` |
 | Emoji 节点 | `Emoji` | ⭕ opt-in | `:short_code:` 输入规则 + Markdown 导出 |
 | AI 生成 | `AiGeneration` | ⭕ opt-in | 流式生成 + 预览接受/放弃（provider 注入） |
+| 脚注 | `Footnotes`、`createFootnoteExtensions` | ⭕ opt-in | 正文引用 + 文末条目容器 |
+| 查找替换 | `SearchAndReplace` | ⭕ opt-in | 装饰高亮 + 逐个/全部替换命令 |
+| 语法检查 | `LanguageTool` | ⭕ opt-in | 语法匹配高亮 + 建议应用（检查函数可注入） |
 
 > 以上后三项为 Tiptap Pro 付费扩展的开源平替，详见 [Pro 平替插件](/zh/docs/plugins-pro)。
 
@@ -78,6 +82,7 @@ editor.chain().focus().setImageBlockCaption("产品示意图").run();
 - **导出**：`CODE_LANGUAGES`（30+ 种语言项，含“自动 / 纯文本”），类型 `CodeLanguage`；主题 `CodeBlockTheme = "light" | "dark"`（默认 `dark`）。
 - 基于 `@tiptap/extension-code-block-lowlight` + `lowlight`（`common` 语言集），默认 `enableTabIndentation: true`，支持 Tab 缩进。
 - NodeView 提供：语言下拉、明暗切换、复制按钮、删除按钮；只读模式下保留一个复制按钮。
+- **Mermaid 渲染**：语言选为 `mermaid` 时，代码块下方实时渲染流程图 / 时序图等图表，图表支持交互（缩放 / 平移 / 导出）；源码仍是普通代码文本，随文档持久化。
 
 ```tsx
 import { CustomCodeBlock, CODE_LANGUAGES, type CodeBlockTheme } from "@tipkit/extensions";
@@ -222,6 +227,24 @@ const deps: EditorDeps = {
 };
 ```
 
+### 视频节点 Video
+
+- **用途**：视频块节点，支持上传 / 拖拽 / 粘贴视频文件，以及 URL 插入与替换；NodeView 内置播放控件与替换按钮。
+- **启用**：`Video`（集合内默认已有）。
+- **属性 `VideoAttrs`**：`src`（视频地址，null 时显示上传卡片）、`error`（上传错误信息）。
+- **命令**：`setVideo`。
+- **识别**：按 MIME 前缀 `video/` 或扩展名（`.mp4` / `.webm` / `.ogv` / `.ogg` / `.mov` / `.m4v`）识别视频文件。
+- **序列化**：`div[data-type='video']`，地址存于 `data-src`。
+
+```tsx
+import { Video } from "@tipkit/extensions";
+
+// 集合内默认已有：
+extensions: [..., Video]
+
+editor.chain().focus().setVideo({ src: "https://example.com/a.mp4" }).run();
+```
+
 ### 状态标签 Status
 
 - **用途**：Confluence 风格的**内联**状态标签（如“待处理”“已完成”），可自定义文字与背景色。
@@ -307,6 +330,66 @@ extensions: [..., Canvas]
 editor.chain().focus().setCanvas().run();
 editor.chain().focus().updateCanvas({ style: "sketch", snap: true }).run();
 ```
+
+### 脚注 Footnotes
+
+- **用途**：脚注支持——正文中插入上标引用编号，文档末尾自动维护脚注条目容器，编号随增删自动重排。参考 tiptap-footnotes 设计。
+- **启用**：`createFootnoteExtensions()`（等价于同时注册 `FootnoteReference` / `FootnoteItem` / `Footnotes`），opt-in 单独引入：
+
+```tsx
+import { createFootnoteExtensions } from "@tipkit/extensions";
+
+extensions: [..., ...createFootnoteExtensions()]
+```
+
+- **命令**：`setFootnote({ text? })` 在选区插入脚注引用（缺省取当前选区文本作为脚注内容）；`deleteFootnote(id)` 删除引用与对应条目。
+- **序列化**：正文引用为 `span[data-type='footnote-reference']`，文末条目容器为 `div[data-type='footnotes']`，Markdown 导出为 `[^n]` 语法。
+
+```tsx
+editor.chain().focus().setFootnote({ text: "参见官方文档" }).run();
+```
+
+### 查找替换 SearchAndReplace
+
+- **用途**：全文查找替换内核（参考 tiptap-search-and-replace）：按关键词在文档上打装饰高亮，并提供逐个 / 全部替换命令；UI（查找面板）由消费方实现（demo 已内置面板，参考 `apps/demo`）。
+- **启用**：opt-in 单独引入：
+
+```tsx
+import { SearchAndReplace } from "@tipkit/extensions";
+
+extensions: [..., SearchAndReplace]
+```
+
+- **命令**：
+
+| 命令 | 说明 |
+| --- | --- |
+| `setSearchTerm(term, { caseSensitive? })` | 设置查找关键词并高亮全部匹配 |
+| `replaceSearchMatch(replacement)` | 替换当前匹配 |
+| `replaceAllSearchMatches(replacement)` | 替换全部匹配 |
+
+- **状态读取**：`searchAndReplaceKey.getState(editor.state)` 返回 `SearchAndReplaceState`（含 `SearchMatch[]`），可用于自建面板的高亮导航。
+- **高亮样式**：主题层提供 `tk-search-result` / `tk-search-result-current` 类，视觉随主题切换。
+
+### 语法检查 LanguageTool
+
+- **用途**：语法检查内核（参考 tiptap-languagetool）：对全文执行检查并把匹配项（拼写 / 语法 / 风格）映射为装饰高亮，可一键应用建议或忽略。
+- **启用**：opt-in 单独引入；缺省走 LanguageTool 公共 API（`https://api.languagetool.org/v2`），生产环境建议注入自有检查函数：
+
+```tsx
+import { LanguageTool } from "@tipkit/extensions";
+
+extensions: [
+  ...,
+  LanguageTool.configure({
+    language: "auto",
+    check: async ({ text, language, signal }) => myGrammarCheck(text, signal),
+  }),
+]
+```
+
+- **命令**：`checkLanguageTool()` 执行一次检查（异步）；`applyLanguageToolSuggestion(index, replacement?)` 应用第 index 条建议；`dismissLanguageToolMatch(index)` 忽略该条；`clearLanguageToolMatches()` 清空检查结果。
+- **状态读取**：`languageToolKey.getState(editor.state)` 返回带文档位置的匹配列表，供自建 UI 渲染。
 
 ### 斜杠菜单与 Emoji 建议（@tipkit/ui 浮层）
 

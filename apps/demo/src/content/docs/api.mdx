@@ -23,3 +23,7 @@
 | `uploadImage` | `(file, editor) => Promise<string>` | 图片上传，返回 `img src` URL |
 | `uploadAttachment` | `(file, editor) => Promise<AttachmentMeta>` | 附件上传，返回元数据（url / name / size / mimeType） |
 | `renderKatex` | `(tex, displayMode) => Promise<string>` | 数学公式渲染，返回 HTML；服务端 / 客户端均可 |
+| `ai` | `AIProvider` | AI 流式文本生成 provider（`AiGeneration` 命令与 `AiMenu` 浮层共用） |
+| `t` | `Translate` | i18n 翻译函数，缺省中文词典（详见「多语言」页面） |
+| `onCommentCreate` | `(range: CommentRange) => void` | 划词评论创建回调（配合 `Comment` 扩展） |
+| `onCommentClick` | `(commentId: string) => void` | 评论标记点击回调 |
