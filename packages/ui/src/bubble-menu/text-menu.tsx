@@ -8,6 +8,7 @@ import { NodeSelection } from "@tiptap/pm/state";
 import { CellSelection } from "@tiptap/pm/tables";
 import { Bold, Italic, Underline, Strikethrough, Code, Link, MessageSquare } from "lucide-react";
 import { useT, useEditorDeps } from "@tipkit/core";
+import { openLinkDialog } from "./link-dialog";
 
 /* 选中文字浮层：选中非空文本时弹出工具条。
  * 可编辑态显示 格式化 + 链接 + 评论；只读态仅显示评论（阅读态也能划词评论，飞书/语雀模式）。
@@ -157,10 +158,7 @@ export function TextMenu({ editor }: { editor: Editor | null }) {
             <MenuBtn
               title={`${t("text.link")} ⌘K`}
               active={states.isLink}
-              onClick={() => {
-                const href = window.prompt(t("toolbar.linkPrompt"));
-                if (href) chain().setLink({ href }).run();
-              }}
+              onClick={() => openLinkDialog()}
             >
               <Link className="tk-icon-md" />
             </MenuBtn>

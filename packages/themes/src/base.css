@@ -1883,12 +1883,17 @@
   color: #ef4444;
 }
 
-/* 折叠块工具栏按钮 tooltip（纯 CSS，黑底白字与 Radix Tooltip 同风格） */
-.tk-ct-btn[data-tip] {
+/* 块级工具栏按钮 tooltip（纯 CSS，黑底白字与 Radix Tooltip 同风格）。
+ * 覆盖：块工具栏 tk-ct-btn、代码块工具栏 tk-code-block-action-btn、代码块悬浮复制 tk-code-block-copy-btn */
+.tk-ct-btn[data-tip],
+.tk-code-block-action-btn[data-tip],
+.tk-code-block-copy-btn[data-tip] {
   position: relative;
 }
 
-.tk-ct-btn[data-tip]::after {
+.tk-ct-btn[data-tip]::after,
+.tk-code-block-action-btn[data-tip]::after,
+.tk-code-block-copy-btn[data-tip]::after {
   content: attr(data-tip);
   position: absolute;
   top: calc(100% + 8px);
@@ -1909,7 +1914,9 @@
   transition: opacity 0.12s, visibility 0.12s;
 }
 
-.tk-ct-btn[data-tip]::before {
+.tk-ct-btn[data-tip]::before,
+.tk-code-block-action-btn[data-tip]::before,
+.tk-code-block-copy-btn[data-tip]::before {
   content: "";
   position: absolute;
   top: calc(100% + 3px);
@@ -1926,7 +1933,11 @@
 }
 
 .tk-ct-btn[data-tip]:hover::after,
-.tk-ct-btn[data-tip]:hover::before {
+.tk-ct-btn[data-tip]:hover::before,
+.tk-code-block-action-btn[data-tip]:hover::after,
+.tk-code-block-action-btn[data-tip]:hover::before,
+.tk-code-block-copy-btn[data-tip]:hover::after,
+.tk-code-block-copy-btn[data-tip]:hover::before {
   opacity: 1;
   visibility: visible;
 }

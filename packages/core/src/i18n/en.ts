@@ -254,6 +254,8 @@ export const en: Messages = {
   "image.styleBorder": "Border",
   "image.styleShadow": "Shadow",
   "image.styleBorderShadow": "Border + Shadow",
+  "image.resize": "Drag to resize",
+  "image.captionPlaceholder": "Caption…",
 
   /* ── Image preview ── */
   "imagePreview.zoomOut": "Zoom out (-)",
@@ -430,6 +432,27 @@ export const en: Messages = {
   "ai.error": "Generation failed",
   "ai.emptySelection": "Select text to rewrite; place cursor to continue writing",
   "ai.needProvider": "AI capability not configured (EditorDeps.ai)",
+
+  /* ── Video block ── */
+  "video.copyLink": "Copy video link",
+  "video.replace": "Replace video",
+  "video.delete": "Delete",
+  "video.urlPlaceholder": "Paste a video link (mp4 / webm / ogg)",
+  "video.embed": "Embed",
+  "video.upload": "Upload video",
+  "video.errorUnsupported": "Only mp4 / webm / ogg videos are supported",
+  "video.errorNoUploadFn": "uploadAttachment is not provided in EditorDeps",
+  "video.errorUploadFailed": "Upload failed, click to retry",
+
+  /* ── Missing keys ── */
+  "blockHandle.insertAbove": "Insert above",
+  "blockHandle.insertAboveHint": "Insert above (/)",
+  "blockHandle.dragMove": "Drag to move",
+  "comment.add": "Add comment",
+  "toc.emptyTitle": "(Untitled)",
+  "details.summaryPlaceholder": "Summary",
+  "codeBlock.mermaid": "Mermaid diagram",
+  "status.defaultText": "Todo",
 
   /* ── Placeholder ── */
   "placeholder.default": "Start writing…",

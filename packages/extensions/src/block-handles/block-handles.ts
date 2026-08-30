@@ -10,6 +10,7 @@ import {
 } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { EditorView } from "@tiptap/pm/view";
+import type { Translate } from "@tipkit/core";
 
 /* BlockHandles：Notion 风格块级双柄。
  * 手柄锚定到编辑器根（.ProseMirror）的直接子块元素：<p>/<hN>/<blockquote>/
@@ -106,6 +107,9 @@ export const BlockHandles = Extension.create({
   name: "blockHandles",
 
   addProseMirrorPlugins() {
+    // 原生 DOM 无法用 useT()，t 由 TipKitEditor 挂到 editor 实例（__tipkitT）
+    const getT = (): Translate =>
+      (this.editor as unknown as { __tipkitT?: Translate }).__tipkitT ?? ((k) => k);
     let view: EditorView | null = null;
     let wrap: HTMLElement | null = null;
     let addBtn: HTMLButtonElement | null = null;
@@ -332,8 +336,6 @@ export const BlockHandles = Extension.create({
       addBtn = document.createElement("button");
       addBtn.type = "button";
       addBtn.className = "tk-block-handle tk-block-handle-add";
-      addBtn.setAttribute("aria-label", "在上方插入");
-      addBtn.title = "在上方插入（/）";
       addBtn.innerHTML =
         '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
 
@@ -341,11 +343,10 @@ export const BlockHandles = Extension.create({
       dragBtn.type = "button";
       dragBtn.draggable = true;
       dragBtn.className = "tk-block-handle tk-block-handle-drag";
-      dragBtn.setAttribute("aria-label", "拖拽移动");
-      dragBtn.title = "拖拽移动";
       dragBtn.innerHTML =
         '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="4" cy="3.5" r="1.3" fill="currentColor"/><circle cx="12" cy="3.5" r="1.3" fill="currentColor"/><circle cx="4" cy="8" r="1.3" fill="currentColor"/><circle cx="12" cy="8" r="1.3" fill="currentColor"/><circle cx="4" cy="12.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12.5" r="1.3" fill="currentColor"/></svg>';
 
+      applyLabels();
       wrap.appendChild(addBtn);
       wrap.appendChild(dragBtn);
 
@@ -363,6 +364,19 @@ export const BlockHandles = Extension.create({
       wrap.addEventListener("mouseleave", scheduleHide);
       window.addEventListener("scroll", onScroll, true);
       window.addEventListener("resize", onScroll, true);
+    };
+
+    // 语言切换时刷新手柄 tooltip（TipKitEditor 在 deps.t 变化时派发 tipkit:langChange）
+    const applyLabels = () => {
+      const t = getT();
+      if (addBtn) {
+        addBtn.setAttribute("aria-label", t("blockHandle.insertAbove"));
+        addBtn.title = t("blockHandle.insertAboveHint");
+      }
+      if (dragBtn) {
+        dragBtn.setAttribute("aria-label", t("blockHandle.dragMove"));
+        dragBtn.title = t("blockHandle.dragMove");
+      }
     };
 
     const destroyUI = () => {
@@ -474,6 +488,8 @@ export const BlockHandles = Extension.create({
         view: (v) => {
           view = v;
           if (v.editable) createUI();
+          const onLangChange = () => applyLabels();
+          v.dom.addEventListener("tipkit:langChange", onLangChange);
           return {
             update: (updatedView, prevState) => {
               view = updatedView;
@@ -500,7 +516,10 @@ export const BlockHandles = Extension.create({
                 wrap?.classList.add("is-hidden");
               }
             },
-            destroy: () => destroyUI(),
+            destroy: () => {
+              v.dom.removeEventListener("tipkit:langChange", onLangChange);
+              destroyUI();
+            },
           };
         },
       }),

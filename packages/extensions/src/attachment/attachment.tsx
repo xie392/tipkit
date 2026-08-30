@@ -31,8 +31,8 @@ declare module "@tiptap/core" {
   }
 }
 
-function normalizeFileSize(bytes: number | null): string {
-  if (bytes == null || Number.isNaN(bytes)) return "未知大小";
+function normalizeFileSize(bytes: number | null, unknownLabel = "未知大小"): string {
+  if (bytes == null || Number.isNaN(bytes)) return unknownLabel;
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -180,7 +180,7 @@ function AttachmentView(props: NodeViewProps) {
     e.target.value = "";
     if (!file) return;
     if (!deps.uploadAttachment) {
-      setErrMsg("未注入 uploadAttachment，请在 EditorDeps 中提供");
+      setErrMsg(t("attachmentView.noUploadFn"));
       return;
     }
     try {
@@ -237,17 +237,17 @@ function AttachmentView(props: NodeViewProps) {
           <div className="tk-att-name" title={displayName}>
             {displayName}
           </div>
-          <div className="tk-att-size">{normalizeFileSize(fileSize)}</div>
+          <div className="tk-att-size">{normalizeFileSize(fileSize, t("attachmentView.unknownSize"))}</div>
         </div>
         <div className="tk-att-actions">
           <button
             type="button"
-            title="下载"
+            title={t("attachment.download")}
             onMouseDown={(e) => e.preventDefault()}
             onClick={triggerDownload}
             className="tk-att-btn"
           >
-            下载
+            {t("attachment.download")}
           </button>
         </div>
       </div>
@@ -256,14 +256,14 @@ function AttachmentView(props: NodeViewProps) {
     content = (
       <div className="tk-att-uploading">
         <span className="tk-att-spinner" aria-hidden="true" />
-        <span>上传中… {progress}%</span>
+        <span>{t("attachmentView.uploading")} {progress}%</span>
       </div>
     );
   } else if (errMsg) {
     content = (
       <div className="tk-att-error" onClick={selectFile}>
         <span>{errMsg}</span>
-        <span className="tk-att-retry">点击重试</span>
+        <span className="tk-att-retry">{t("attachmentView.retry")}</span>
       </div>
     );
   } else {
@@ -273,7 +273,7 @@ function AttachmentView(props: NodeViewProps) {
           ＋
         </span>
         <span>点击上传附件</span>
-        <span className="tk-att-empty-hint">支持 PDF / Office / 图片 / 压缩包等</span>
+        <span className="tk-att-empty-hint">{t("attachmentView.uploadHint")}</span>
       </div>
     );
   }

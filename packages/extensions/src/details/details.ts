@@ -56,12 +56,23 @@ export const Details = Node.create({
     return {
       setDetails:
         () =>
-        ({ commands }) =>
+        ({ editor, commands }) =>
           commands.insertContent({
             type: "details",
             attrs: { open: true },
             content: [
-              { type: "detailsSummary", content: [{ type: "text", text: "折叠标题" }] },
+              // 原生命令里拿不到 useT()，从 editor 实例读取注入的 t
+              {
+                type: "detailsSummary",
+                content: [
+                  {
+                    type: "text",
+                    text:
+                      (editor as unknown as { __tipkitT?: Translate }).__tipkitT?.("details.summaryPlaceholder") ??
+                      "details.summaryPlaceholder",
+                  },
+                ],
+              },
               {
                 type: "detailsContent",
                 content: [{ type: "paragraph" }],

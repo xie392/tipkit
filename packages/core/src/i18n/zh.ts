@@ -254,6 +254,8 @@ export const zh: Messages = {
   "image.styleBorder": "边框",
   "image.styleShadow": "阴影",
   "image.styleBorderShadow": "边框+阴影",
+  "image.resize": "拖拽调整大小",
+  "image.captionPlaceholder": "图片说明…",
 
   /* ── 图片预览 ── */
   "imagePreview.zoomOut": "缩小 (-)",
@@ -430,6 +432,27 @@ export const zh: Messages = {
   "ai.error": "生成失败",
   "ai.emptySelection": "选中文本后可改写；光标处可续写",
   "ai.needProvider": "未配置 AI 能力（EditorDeps.ai）",
+
+  /* ── 视频块 ── */
+  "video.copyLink": "复制视频链接",
+  "video.replace": "替换视频",
+  "video.delete": "删除",
+  "video.urlPlaceholder": "粘贴视频链接（mp4 / webm / ogg）",
+  "video.embed": "嵌入",
+  "video.upload": "上传视频",
+  "video.errorUnsupported": "仅支持 mp4 / webm / ogg 视频文件",
+  "video.errorNoUploadFn": "未注入 uploadAttachment，请在 EditorDeps 中提供",
+  "video.errorUploadFailed": "上传失败，点击重试",
+
+  /* ── 补漏 ── */
+  "blockHandle.insertAbove": "在上方插入",
+  "blockHandle.insertAboveHint": "在上方插入（/）",
+  "blockHandle.dragMove": "拖拽移动",
+  "comment.add": "添加划词评论",
+  "toc.emptyTitle": "（空标题）",
+  "details.summaryPlaceholder": "折叠标题",
+  "codeBlock.mermaid": "Mermaid 图表",
+  "status.defaultText": "待处理",
 
   /* ── 占位符 ── */
   "placeholder.default": "写下点什么…",

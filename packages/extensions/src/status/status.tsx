@@ -2,6 +2,7 @@
 
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
+import type { Translate } from "@tipkit/core";
 import { StatusView } from "./status-view";
 
 /* Status 状态标签（Confluence /status 风格的内联原子节点）。
@@ -64,13 +65,17 @@ export const Status = Node.create({
     return {
       setStatus:
         (attrs) =>
-        ({ chain }) =>
+        ({ editor, chain }) =>
           chain()
             .focus()
             .insertContent({
               type: "status",
               attrs: {
-                text: attrs?.text ?? "待处理",
+                // 命令层拿不到 useT()，从 editor 实例读取注入的 t
+                text:
+                  attrs?.text ??
+                  (editor as unknown as { __tipkitT?: Translate }).__tipkitT?.("status.defaultText") ??
+                  "待处理",
                 color: attrs?.color ?? "#ffcccc",
               },
             })

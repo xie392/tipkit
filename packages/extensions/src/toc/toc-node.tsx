@@ -42,13 +42,13 @@ function IconTrash() {
   );
 }
 
-function collectHeadings(doc: NodeViewProps["editor"]["state"]["doc"]): HeadingInfo[] {
+function collectHeadings(doc: NodeViewProps["editor"]["state"]["doc"], emptyTitle: string): HeadingInfo[] {
   const items: HeadingInfo[] = [];
   doc.descendants((node, pos) => {
     if (node.type.name === "heading") {
       items.push({
         id: `toc-${pos}`,
-        text: node.textContent.slice(0, 60) || "（空标题）",
+        text: node.textContent.slice(0, 60) || emptyTitle,
         level: node.attrs.level,
         pos,
       });
@@ -70,13 +70,13 @@ function TocView(props: NodeViewProps) {
   const [items, setItems] = useState<HeadingInfo[]>([]);
 
   useEffect(() => {
-    const update = () => setItems(collectHeadings(editor.state.doc));
+    const update = () => setItems(collectHeadings(editor.state.doc, t("toc.emptyTitle")));
     update();
     editor.on("update", update);
     return () => {
       editor.off("update", update);
     };
-  }, [editor]);
+  }, [editor, t]);
 
   const jump = (pos: number) => {
     editor.commands.setTextSelection(pos + 1);

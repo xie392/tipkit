@@ -7,7 +7,7 @@ import {
   NodeViewWrapper,
   type NodeViewProps,
 } from "@tiptap/react";
-import { useEditorDeps, useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
+import { useEditorDeps, useEditorEditable, useT, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
 
 /* Video 视频块（借鉴 yiitap 的 video 节点：https://github.com/pileax-ai/yiitap，MIT）。
  * 支持两种来源：直接视频链接（mp4/webm/ogg）或经 EditorDeps.uploadAttachment 上传。
@@ -134,6 +134,7 @@ export const Video = Node.create({
 
 function VideoView({ editor, node, updateAttributes, deleteNode }: NodeViewProps) {
   const deps = useEditorDeps();
+  const t = useT();
   const isEditable = useEditorEditable(editor);
   const [urlDraft, setUrlDraft] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -154,11 +155,11 @@ function VideoView({ editor, node, updateAttributes, deleteNode }: NodeViewProps
 
   const upload = async (file: File) => {
     if (!isVideoFile(file)) {
-      updateAttributes({ error: "仅支持 mp4 / webm / ogg 视频文件" });
+      updateAttributes({ error: t("video.errorUnsupported") });
       return;
     }
     if (!deps.uploadAttachment) {
-      updateAttributes({ error: "未注入 uploadAttachment，请在 EditorDeps 中提供" });
+      updateAttributes({ error: t("video.errorNoUploadFn") });
       return;
     }
     setUploading(true);
@@ -167,7 +168,7 @@ function VideoView({ editor, node, updateAttributes, deleteNode }: NodeViewProps
       const meta = await deps.uploadAttachment(file, editor);
       updateAttributes({ src: meta.url, error: null });
     } catch {
-      updateAttributes({ error: "上传失败，点击重试" });
+      updateAttributes({ error: t("video.errorUploadFailed") });
     } finally {
       setUploading(false);
       setUploadName("");
@@ -208,7 +209,7 @@ function VideoView({ editor, node, updateAttributes, deleteNode }: NodeViewProps
               onClick={async () => {
                 if (src) await navigator.clipboard.writeText(src);
               }}
-              data-tip="复制视频链接"
+              data-tip={t("video.copyLink")}
             >
               <IconCopy />
             </button>
@@ -217,7 +218,7 @@ function VideoView({ editor, node, updateAttributes, deleteNode }: NodeViewProps
               className="tk-ct-btn"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => fileInputRef.current?.click()}
-              data-tip="替换视频"
+              data-tip={t("video.replace")}
             >
               <IconUpload />
             </button>
@@ -226,7 +227,7 @@ function VideoView({ editor, node, updateAttributes, deleteNode }: NodeViewProps
               className="tk-ct-btn is-danger"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => deleteNode()}
-              data-tip="删除"
+              data-tip={t("video.delete")}
             >
               <IconTrash />
             </button>
@@ -266,7 +267,7 @@ function VideoView({ editor, node, updateAttributes, deleteNode }: NodeViewProps
                 <IconLink />
                 <input
                   className="tk-video-card-input"
-                  placeholder="粘贴视频链接（mp4 / webm / ogg）"
+                  placeholder={t("video.urlPlaceholder")}
                   value={urlDraft}
                   onChange={(e) => setUrlDraft(e.target.value)}
                   onKeyDown={(e) => {
@@ -277,11 +278,11 @@ function VideoView({ editor, node, updateAttributes, deleteNode }: NodeViewProps
                   }}
                 />
                 <button type="button" className="tk-video-card-btn" onMouseDown={(e) => e.preventDefault()} onClick={setUrl}>
-                  嵌入
+                  {t("video.embed")}
                 </button>
               </div>
               <button type="button" className="tk-video-card-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => fileInputRef.current?.click()}>
-                <IconUpload /> 上传视频
+                <IconUpload /> {t("video.upload")}
               </button>
             </>
           )}

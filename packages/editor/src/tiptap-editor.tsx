@@ -5,6 +5,7 @@ import { EditorContent } from "@tiptap/react";
 import type { Editor } from "@tiptap/react";
 import { EditorProvider, useTipKitEditor } from "@tipkit/core";
 import type { EditorDeps, ToolbarAction, ToolbarGroup, IconRef, Translate } from "@tipkit/core";
+import { openLinkDialog } from "@tipkit/ui";
 import { createBasicExtensions } from "@tipkit/extensions";
 
 /**
@@ -192,10 +193,9 @@ export function buildToolbarGroups(editor: Editor | null, t?: Translate): Toolba
           label: tr("toolbar.insertLink"),
           icon: "Link",
           isEnabled: () => !editor.state.selection.empty,
-          onExecute: (e) => {
-            const href = window.prompt(tr("toolbar.linkPrompt"));
-            if (!href) return;
-            e.chain().focus().setLink({ href }).run();
+          onExecute: () => {
+            // 走统一的链接弹窗（需消费方挂载 LinkDialogHost；未挂载时弹窗不会出现）
+            openLinkDialog();
           },
         },
         { type: "divider", id: "divider", label: "" },

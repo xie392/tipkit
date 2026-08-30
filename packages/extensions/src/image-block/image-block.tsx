@@ -2,7 +2,7 @@ import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import Image from "@tiptap/extension-image";
 import type { NodeViewProps } from "@tiptap/react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
+import { useEditorEditable, useT, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
 import { ImagePreview } from "./image-preview";
 
 /* ImageBlock 节点（迁移自 blog rich-text/ext/image-block/image-block.ts）。
@@ -178,6 +178,7 @@ export const ImageBlock = Image.extend({
 function ImageBlockView(props: NodeViewProps) {
   const { editor, node, updateAttributes, selected, getPos, deleteNode } = props;
   const isEditable = useEditorEditable(editor);
+  const t = useT();
   const attrs = node.attrs as unknown as ImageBlockAttrs;
   const { src, width, align, alt, caption, imageStyle = "none" } = attrs;
 
@@ -196,10 +197,10 @@ function ImageBlockView(props: NodeViewProps) {
   const styleWrapRef = useRef<HTMLDivElement | null>(null);
 
   const STYLE_OPTIONS: { value: ImageStyleType; label: string }[] = [
-    { value: "none", label: "无样式" },
-    { value: "border", label: "边框" },
-    { value: "shadow", label: "阴影" },
-    { value: "border-shadow", label: "边框 + 阴影" },
+    { value: "none", label: t("image.styleNone") },
+    { value: "border", label: t("image.styleBorder") },
+    { value: "shadow", label: t("image.styleShadow") },
+    { value: "border-shadow", label: t("image.styleBorderShadow") },
   ];
   const currentStyle = (attrs.imageStyle as ImageStyleType) || "none";
 
@@ -376,8 +377,8 @@ function ImageBlockView(props: NodeViewProps) {
           <div className="tk-ct-toolbar">
             <button
               type="button"
-              data-tip="替换图片"
-              aria-label="替换图片"
+              data-tip={t("image.replace")}
+              aria-label={t("image.replace")}
               className="tk-ct-btn"
               onMouseDown={(e) => e.preventDefault()}
               onClick={replaceImage}
@@ -388,8 +389,8 @@ function ImageBlockView(props: NodeViewProps) {
             <div className="tk-block-action-dropdown" ref={styleWrapRef}>
               <button
                 type="button"
-                data-tip="设置样式"
-                aria-label="设置样式"
+                data-tip={t("image.style")}
+                aria-label={t("image.style")}
                 className={`tk-ct-btn${styleOpen ? " is-active" : ""}`}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => setStyleOpen((v) => !v)}
@@ -421,8 +422,8 @@ function ImageBlockView(props: NodeViewProps) {
             </div>
             <button
               type="button"
-              data-tip="左对齐"
-              aria-label="左对齐"
+              data-tip={t("image.alignLeft")}
+              aria-label={t("image.alignLeft")}
               className={`tk-ct-btn${align === "left" ? " is-active" : ""}`}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => updateAttributes({ align: "left" })}
@@ -431,8 +432,8 @@ function ImageBlockView(props: NodeViewProps) {
             </button>
             <button
               type="button"
-              data-tip="居中"
-              aria-label="居中"
+              data-tip={t("image.alignCenter")}
+              aria-label={t("image.alignCenter")}
               className={`tk-ct-btn${align === "center" ? " is-active" : ""}`}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => updateAttributes({ align: "center" })}
@@ -441,8 +442,8 @@ function ImageBlockView(props: NodeViewProps) {
             </button>
             <button
               type="button"
-              data-tip="右对齐"
-              aria-label="右对齐"
+              data-tip={t("image.alignRight")}
+              aria-label={t("image.alignRight")}
               className={`tk-ct-btn${align === "right" ? " is-active" : ""}`}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => updateAttributes({ align: "right" })}
@@ -452,8 +453,8 @@ function ImageBlockView(props: NodeViewProps) {
             <span className="tk-ct-sep" />
             <button
               type="button"
-              data-tip="复制"
-              aria-label="复制"
+              data-tip={t("block.duplicate")}
+              aria-label={t("block.duplicate")}
               className="tk-ct-btn"
               onMouseDown={(e) => e.preventDefault()}
               onClick={handleDuplicate}
@@ -462,8 +463,8 @@ function ImageBlockView(props: NodeViewProps) {
             </button>
             <button
               type="button"
-              data-tip="删除"
-              aria-label="删除"
+              data-tip={t("block.delete")}
+              aria-label={t("block.delete")}
               className="tk-ct-btn is-danger"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => deleteNode()}
@@ -490,8 +491,8 @@ function ImageBlockView(props: NodeViewProps) {
           <>
             <span
               role="slider"
-              aria-label="左上角拖拽调整大小"
-              title="拖拽调整大小"
+              aria-label={t("image.resize")}
+              title={t("image.resize")}
               tabIndex={-1}
               onPointerDown={startResize("left")}
               style={{ touchAction: "none", ...(toolsVisible ? visibleStyle : hiddenStyle) }}
@@ -499,8 +500,8 @@ function ImageBlockView(props: NodeViewProps) {
             />
             <span
               role="slider"
-              aria-label="右上角拖拽调整大小"
-              title="拖拽调整大小"
+              aria-label={t("image.resize")}
+              title={t("image.resize")}
               tabIndex={-1}
               onPointerDown={startResize("right")}
               style={{ touchAction: "none", ...(toolsVisible ? visibleStyle : hiddenStyle) }}
@@ -508,8 +509,8 @@ function ImageBlockView(props: NodeViewProps) {
             />
             <span
               role="slider"
-              aria-label="左下角拖拽调整大小"
-              title="拖拽调整大小"
+              aria-label={t("image.resize")}
+              title={t("image.resize")}
               tabIndex={-1}
               onPointerDown={startResize("left")}
               style={{ touchAction: "none", ...(toolsVisible ? visibleStyle : hiddenStyle) }}
@@ -517,8 +518,8 @@ function ImageBlockView(props: NodeViewProps) {
             />
             <span
               role="slider"
-              aria-label="右下角拖拽调整大小"
-              title="拖拽调整大小"
+              aria-label={t("image.resize")}
+              title={t("image.resize")}
               tabIndex={-1}
               onPointerDown={startResize("right")}
               style={{ touchAction: "none", ...(toolsVisible ? visibleStyle : hiddenStyle) }}
@@ -536,7 +537,7 @@ function ImageBlockView(props: NodeViewProps) {
           ref={captionRef}
           contentEditable={isEditable && editingCaption}
           suppressContentEditableWarning
-          data-placeholder="图片说明…"
+          data-placeholder={t("image.captionPlaceholder")}
           className={`tk-image-block-caption ${wrapperAlign}`}
           style={{ width: `${effectiveWidth}%`, maxWidth: "100%" }}
           onBlur={commitCaption}

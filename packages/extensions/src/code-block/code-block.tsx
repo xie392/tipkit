@@ -45,7 +45,7 @@ export const CODE_LANGUAGES: CodeLanguage[] = [
   { value: "json", label: "JSON" },
   { value: "yaml", label: "YAML" },
   { value: "markdown", label: "Markdown" },
-  { value: "mermaid", label: "Mermaid 图表" },
+  { value: "mermaid", label: "" },
   { value: "bash", label: "Bash / Shell" },
   { value: "shell", label: "" },
   { value: "graphql", label: "GraphQL" },
@@ -82,9 +82,11 @@ function canonicalLang(value: string | null): string | null {
   return value ? LANGUAGE_ALIASES[value] ?? value : null;
 }
 
-function langLabel(value: string | null): string {
+function langLabel(value: string | null, t: (k: string) => string): string {
   const canonical = canonicalLang(value);
-  return CODE_LANGUAGES.find((l) => l.value === canonical)?.label || value || "纯文本";
+  if (!canonical) return t("codeBlock.plainText");
+  if (canonical === "mermaid") return t("codeBlock.mermaid");
+  return CODE_LANGUAGES.find((l) => l.value === canonical)?.label || value || t("codeBlock.plainText");
 }
 
 function detectLanguage(code: string): string | null {
@@ -292,9 +294,10 @@ function CodeBlockView(props: NodeViewProps) {
             type="button"
             className="tk-code-block-lang-btn"
             onClick={() => setLangOpen((v) => !v)}
-            title="设置编程语言"
+            data-tip={t("codeBlock.setLanguage")}
+            aria-label={t("codeBlock.setLanguage")}
           >
-            {language === null ? t("codeBlock.auto") : langLabel(language)}
+            {language === null ? t("codeBlock.auto") : langLabel(language, t)}
             <IconChevron />
           </button>
           {langOpen &&
@@ -311,7 +314,7 @@ function CodeBlockView(props: NodeViewProps) {
                   maxHeight: dropdownStyle.maxHeight,
                 }}
               >
-                {CODE_LANGUAGES.filter((l) => l.value === null || l.label).map((l) => {
+                {CODE_LANGUAGES.filter((l) => l.value === null || l.label || l.value === "mermaid").map((l) => {
                   const active = canonicalLang(l.value) === canonicalLang(language);
                   return (
                     <button
@@ -325,7 +328,7 @@ function CodeBlockView(props: NodeViewProps) {
                         setLangOpen(false);
                       }}
                     >
-                      <span>{l.value === null ? t("codeBlock.auto") : l.label}</span>
+                      <span>{l.value === null ? t("codeBlock.auto") : langLabel(l.value, t)}</span>
                       {active && <span className="tk-code-block-check">✓</span>}
                     </button>
                   );
@@ -342,7 +345,8 @@ function CodeBlockView(props: NodeViewProps) {
                 type="button"
                 className="tk-code-block-action-btn"
                 onClick={() => setCodeOpen((v) => !v)}
-                title={codeOpen ? t("codeBlock.showDiagram") : t("codeBlock.showCode")}
+                data-tip={codeOpen ? t("codeBlock.showDiagram") : t("codeBlock.showCode")}
+                aria-label={codeOpen ? t("codeBlock.showDiagram") : t("codeBlock.showCode")}
               >
                 {codeOpen ? <IconEye /> : <IconCode />}
               </button>
@@ -350,7 +354,8 @@ function CodeBlockView(props: NodeViewProps) {
                 type="button"
                 className="tk-code-block-action-btn"
                 onClick={() => setViewerOpen(true)}
-                title={t("codeBlock.fullscreen")}
+                data-tip={t("codeBlock.fullscreen")}
+                aria-label={t("codeBlock.fullscreen")}
               >
                 <IconExpand />
               </button>
@@ -360,7 +365,8 @@ function CodeBlockView(props: NodeViewProps) {
             type="button"
             className="tk-code-block-action-btn"
             onClick={() => updateAttributes({ theme: dark ? "light" : "dark" })}
-            title={dark ? "切换到亮色主题" : "切换到暗色主题"}
+            data-tip={dark ? t("codeBlock.switchLight") : t("codeBlock.switchDark")}
+            aria-label={dark ? t("codeBlock.switchLight") : t("codeBlock.switchDark")}
           >
             {dark ? <IconSun /> : <IconMoon />}
           </button>
@@ -368,7 +374,8 @@ function CodeBlockView(props: NodeViewProps) {
             type="button"
             className="tk-code-block-action-btn"
             onClick={copyCode}
-            title={t("codeBlock.copy")}
+            data-tip={copied ? t("codeBlock.copied") : t("codeBlock.copy")}
+            aria-label={copied ? t("codeBlock.copied") : t("codeBlock.copy")}
           >
             {copied ? <IconCheck /> : <IconCopy />}
           </button>
@@ -376,7 +383,8 @@ function CodeBlockView(props: NodeViewProps) {
             type="button"
             className="tk-code-block-action-btn tk-code-block-action-danger"
             onClick={() => deleteNode()}
-            title={t("codeBlock.delete")}
+            data-tip={t("codeBlock.delete")}
+            aria-label={t("codeBlock.delete")}
           >
             <IconTrash />
           </button>
@@ -415,7 +423,8 @@ function CodeBlockView(props: NodeViewProps) {
           className="tk-code-block-copy-btn"
           style={{ right: "40px" }}
           onClick={() => setViewerOpen(true)}
-          title={t("codeBlock.fullscreen")}
+          data-tip={t("codeBlock.fullscreen")}
+          aria-label={t("codeBlock.fullscreen")}
         >
           <IconExpand />
         </button>
@@ -425,7 +434,8 @@ function CodeBlockView(props: NodeViewProps) {
           type="button"
           className="tk-code-block-copy-btn"
           onClick={copyCode}
-          title={t("codeBlock.copy")}
+          data-tip={copied ? t("codeBlock.copied") : t("codeBlock.copy")}
+          aria-label={copied ? t("codeBlock.copied") : t("codeBlock.copy")}
         >
           {copied ? <IconCheck /> : <IconCopy />}
         </button>
