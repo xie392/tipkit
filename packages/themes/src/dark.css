@@ -141,3 +141,14 @@
   color: var(--primary-foreground);
   border-color: var(--primary);
 }
+
+/* ---------- 查找替换高亮 ---------- */
+.tk-theme-dark .tk-search-match {
+  background: color-mix(in srgb, var(--primary) 18%, transparent);
+  border-radius: 2px;
+}
+
+.tk-theme-dark .tk-search-match.is-active {
+  background: color-mix(in srgb, var(--primary) 38%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 55%, transparent);
+}

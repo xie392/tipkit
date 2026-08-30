@@ -68,6 +68,18 @@ export const zh: Messages = {
   "toolbar.clearColor": "清除颜色",
   "toolbar.clearHighlight": "清除高亮",
   "toolbar.align": "对齐方式",
+  "toolbar.findReplace": "查找替换",
+
+  /* ── 查找替换 ── */
+  "find.tab": "查找",
+  "replace.tab": "替换",
+  "find.searchPlaceholder": "查找内容",
+  "find.replacePlaceholder": "替换为",
+  "find.prev": "上一个",
+  "find.next": "下一个",
+  "find.replace": "替换",
+  "find.replaceAll": "全部替换",
+  "find.noResults": "无结果",
 
   /* ── 斜杠菜单分组 ── */
   "slash.group.basic": "基础",

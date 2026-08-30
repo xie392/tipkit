@@ -68,6 +68,18 @@ export const en: Messages = {
   "toolbar.clearColor": "Clear color",
   "toolbar.clearHighlight": "Clear highlight",
   "toolbar.align": "Alignment",
+  "toolbar.findReplace": "Find & Replace",
+
+  /* ── Find & Replace ── */
+  "find.tab": "Find",
+  "replace.tab": "Replace",
+  "find.searchPlaceholder": "Find",
+  "find.replacePlaceholder": "Replace with",
+  "find.prev": "Previous",
+  "find.next": "Next",
+  "find.replace": "Replace",
+  "find.replaceAll": "Replace All",
+  "find.noResults": "No results",
 
   /* ── Slash menu groups ── */
   "slash.group.basic": "Basic",

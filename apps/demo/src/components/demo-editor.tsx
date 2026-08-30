@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { TipKitEditor } from "@tipkit/editor";
 import type { EditorDeps, IconRef, CommentRange, AIProvider } from "@tipkit/editor";
-import { createBasicExtensions, createAdvancedExtensions, createFootnoteExtensions, Comment, Canvas, AiGeneration, Emoji } from "@tipkit/extensions";
+import { createBasicExtensions, createAdvancedExtensions, createFootnoteExtensions, Comment, Canvas, AiGeneration, Emoji, SearchAndReplace } from "@tipkit/extensions";
 import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockHandleMenu, TableControls, ReadonlyTextMenu, AiMenu } from "@tipkit/ui";
 import { useDemoLang } from "@/components/use-demo-lang";
 import type { DemoLang } from "@/components/site-lang-switch";
@@ -766,6 +766,7 @@ export function DemoEditor({
           }}
           extensions={[
             ...createBasicExtensions(),
+            SearchAndReplace,
             commentExt,
             Canvas,
             Emoji,
