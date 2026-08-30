@@ -109,7 +109,11 @@ export function toRoughHtml(shape: CanvasShape): string {
         (pt) => pt && Number.isFinite(pt.x) && Number.isFinite(pt.y),
       );
       if (pts.length < 2) return "";
-      return rc.linearPath(pts as unknown as never[], options).outerHTML;
+      // roughjs 的 linearPath 只认 [x, y] 数组点，传 {x,y} 对象会取到 undefined 生成 NaN 路径
+      return rc.linearPath(
+        pts.map((pt) => [pt.x, pt.y]),
+        options,
+      ).outerHTML;
     }
     default:
       return "";
