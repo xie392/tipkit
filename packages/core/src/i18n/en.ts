@@ -68,6 +68,18 @@ export const en: Messages = {
   "toolbar.clearColor": "Clear color",
   "toolbar.clearHighlight": "Clear highlight",
   "toolbar.align": "Alignment",
+  "toolbar.findReplace": "Find & Replace",
+
+  /* ── Find & Replace ── */
+  "find.tab": "Find",
+  "replace.tab": "Replace",
+  "find.searchPlaceholder": "Find",
+  "find.replacePlaceholder": "Replace with",
+  "find.prev": "Previous",
+  "find.next": "Next",
+  "find.replace": "Replace",
+  "find.replaceAll": "Replace All",
+  "find.noResults": "No results",
 
   /* ── Slash menu groups ── */
   "slash.group.basic": "Basic",
@@ -133,12 +145,32 @@ export const en: Messages = {
   "slash.katex.label": "Math Formula",
   "slash.katex.description": "LaTeX formula (block)",
   "slash.katex.previewTitle": "Math Formula",
+  "slash.ai.label": "AI Assistant",
+  "slash.ai.description": "Generate / rewrite content via streaming AI",
+  "slash.ai.previewTitle": "AI Assistant",
   "slash.iframe.label": "Embed",
   "slash.iframe.description": "Bilibili / YouTube / web page",
   "slash.iframe.previewTitle": "Embed",
   "slash.attachment.label": "Attachment",
   "slash.attachment.description": "Upload file (PDF / Office / archive)",
   "slash.attachment.previewTitle": "Attachment",
+  "slash.video.label": "Video",
+  "slash.video.description": "Upload a video file or embed a video URL",
+  "slash.video.previewTitle": "Video",
+
+  "slash.footnote.label": "Footnote",
+  "slash.footnote.description": "Insert a footnote reference and auto-append the entry",
+  "slash.footnote.previewTitle": "Footnote",
+  "emoji.group.common": "Frequently Used",
+  "emoji.group.smileys": "Smileys & Emotion",
+  "emoji.group.people": "People & Body",
+  "emoji.group.animals": "Animals & Nature",
+  "emoji.group.food": "Food & Drink",
+  "emoji.group.travel": "Travel & Places",
+  "emoji.group.activities": "Activities",
+  "emoji.group.objects": "Objects",
+  "emoji.group.symbols": "Symbols",
+  "emoji.group.flags": "Flags",
   "slash.emoji.label": "Insert Emoji",
   "slash.emoji.description": "Type : or click to browse",
   "slash.emoji.previewTitle": "Emoji",
@@ -277,6 +309,8 @@ export const en: Messages = {
   "columns.twoColumn": "Two equal columns",
   "columns.sidebarLeft": "Narrow left, wide right",
   "columns.sidebarRight": "Wide left, narrow right",
+  "columns.addColumn": "Add column after",
+  "columns.deleteColumn": "Delete column",
 
   /* ── Details actions ── */
   "details.collapse": "Collapse",
@@ -291,6 +325,7 @@ export const en: Messages = {
   "table.insertColAfter": "Insert column after",
   "table.insertRowBefore": "Insert row before",
   "table.insertRowAfter": "Insert row after",
+  "table.selectTable": "Select entire table",
   "table.toggleHeaderRow": "Toggle header row",
   "table.toggleHeaderCol": "Toggle header column",
   "table.toggleHeaderCell": "Toggle header cell",
@@ -299,6 +334,9 @@ export const en: Messages = {
   "table.alignRight": "Align right",
   "table.resetWidth": "Reset column width",
   "table.deleteTable": "Delete table",
+  "table.deleteSelectedRows": "Delete selected rows",
+  "table.deleteSelectedCols": "Delete selected columns",
+  "table.clearContent": "Clear contents",
   "table.cantInsertInTable": "Cannot insert table inside table",
   "table.insertTable": "Insert table",
   "table.dragToSelect": "Drag to select",
@@ -326,6 +364,10 @@ export const en: Messages = {
   "codeBlock.copy": "Copy code",
   "codeBlock.delete": "Delete code block",
   "codeBlock.copied": "Copied",
+  "codeBlock.showDiagram": "View diagram",
+  "codeBlock.showCode": "Edit source",
+  "codeBlock.fullscreen": "Fullscreen preview",
+  "codeBlock.downloadSvg": "Download SVG",
 
   /* ── TOC ── */
   "toc.title": "▍On this page",
@@ -335,6 +377,7 @@ export const en: Messages = {
   "katex.cancel": "Cancel",
   "katex.save": "Save (⌘↵)",
   "katex.placeholder": "Enter LaTeX formula, e.g. \\frac{1}{2} or e^{i\\pi}+1=0",
+  "katex.preview": "Live preview",
   "katex.emptyPlaceholder": "+ Enter math formula",
   "katex.renderError": "Formula render error: ",
 
@@ -352,6 +395,7 @@ export const en: Messages = {
   "canvas.boxSelect": "Box select",
   "canvas.zoomIn": "Zoom in",
   "canvas.zoomOut": "Zoom out",
+  "canvas.zoom100": "Reset zoom",
   "canvas.fullscreen": "Fullscreen",
   "canvas.exitFullscreen": "Exit fullscreen",
   "canvas.title": "Canvas",
@@ -372,6 +416,22 @@ export const en: Messages = {
   "canvas.zDown": "Send backward",
   "canvas.zBottom": "Send to back",
 
+  /* ── AI ── */
+  "ai.title": "AI Assistant",
+  "ai.placeholder": "Enter an instruction, e.g. rewrite in a formal tone…",
+  "ai.generate": "Generate",
+  "ai.rewrite": "Rewrite",
+  "ai.continue": "Continue",
+  "ai.accept": "Accept",
+  "ai.discard": "Discard",
+  "ai.cancel": "Stop",
+  "ai.retry": "Retry",
+  "ai.generating": "Generating…",
+  "ai.error": "Generation failed",
+  "ai.emptySelection": "Select text to rewrite; place cursor to continue writing",
+  "ai.needProvider": "AI capability not configured (EditorDeps.ai)",
+
   /* ── Placeholder ── */
   "placeholder.default": "Start writing…",
+
 };

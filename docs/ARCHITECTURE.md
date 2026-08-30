@@ -1,6 +1,6 @@
 # TipKit 架构设计
 
-> 版本：v0.1（骨架阶段）
+> 版本：v0.3（功能对齐阶段：AI 生成、脚注、查找替换、语法检查、视频、Emoji、UniqueID、评论等已落地）
 
 ## 1. 设计原则
 
@@ -56,6 +56,12 @@ flowchart TB
 | `@tipkit/themes` | 主题皮肤：CSS 变量 + 自定义 CSS | **一切视觉** | 无 |
 | `@tipkit/editor` | 聚合入口：组装 core+extensions+ui | — | 全部 | 
 
+### 3.1 扩展集组成
+
+- **`createBasicExtensions()`**：StarterKit + 行内/块级 Markdown 输入规则 + 表格 + 字号/字体族/颜色/对齐/高亮 + 字数统计 + TableReadonlyResize（只读列宽）
+- **`createAdvancedExtensions()`**：图片块、代码块（lowlight 高亮 + Mermaid 渲染）、KaTeX、Callout、分栏、折叠块、目录、iframe、附件、视频、块句柄、文件拖拽、状态标签
+- **opt-in 扩展**（按需单独引入）：AI 生成（`AiGeneration`，UI 浮层 `AiMenu` 在 ui 包）、脚注、划词评论、画板 Canvas、查找替换、LanguageTool 语法检查、UniqueID、Emoji（完整库 + 短代码输入规则）
+
 ## 4. 主题机制
 
 ```mermaid
@@ -82,6 +88,10 @@ interface EditorDeps {
   uploadImage?: (file: File, editor: Editor) => Promise<string>;
   uploadAttachment?: (file: File, editor: Editor) => Promise<AttachmentMeta>;
   renderKatex?: (tex: string, displayMode: boolean) => Promise<string>;
+  ai?: AIProvider;                       // AI 流式文本生成（AiMenu 浮层与 AI 命令共用）
+  t?: Translate;                         // i18n，缺省中文词典
+  onCommentCreate?: (range: CommentRange) => void;   // 划词评论创建回调
+  onCommentClick?: (commentId: string) => void;      // 评论标记点击回调
 }
 ```
 

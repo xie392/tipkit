@@ -10,9 +10,10 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useT, useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
 
-/* 多栏容器：含两个 column 子节点。
+/* 多栏容器：含至少一个 column 子节点（column+，支持任意列数）。
  * columns 不是 atom，自动设 NodeSelection 会把内部文本整块高亮变灰，
- * 因此悬浮工具栏保留完整操作（布局切换 + 复制块 + 删除块）。 */
+ * 因此悬浮工具栏保留完整操作（布局切换 + 复制块 + 删除块）；
+ * 单列的增删由 column 自身悬浮工具完成。 */
 
 export enum ColumnLayout {
   SidebarLeft = "sidebar-left",
@@ -25,6 +26,10 @@ declare module "@tiptap/core" {
     columns: {
       setColumns: () => ReturnType;
       setLayout: (layout: ColumnLayout) => ReturnType;
+      /** 在 pos 所指 column 的右侧插入一个空列（pos 为该 column 节点起始位置） */
+      insertColumnAfter: (pos: number) => ReturnType;
+      /** 删除 pos 所指 column；若为容器内最后一列，拆掉整个分栏并提升列内内容 */
+      deleteColumnAt: (pos: number) => ReturnType;
     };
   }
 }
@@ -79,6 +84,68 @@ const LAYOUTS: { value: ColumnLayout; labelKey: string; icon: React.ReactNode }[
   { value: ColumnLayout.SidebarRight, labelKey: "columns.sidebarRight", icon: <IconRightNarrow /> },
 ];
 
+function IconPlus() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+      <path d="M8 3v10M3 8h10" />
+    </svg>
+  );
+}
+
+function IconX() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+      <path d="M3.5 3.5l9 9M12.5 3.5l-9 9" />
+    </svg>
+  );
+}
+
+/** 单列悬浮工具：右侧加列 / 删除本列 */
+function ColumnView({ editor, getPos }: NodeViewProps) {
+  const t = useT();
+  const isEditable = useEditorEditable(editor);
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <NodeViewWrapper
+      className={`tk-column${isEditable && hovered ? " is-hovered" : ""}`}
+      onMouseEnter={() => isEditable && setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      data-type="column"
+    >
+      {isEditable && hovered && (
+        <div className="tk-column-actions" contentEditable={false} onMouseDown={(e) => e.preventDefault()}>
+          <button
+            type="button"
+            data-tip={t("columns.addColumn")}
+            aria-label={t("columns.addColumn")}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              const pos = getPos();
+              if (typeof pos === "number") editor.chain().focus().insertColumnAfter(pos).run();
+            }}
+          >
+            <IconPlus />
+          </button>
+          <button
+            type="button"
+            data-tip={t("columns.deleteColumn")}
+            aria-label={t("columns.deleteColumn")}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              const pos = getPos();
+              if (typeof pos === "number") editor.chain().focus().deleteColumnAt(pos).run();
+            }}
+          >
+            <IconX />
+          </button>
+        </div>
+      )}
+      <NodeViewContent as="div" />
+    </NodeViewWrapper>
+  );
+}
+
 function ColumnsView({ editor, node, getPos, updateAttributes, deleteNode }: NodeViewProps) {
   const t = useT();
   const isEditable = useEditorEditable(editor);
@@ -112,6 +179,7 @@ function ColumnsView({ editor, node, getPos, updateAttributes, deleteNode }: Nod
     <NodeViewWrapper
       ref={wrapRef}
       className={`tk-columns-wrap layout-${layout} tk-hover-toolbar${isEditable ? " is-editable" : ""}${hovered ? " is-hovered" : ""}`}
+      style={{ "--tk-columns-n": node.childCount } as React.CSSProperties}
       onMouseEnter={() => {
         if (isEditable) {
           setHovered(true);
@@ -179,7 +247,7 @@ export const Columns = Node.create({
 
   group: "block",
 
-  content: "column column",
+  content: "column+",
 
   defining: true,
 
@@ -205,6 +273,30 @@ export const Columns = Node.create({
         (layout: ColumnLayout) =>
         ({ commands }) =>
           commands.updateAttributes("columns", { layout }),
+      insertColumnAfter:
+        (pos: number) =>
+        ({ tr, dispatch }) => {
+          const col = tr.doc.resolve(pos).nodeAfter;
+          if (!col || col.type.name !== "column") return false;
+          const empty = col.type.createAndFill();
+          if (!empty) return false;
+          dispatch?.(tr.insert(pos + col.nodeSize, empty));
+          return true;
+        },
+      deleteColumnAt:
+        (pos: number) =>
+        ({ tr, dispatch }) => {
+          const $pos = tr.doc.resolve(pos);
+          const col = $pos.nodeAfter;
+          if (!col || col.type.name !== "column" || $pos.parent.type.name !== "columns") return false;
+          if ($pos.parent.childCount <= 1) {
+            // 最后一列：移除整个分栏容器，列内块提升到原文档位置
+            dispatch?.(tr.replaceWith($pos.before(), $pos.after(), col.content));
+          } else {
+            dispatch?.(tr.delete(pos, pos + col.nodeSize));
+          }
+          return true;
+        },
     };
   },
 
@@ -257,6 +349,10 @@ export const Column = Node.create({
 
   parseHTML() {
     return [{ tag: "div[data-type='column']" }];
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(ColumnView);
   },
 });
 

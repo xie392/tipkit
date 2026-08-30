@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { useEditorEditable, useEditorDeps, useT } from "@tipkit/core";
-import { CanvasToolbar, ExitFullscreenIcon } from "./canvas-toolbar";
+import { TooltipProvider } from "@tipkit/components";
+import { CanvasToolbar, ExitFullscreenIcon, DownloadIcon, FullscreenIcon, TopToolButton, CANVAS_TOOL_ICONS } from "./canvas-toolbar";
 import { CanvasBoard } from "./canvas-board";
 import type { CanvasShape, CanvasStyle, CanvasTool, CanvasView } from "./canvas-types";
 import { createShapeId } from "./canvas-types";
@@ -122,6 +123,41 @@ export function CanvasView({ node, editor, updateAttributes }: NodeViewProps) {
         </div>
       )}
       <div className="tk-canvas-body">
+        {!isEditable && (
+          <TooltipProvider delayDuration={300}>
+          <div className="tk-canvas-toolbar tk-canvas-toolbar-top" contentEditable={false}>
+            <TopToolButton
+              label={t("canvas.zoomOut")}
+              icon={CANVAS_TOOL_ICONS.zoomOut}
+              onClick={() => setView((v) => zoomView(v, 1 / 1.2, width, height))}
+            />
+            <span
+              className="tk-canvas-zoom-label"
+              style={{ cursor: "pointer" }}
+              title={t("canvas.zoom100")}
+              onClick={() => setView({ x: width / 2, y: height / 2, zoom: 1 })}
+            >
+              {Math.round(view.zoom * 100)}%
+            </span>
+            <TopToolButton
+              label={t("canvas.zoomIn")}
+              icon={CANVAS_TOOL_ICONS.zoomIn}
+              onClick={() => setView((v) => zoomView(v, 1.2, width, height))}
+            />
+            <span className="tk-canvas-sep" />
+            <TopToolButton
+              label={t("canvas.export")}
+              icon={<DownloadIcon />}
+              onClick={handleExport}
+            />
+            <TopToolButton
+              label={isFullscreen ? t("canvas.exitFullscreen") : t("canvas.fullscreen")}
+              icon={isFullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}
+              onClick={toggleFullscreen}
+            />
+          </div>
+          </TooltipProvider>
+        )}
         {isEditable && (
           <CanvasToolbar
             tool={tool}

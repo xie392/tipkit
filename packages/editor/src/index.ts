@@ -35,4 +35,7 @@ export type {
   ImageAttrs,
   IconRef,
   CommentRange,
+  AIStreamRequest,
+  AIStreamProvider,
+  AIProvider,
 } from "@tipkit/core";

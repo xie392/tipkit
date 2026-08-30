@@ -7,8 +7,13 @@ import type { NodeViewProps } from "@tiptap/react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useT, useEditorEditable } from "@tipkit/core";
+import { IconCheck, IconChevron, IconCopy, IconMoon, IconSun, IconTrash } from "./code-block-icons";
+import { IconCode, IconExpand, IconEye } from "./mermaid-icons";
+import { MermaidPreview } from "./mermaid-preview";
+import { mermaidGrammar } from "./mermaid-grammar";
 
 const lowlight = createLowlight(common);
+lowlight.register({ mermaid: mermaidGrammar });
 
 export type CodeBlockTheme = "light" | "dark";
 
@@ -40,6 +45,7 @@ export const CODE_LANGUAGES: CodeLanguage[] = [
   { value: "json", label: "JSON" },
   { value: "yaml", label: "YAML" },
   { value: "markdown", label: "Markdown" },
+  { value: "mermaid", label: "Mermaid 图表" },
   { value: "bash", label: "Bash / Shell" },
   { value: "shell", label: "" },
   { value: "graphql", label: "GraphQL" },
@@ -126,64 +132,19 @@ function detectLanguage(code: string): string | null {
   return null;
 }
 
-function IconChevron() {
-  return (
-    <svg viewBox="0 0 16 16" className="tk-icon-xs" fill="currentColor">
-      <path d="M4.5 6l3.5 3.5L11.5 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </svg>
-  );
-}
-
-function IconSun() {
-  return (
-    <svg viewBox="0 0 16 16" className="tk-icon-sm" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
-      <circle cx="8" cy="8" r="3" />
-      <path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M12.6 3.4l-1 1M4.4 11.6l-1 1" />
-    </svg>
-  );
-}
-
-function IconMoon() {
-  return (
-    <svg viewBox="0 0 16 16" className="tk-icon-sm" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5Z" />
-    </svg>
-  );
-}
-
-function IconCopy() {
-  return (
-    <svg viewBox="0 0 16 16" className="tk-icon-sm" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" />
-      <path d="M10.5 5.5v-1a1.5 1.5 0 0 0-1.5-1.5H4a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 4 11h1.5" />
-    </svg>
-  );
-}
-
-function IconCheck() {
-  return (
-    <svg viewBox="0 0 16 16" className="tk-icon-sm" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 8.5l3.5 3.5L13 5" />
-    </svg>
-  );
-}
-
-function IconTrash() {
-  return (
-    <svg viewBox="0 0 16 16" className="tk-icon-sm" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2.5 4h11M6.5 4V2.5h3V4M4 4l.6 9h6.8l.6-9M6.5 7v3.5M9.5 7v3.5" />
-    </svg>
-  );
-}
-
 function CodeBlockView(props: NodeViewProps) {
   const { node, updateAttributes, deleteNode, editor } = props;
   const t = useT();
   const isEditable = useEditorEditable(editor);
   const language = (node.attrs.language as string | null) ?? null;
   const dark = (node.attrs.theme as CodeBlockTheme) === "dark";
+  const isMermaid = language === "mermaid";
 
   const [langOpen, setLangOpen] = useState(false);
+  /* Mermaid KaTeX 式交互：默认只显示渲染图；代码在内容为空时自动展开，
+   * 双击图表或点工具栏按钮进入代码编辑。非 mermaid 块忽略此状态。 */
+  const [codeOpen, setCodeOpen] = useState(() => isMermaid && !node.textContent.trim());
+  const [viewerOpen, setViewerOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [autoDetected, setAutoDetected] = useState(false);
   const [userSelectedAuto, setUserSelectedAuto] = useState(false);
@@ -197,6 +158,11 @@ function CodeBlockView(props: NodeViewProps) {
     placement: "bottom" | "top";
   }>({ top: 0, left: 0, minWidth: 160, maxHeight: 280, placement: "bottom" });
   const prevContentRef = useRef(node.textContent);
+
+  /* mermaid 内容被清空（切换语言/删空代码）时自动展开代码编辑区 */
+  useEffect(() => {
+    if (isMermaid && !node.textContent.trim()) setCodeOpen(true);
+  }, [isMermaid, node.textContent]);
 
   const DROPDOWN_WIDTH = 200;
   const GAP = 4;
@@ -370,6 +336,26 @@ function CodeBlockView(props: NodeViewProps) {
         </div>
 
         <div className="tk-code-block-actions">
+          {isMermaid && (
+            <>
+              <button
+                type="button"
+                className="tk-code-block-action-btn"
+                onClick={() => setCodeOpen((v) => !v)}
+                title={codeOpen ? t("codeBlock.showDiagram") : t("codeBlock.showCode")}
+              >
+                {codeOpen ? <IconEye /> : <IconCode />}
+              </button>
+              <button
+                type="button"
+                className="tk-code-block-action-btn"
+                onClick={() => setViewerOpen(true)}
+                title={t("codeBlock.fullscreen")}
+              >
+                <IconExpand />
+              </button>
+            </>
+          )}
           <button
             type="button"
             className="tk-code-block-action-btn"
@@ -398,7 +384,10 @@ function CodeBlockView(props: NodeViewProps) {
       </div>
       )}
 
-      <pre className="tk-code-block-pre">
+      <pre
+        className="tk-code-block-pre"
+        style={isMermaid && !codeOpen ? { display: "none" } : undefined}
+      >
         <NodeViewContent
           as={"code" as never}
           className={language ? `language-${language}` : undefined}
@@ -406,6 +395,31 @@ function CodeBlockView(props: NodeViewProps) {
         />
       </pre>
 
+      {isMermaid && !codeOpen && (
+        <div
+          onDoubleClick={isEditable ? () => setCodeOpen(true) : undefined}
+          style={isEditable ? { cursor: "pointer" } : undefined}
+        >
+          <MermaidPreview
+            code={node.textContent}
+            theme={dark ? "dark" : "light"}
+            fullscreen={viewerOpen}
+            onCloseFullscreen={() => setViewerOpen(false)}
+          />
+        </div>
+      )}
+
+      {!isEditable && isMermaid && !codeOpen && (
+        <button
+          type="button"
+          className="tk-code-block-copy-btn"
+          style={{ right: "40px" }}
+          onClick={() => setViewerOpen(true)}
+          title={t("codeBlock.fullscreen")}
+        >
+          <IconExpand />
+        </button>
+      )}
       {!isEditable && (
         <button
           type="button"

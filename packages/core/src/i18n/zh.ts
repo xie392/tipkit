@@ -68,6 +68,18 @@ export const zh: Messages = {
   "toolbar.clearColor": "清除颜色",
   "toolbar.clearHighlight": "清除高亮",
   "toolbar.align": "对齐方式",
+  "toolbar.findReplace": "查找替换",
+
+  /* ── 查找替换 ── */
+  "find.tab": "查找",
+  "replace.tab": "替换",
+  "find.searchPlaceholder": "查找内容",
+  "find.replacePlaceholder": "替换为",
+  "find.prev": "上一个",
+  "find.next": "下一个",
+  "find.replace": "替换",
+  "find.replaceAll": "全部替换",
+  "find.noResults": "无结果",
 
   /* ── 斜杠菜单分组 ── */
   "slash.group.basic": "基础",
@@ -133,12 +145,32 @@ export const zh: Messages = {
   "slash.katex.label": "数学公式",
   "slash.katex.description": "LaTeX 公式（块级）",
   "slash.katex.previewTitle": "数学公式",
+  "slash.ai.label": "AI 助手",
+  "slash.ai.description": "流式生成 / 改写内容",
+  "slash.ai.previewTitle": "AI 助手",
   "slash.iframe.label": "嵌入网页",
   "slash.iframe.description": "B 站 / YouTube / 外部网页",
   "slash.iframe.previewTitle": "嵌入网页",
   "slash.attachment.label": "附件",
   "slash.attachment.description": "上传文件并预览（PDF / Office / 压缩包等）",
   "slash.attachment.previewTitle": "附件",
+  "slash.video.label": "视频",
+  "slash.video.description": "上传视频文件或嵌入视频链接",
+  "slash.video.previewTitle": "视频",
+
+  "slash.footnote.label": "脚注",
+  "slash.footnote.description": "插入脚注引用，正文末尾自动生成条目",
+  "slash.footnote.previewTitle": "脚注",
+  "emoji.group.common": "常用",
+  "emoji.group.smileys": "表情与情感",
+  "emoji.group.people": "人物与身体",
+  "emoji.group.animals": "动物与自然",
+  "emoji.group.food": "食物与饮料",
+  "emoji.group.travel": "旅行与地点",
+  "emoji.group.activities": "活动",
+  "emoji.group.objects": "物品",
+  "emoji.group.symbols": "符号",
+  "emoji.group.flags": "旗帜",
   "slash.emoji.label": "插入 emoji",
   "slash.emoji.description": "输入 : 触发或点此浏览",
   "slash.emoji.previewTitle": "Emoji 表情",
@@ -277,6 +309,8 @@ export const zh: Messages = {
   "columns.twoColumn": "两栏等宽",
   "columns.sidebarLeft": "左窄右宽",
   "columns.sidebarRight": "右窄左宽",
+  "columns.addColumn": "在右侧添加一栏",
+  "columns.deleteColumn": "删除此栏",
 
   /* ── 折叠块操作 ── */
   "details.collapse": "折叠",
@@ -291,6 +325,7 @@ export const zh: Messages = {
   "table.insertColAfter": "右侧插入列",
   "table.insertRowBefore": "上方插入行",
   "table.insertRowAfter": "下方插入行",
+  "table.selectTable": "选中整个表格",
   "table.toggleHeaderRow": "切换表头行",
   "table.toggleHeaderCol": "切换表头列",
   "table.toggleHeaderCell": "切换表头单元格",
@@ -299,6 +334,9 @@ export const zh: Messages = {
   "table.alignRight": "右对齐",
   "table.resetWidth": "重置列宽",
   "table.deleteTable": "删除表格",
+  "table.deleteSelectedRows": "删除所选行",
+  "table.deleteSelectedCols": "删除所选列",
+  "table.clearContent": "清除内容",
   "table.cantInsertInTable": "表格内不可插入表格",
   "table.insertTable": "插入表格",
   "table.dragToSelect": "拖动选择行列",
@@ -326,6 +364,10 @@ export const zh: Messages = {
   "codeBlock.copy": "复制代码",
   "codeBlock.delete": "删除代码块",
   "codeBlock.copied": "已复制",
+  "codeBlock.showDiagram": "查看图表",
+  "codeBlock.showCode": "编辑源码",
+  "codeBlock.fullscreen": "全屏预览",
+  "codeBlock.downloadSvg": "下载 SVG",
 
   /* ── 目录 ── */
   "toc.title": "▍本页目录",
@@ -335,6 +377,7 @@ export const zh: Messages = {
   "katex.cancel": "取消",
   "katex.save": "保存 (⌘↵)",
   "katex.placeholder": "输入 LaTeX 公式，如 \\frac{1}{2} 或 e^{i\\pi}+1=0",
+  "katex.preview": "实时预览",
   "katex.emptyPlaceholder": "+ 输入数学公式",
   "katex.renderError": "公式渲染失败：",
 
@@ -352,6 +395,7 @@ export const zh: Messages = {
   "canvas.boxSelect": "框选",
   "canvas.zoomIn": "放大",
   "canvas.zoomOut": "缩小",
+  "canvas.zoom100": "重置缩放",
   "canvas.fullscreen": "全屏",
   "canvas.exitFullscreen": "退出全屏",
   "canvas.title": "画板",
@@ -372,6 +416,22 @@ export const zh: Messages = {
   "canvas.zDown": "下移一层",
   "canvas.zBottom": "置底",
 
+  /* ── AI ── */
+  "ai.title": "AI 助手",
+  "ai.placeholder": "输入指令，如：改写为更正式的语气…",
+  "ai.generate": "生成",
+  "ai.rewrite": "改写",
+  "ai.continue": "续写",
+  "ai.accept": "接受",
+  "ai.discard": "放弃",
+  "ai.cancel": "停止",
+  "ai.retry": "重试",
+  "ai.generating": "生成中…",
+  "ai.error": "生成失败",
+  "ai.emptySelection": "选中文本后可改写；光标处可续写",
+  "ai.needProvider": "未配置 AI 能力（EditorDeps.ai）",
+
   /* ── 占位符 ── */
   "placeholder.default": "写下点什么…",
+
 };

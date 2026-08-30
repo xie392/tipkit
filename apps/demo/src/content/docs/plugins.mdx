@@ -12,8 +12,8 @@ TipKit 的所有扩展由 `@tipkit/extensions` 包提供，按用途分为**两�
 | 集合 | 入口 | 典型内容 |
 | --- | --- | --- |
 | 基础集合 | `createBasicExtensions()` | 标题 1-6、列表、引用、分隔线、粗体/斜体/删除线/行内代码、下划线、高亮、上下标、颜色、字体、字号、对齐、任务列表、链接、表格、Markdown 输入规则与序列化 |
-| 高级集合 | `createAdvancedExtensions({ tocScrollOffset? })` | 图片块、代码块、公式（KaTeX）、提示框、分栏、折叠、目录（TOC）、嵌入（iframe）、附件、块句柄、文件拖拽、状态 |
-| opt-in 扩展 | `@tipkit/extensions` 单独导入 | `Comment`（划词评论）、`Canvas`（画板） |
+| 高级集合 | `createAdvancedExtensions({ tocScrollOffset? })` | 图片块、代码块（含 Mermaid 渲染）、公式（KaTeX）、提示框、分栏、折叠、目录（TOC）、嵌入（iframe）、附件、视频、块句柄、文件拖拽、状态 |
+| opt-in 扩展 | `@tipkit/extensions` 单独导入 | `Comment`（划词评论）、`Canvas`（画板）、`Footnotes`（脚注）、`SearchAndReplace`（查找替换）、`LanguageTool`（语法检查）、`UniqueID`、`Emoji`、`AiGeneration`（AI 生成） |
 | UI 原语 | `@tipkit/ui` | `SlashMenu` / `EmojiSuggestion`，UI 由消费方渲染 |
 
 ### 基础集合
@@ -24,7 +24,7 @@ TipKit 的所有扩展由 `@tipkit/extensions` 包提供，按用途分为**两�
 
 ### 高级集合
 
-`createAdvancedExtensions(options?)` 是 M2 + M3 的全量高级节点集合：图片块（`ImageBlock`）、代码块（`CustomCodeBlock`）、数学公式（`Katex`）、提示框（`Callout`）、分栏（`Columns` / `Column`）、折叠（`Details`）、目录（`TableOfContentsNode`）、嵌入（`Iframe`）、附件（`Attachment`）、块句柄（`BlockHandles`）、文件拖拽（`FileHandler`）、状态（`Status`）。
+`createAdvancedExtensions(options?)` 是 M2 + M3 的全量高级节点集合：图片块（`ImageBlock`）、代码块（`CustomCodeBlock`，`mermaid` 语言下实时渲染 Mermaid 图表）、数学公式（`Katex`）、提示框（`Callout`）、分栏（`Columns` / `Column`）、折叠（`Details`）、目录（`TableOfContentsNode`）、嵌入（`Iframe`）、附件（`Attachment`）、视频（`Video`）、块句柄（`BlockHandles`）、文件拖拽（`FileHandler`）、状态（`Status`）。
 
 其中 `FileHandler` 默认**未配置上传**（会退化为 base64 内嵌）；消费方需要上传服务时，用 `FileHandler.configure({ onUpload })` 覆盖。`EmojiSuggestion`（表情浮层 UI）位于 `@tipkit/ui`，由消费方按需渲染。
 
@@ -36,6 +36,10 @@ TipKit 的所有扩展由 `@tipkit/extensions` 包提供，按用途分为**两�
 | --- | --- | --- |
 | `Comment` | `@tipkit/extensions` | 划词评论：选中文本创建评论，配合 `EditorDeps.onCommentCreate` 回调 |
 | `Canvas` | `@tipkit/extensions` | 画板：嵌入自由绘制的画板节点 |
+| `Footnotes` / `createFootnoteExtensions` | `@tipkit/extensions` | 脚注：正文引用 + 文末条目容器 |
+| `SearchAndReplace` | `@tipkit/extensions` | 查找替换：装饰高亮 + 逐个/全部替换命令 |
+| `LanguageTool` | `@tipkit/extensions` | 语法检查：检查函数可注入，缺省公共 API |
+| `UniqueID` / `Emoji` / `AiGeneration` | `@tipkit/extensions` | 见「Pro 平替插件」页面 |
 | `SlashMenu` | `@tipkit/ui` | 斜杠菜单（`/` 触发）UI 原语：定位、键盘导航、portal |
 | `EmojiSuggestion` | `@tipkit/ui` | 表情建议（`:` 触发）UI 原语：浮层 + 键盘导航 |
 
@@ -50,6 +54,9 @@ TipKit 的所有扩展由 `@tipkit/extensions` 包提供，按用途分为**两�
 | `uploadImage` | `(file: File, editor: Editor) => Promise<string>` | 图片上传，返回可用于 `<img src>` 的 URL |
 | `uploadAttachment` | `(file: File, editor: Editor) => Promise<AttachmentMeta>` | 附件上传，返回附件元数据 |
 | `renderKatex` | `(tex: string, displayMode: boolean) => Promise<string>` | KaTeX 渲染，返回渲染后的 HTML（服务端/客户端均可） |
+| `ai` | `AIProvider` | AI 流式文本生成 provider（`AiGeneration` 命令与 `AiMenu` 浮层共用） |
+| `t` | `Translate` | i18n 翻译函数，缺省内置中文词典 |
+| `onCommentCreate` / `onCommentClick` | `(range) => void` / `(commentId) => void` | 划词评论创建 / 点击回调（配合 `Comment` 扩展） |
 
 ### 组合示例
 

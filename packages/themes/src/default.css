@@ -338,3 +338,14 @@
   border-color: var(--callout-note-border, #d4d4d8);
   background: var(--callout-note-bg, #f4f4f5);
 }
+
+/* ---------- 查找替换高亮 ---------- */
+.tk-theme-default .tk-search-match {
+  background: color-mix(in srgb, var(--primary) 18%, transparent);
+  border-radius: 2px;
+}
+
+.tk-theme-default .tk-search-match.is-active {
+  background: color-mix(in srgb, var(--primary) 38%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 55%, transparent);
+}

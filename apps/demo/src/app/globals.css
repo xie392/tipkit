@@ -562,6 +562,7 @@ body::after {
   pointer-events: none;
   transform: scale(0.8);
 }
+
 .demo-comment-fab-badge {
   position: absolute;
   top: -2px;
@@ -1724,68 +1725,7 @@ body::after {
   color: var(--muted-foreground);
 }
 
-/* 文档正文排版已由 TipKit 主题包接管（.tk-prosemirror 规则），
- * 此处不再声明 MDX 版式，避免与编辑器样式互相污染 */
-
-.docs-inline-code {
-  padding: 2px 6px;
-  border-radius: 5px;
-  background: var(--muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.88em;
-}
-
-.docs-callout {
-  margin: 16px 0;
-  padding: 14px 16px;
-  border-radius: 10px;
-  border: 1px solid;
-  font-size: 14px;
-  line-height: 1.7;
-}
-
-.docs-callout-info {
-  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
-  background: color-mix(in srgb, var(--primary) 6%, transparent);
-  color: color-mix(in srgb, var(--foreground) 85%, transparent);
-}
-
-/* 表格 */
-.docs-table-wrap {
-  margin: 16px 0;
-  overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-
-.docs-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13.5px;
-}
-
-.docs-table th,
-.docs-table td {
-  padding: 10px 14px;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
-  line-height: 1.6;
-}
-
-.docs-table th {
-  font-weight: 600;
-  background: color-mix(in srgb, var(--muted) 55%, transparent);
-  white-space: nowrap;
-}
-
-.docs-table tr:last-child td {
-  border-bottom: none;
-}
-
-.docs-table td:first-child {
-  white-space: nowrap;
-}
+/* 文档正文排版（标题/列表/表格/行内代码等）已由 TipKit 主题包接管（.tk-prosemirror 规则） */
 
 /* ---------- 响应式 ---------- */
 /* 视口不够宽时先隐藏右侧 TOC */
@@ -1969,33 +1909,6 @@ body::after {
 
 .tk-codeblock-copy[data-copied="true"] {
   color: #3fb950;
-}
-
-.tk-shiki-pre {
-  margin: 0;
-  padding: 16px 18px;
-  overflow-x: auto;
-  color: #e6edf3;
-  font-size: 12.5px;
-  line-height: 1.75;
-  tab-size: 2;
-  scrollbar-width: thin;
-}
-
-.tk-shiki-pre code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-}
-
-/* MDX 行内代码（非 pre 内的 code） */
-.docs-content :not(pre) > code {
-  padding: 2px 6px;
-  border-radius: 5px;
-  background: var(--muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.88em;
 }
 
 /* 文档页头部 */
@@ -2216,16 +2129,6 @@ body::after {
   border: 1.5px solid var(--tk-line-soft);
   border-radius: 14px 7px 16px 8px;
   box-shadow: 3px 3px 0 var(--tk-shadow);
-}
-
-.tk-theme-sketch .docs-table-wrap {
-  border: 1.5px solid var(--tk-line-soft);
-  border-radius: 12px 6px 14px 7px;
-  box-shadow: 3px 3px 0 var(--tk-shadow);
-}
-
-.tk-theme-sketch .docs-callout-info {
-  border-radius: 12px 6px 14px 7px;
 }
 
 /* 主题切换：手绘化 */

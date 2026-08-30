@@ -1,7 +1,7 @@
 # TipKit 产品需求文档（PRD）
 
-> 版本：v0.1（骨架阶段）
-> 状态：需求评审中
+> 版本：v0.3（功能对齐阶段）
+> 状态：M1–M3 已完成，AI/协作/文档工具扩展已落地
 
 ## 1. 背景与问题
 
@@ -50,8 +50,29 @@
 **P2**
 
 - [x] iframe 嵌入（URL 输入 + 高度拖拽）
+- [x] 表格控制条（内联热区列宽拖拽 + 气泡工具条 + 右键菜单 + 只读态列宽缩放 + 表格全选）
 - [ ] 链接卡片（依赖 link-preview 服务，未迁移）
-- [ ] 表格控制条（列宽拖拽）
+
+**AI 与协作（P1，新增）**
+
+- [x] AI 流式生成（headless 命令层 `AiGeneration` + 浮层 `AiMenu`，provider 经 `EditorDeps.ai` 注入，入口在斜杠菜单）
+- [x] 划词评论（`Comment` 扩展 + `EditorDeps.onCommentCreate/onCommentClick` 回调）
+- [x] UniqueID（块级节点自动补 id，用于评论锚点 / 协同定位 / 目录跳转）
+
+**内容增强（P1，新增）**
+
+- [x] Emoji 完整版（inline 节点、`:xxx` 短代码输入规则与 Markdown 导出，全量数据 + 分组选择器）
+- [x] 视频节点（上传/替换、悬浮控件）
+- [x] 脚注（正文引用 + 文末条目容器）
+- [x] 画板 Canvas（斜杠菜单插入）
+- [x] Mermaid 图表（代码块 mermaid 语言实时渲染 + 交互）
+- [x] URL 自动链接（url-autolink）
+
+**文档工具（P2，新增）**
+
+- [x] 查找替换面板（装饰高亮 + 逐个替换/全部替换命令）
+- [x] LanguageTool 语法检查（检查函数可注入，缺省公共 API）
+- [x] 状态标签 Status
 
 **内容交互（P0）**
 
@@ -61,7 +82,7 @@
 
 **序列化（P0）**
 
-- [ ] JSON ↔ HTML ↔ Markdown 双向转换（基于 @tiptap/markdown v3）
+- [x] JSON ↔ HTML ↔ Markdown 双向转换（基于 @tiptap/markdown v3，含表格/脚注/Emoji 等 Markdown 导出）
 
 > 注：`[x]` 表示逻辑从 blog 迁移已具备；`[ ]` 表示待实现。
 
@@ -78,11 +99,14 @@
 | 图片上传 | `EditorDeps.uploadImage` | 返回可显示的 URL |
 | 附件上传 | `EditorDeps.uploadAttachment` | 返回附件元数据 |
 | Katex 渲染 | `EditorDeps.renderKatex` | 支持服务端渲染 |
+| AI 生成 | `EditorDeps.ai` | 流式文本生成 provider（AiMenu 浮层与 AI 命令共用） |
+| i18n | `EditorDeps.t` | 翻译函数，缺省中文词典 |
+| 评论回调 | `EditorDeps.onCommentCreate` / `onCommentClick` | 划词评论创建 / 点击 |
 
 ### 3.4 不在范围（Out of Scope）
 
 - 后端存储、权限、多租户（消费方负责）
-- AI 集成 / RAG（devkb 自研）
+- RAG / 对话编排（AI 只提供流式生成原语，provider 由消费方注入）
 - 移动端专项优化（跟随消费方）
 
 ## 4. 非功能需求
@@ -106,8 +130,8 @@
 
 | 阶段 | 内容 | 产出 |
 |---|---|---|
-| M0 骨架（当前） | monorepo、包结构、docs、demo 双主题 | 可启动的 demo |
-| M1 核心迁移 | 基础格式 + markdown 输入规则 + 序列化 | blog 基础编辑能力 |
-| M2 高级扩展 | 斜杠菜单、图片块、代码块、表格 | 主要编辑体验 |
-| M3 高级节点 | katex、附件、callout、分栏、TOC 等 | 全功能对齐 blog |
+| M0 骨架（已完成） | monorepo、包结构、docs、demo 双主题 | 可启动的 demo |
+| M1 核心迁移（已完成） | 基础格式 + markdown 输入规则 + 序列化 | blog 基础编辑能力 |
+| M2 高级扩展（已完成） | 斜杠菜单、图片块、代码块、表格 | 主要编辑体验 |
+| M3 高级节点（已完成） | katex、附件、callout、分栏、TOC、AI、脚注、查找替换、语法检查等 | 全功能对齐 blog 并超越 |
 | M4 接入 | blog / devkb 迁移到 @tipkit/editor | 双项目共用 |

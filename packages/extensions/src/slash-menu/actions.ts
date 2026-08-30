@@ -111,6 +111,8 @@ export interface GetInsertActionsOptions {
   clearSlashQuery?: boolean;
   /** i18n 翻译函数 */
   t?: Translate;
+  /** 是否展示 AI 助手入口（消费方需已注册 AiGeneration + AiMenu） */
+  aiEnabled?: boolean;
 }
 
 /** 斜杠菜单分组排序 key */
@@ -139,6 +141,7 @@ export function getInsertActions({
   openLinkDialog,
   clearSlashQuery = false,
   t,
+  aiEnabled = false,
 }: GetInsertActionsOptions): InsertAction[] {
   const tr = t ?? ((k: string) => k);
   const prepareInsert = () => {
@@ -146,6 +149,24 @@ export function getInsertActions({
   };
 
   const inTable = editor.isActive("table");
+
+  const aiAction: InsertAction = {
+    id: "ai",
+    group: "basic",
+    label: tr("slash.ai.label"),
+    description: tr("slash.ai.description"),
+    aliases: ["ai", "zhineng", "aizhushou", "assistant"],
+    icon: "Sparkles",
+    available: true,
+    previewTitle: tr("slash.ai.previewTitle"),
+    preview:
+      '<div style="background:#fff;border-radius:6px;padding:16px;display:flex;align-items:center;justify-content:center;gap:6px"><span style="font-size:14px">✨</span><span style="height:6px;width:64px;border-radius:3px;background:#e5e7eb"></span><span style="height:6px;width:44px;border-radius:3px;background:#f3f4f6"></span></div>',
+    run: () => {
+      prepareInsert();
+      // 打开 AI 助手浮层（AiMenu 在 editor.view.dom 上监听）
+      editor.view.dom.dispatchEvent(new CustomEvent("tk-ai:open", { bubbles: true }));
+    },
+  };
 
   const heading = (level: 1 | 2 | 3 | 4): InsertAction => {
     const size = level === 1 ? 18 : level === 2 ? 15 : level === 3 ? 13 : 12;
@@ -168,6 +189,7 @@ export function getInsertActions({
   };
 
   return [
+    ...(aiEnabled ? [aiAction] : []),
     heading(1),
     heading(2),
     heading(3),
@@ -447,6 +469,22 @@ export function getInsertActions({
       },
     },
     {
+      id: "video",
+      group: "media",
+      label: tr("slash.video.label"),
+      description: tr("slash.video.description"),
+      aliases: ["shipin", "video", "movie"],
+      icon: "Video",
+      available: true,
+      previewTitle: tr("slash.video.previewTitle"),
+      preview:
+        '<div style="background:#fff;border-radius:6px;overflow:hidden"><div style="display:flex;align-items:center;justify-content:center;height:64px;background:#111827"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></div></div>',
+      run: () => {
+        prepareInsert();
+        editor.chain().focus().setVideo({ src: null }).run();
+      },
+    },
+    {
       id: "attachment",
       group: "media",
       label: tr("slash.attachment.label"),
@@ -492,6 +530,22 @@ export function getInsertActions({
       run: () => {
         prepareInsert();
         editor.chain().focus().setCanvas().run();
+      },
+    },
+    {
+      id: "footnote",
+      group: "structure",
+      label: tr("slash.footnote.label"),
+      description: tr("slash.footnote.description"),
+      aliases: ["footnote", "jiaozhu", "zhushi"],
+      icon: "Superscript",
+      available: true,
+      previewTitle: tr("slash.footnote.previewTitle"),
+      preview:
+        '<div style="background:#fff;border-radius:6px;padding:12px"><div style="font-size:11px;color:#374151;line-height:1.6">正文内容<span style="font-size:9px;vertical-align:super;color:#2563eb">[1]</span></div><div style="margin-top:8px;border-top:1px solid #e5e7eb;padding-top:6px"><div style="display:flex;gap:6px;align-items:center"><span style="font-size:9px;color:#9ca3af">[1]</span><span style="height:5px;width:64px;border-radius:3px;background:#e5e7eb"></span></div></div></div>',
+      run: () => {
+        prepareInsert();
+        editor.chain().focus().setFootnote().run();
       },
     },
   ];

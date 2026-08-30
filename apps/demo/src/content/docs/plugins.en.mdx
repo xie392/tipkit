@@ -12,8 +12,8 @@ Both sets can be **omitted entirely** (import only the extensions you actually n
 | Set | Entry point | Typical contents |
 | --- | --- | --- |
 | Basic | `createBasicExtensions()` | Headings 1–6, lists, blockquotes, horizontal rules, bold/italic/strike/inline code, underline, highlight, subscript/superscript, color, font family, font size, alignment, task lists, links, tables, Markdown input rules & serialization |
-| Advanced | `createAdvancedExtensions({ tocScrollOffset? })` | Image block, code block, math (KaTeX), callout, columns, details, table of contents (TOC), iframe, attachment, block handles, file drop, status |
-| opt-in extensions | Imported separately from `@tipkit/extensions` | `Comment` (selection comment), `Canvas` (drawing board) |
+| Advanced | `createAdvancedExtensions({ tocScrollOffset? })` | Image block, code block (with Mermaid rendering), math (KaTeX), callout, columns, details, table of contents (TOC), iframe, attachment, video, block handles, file drop, status |
+| opt-in extensions | Imported separately from `@tipkit/extensions` | `Comment` (selection comment), `Canvas` (drawing board), `Footnotes`, `SearchAndReplace` (find & replace), `LanguageTool` (grammar check), `UniqueID`, `Emoji`, `AiGeneration` (AI generation) |
 | UI primitives | `@tipkit/ui` | `SlashMenu` / `EmojiSuggestion`, rendered by the consumer |
 
 ### Basic Set
@@ -24,7 +24,7 @@ On its own it already forms a minimal editor, ready to use out of the box. See t
 
 ### Advanced Set
 
-`createAdvancedExtensions(options?)` is the full M2 + M3 collection of advanced nodes: image block (`ImageBlock`), code block (`CustomCodeBlock`), math (`Katex`), callout (`Callout`), columns (`Columns` / `Column`), details (`Details`), table of contents (`TableOfContentsNode`), iframe (`Iframe`), attachment (`Attachment`), block handles (`BlockHandles`), file drop (`FileHandler`), and status (`Status`).
+`createAdvancedExtensions(options?)` is the full M2 + M3 collection of advanced nodes: image block (`ImageBlock`), code block (`CustomCodeBlock`, with live Mermaid rendering under the `mermaid` language), math (`Katex`), callout (`Callout`), columns (`Columns` / `Column`), details (`Details`), table of contents (`TableOfContentsNode`), iframe (`Iframe`), attachment (`Attachment`), video (`Video`), block handles (`BlockHandles`), file drop (`FileHandler`), and status (`Status`).
 
 Note that `FileHandler` has **no upload configured by default** (it degrades to inline base64); when you need an upload service, override it with `FileHandler.configure({ onUpload })`. `EmojiSuggestion` (the emoji suggestion floating UI) lives in `@tipkit/ui` and is rendered by the consumer on demand.
 
@@ -36,6 +36,10 @@ The following extensions are **not** part of any set — import them individuall
 | --- | --- | --- |
 | `Comment` | `@tipkit/extensions` | Selection comments: create a comment on selected text, paired with the `EditorDeps.onCommentCreate` callback |
 | `Canvas` | `@tipkit/extensions` | Drawing board: an embeddable free-drawing canvas node |
+| `Footnotes` / `createFootnoteExtensions` | `@tipkit/extensions` | Footnotes: in-text references + end-of-document entries |
+| `SearchAndReplace` | `@tipkit/extensions` | Find & replace: decoration highlights + replace-one/replace-all commands |
+| `LanguageTool` | `@tipkit/extensions` | Grammar check: injectable checker, public API by default |
+| `UniqueID` / `Emoji` / `AiGeneration` | `@tipkit/extensions` | See the "Pro alternatives" page |
 | `SlashMenu` | `@tipkit/ui` | Slash menu (`/` trigger) UI primitive: positioning, keyboard navigation, portal |
 | `EmojiSuggestion` | `@tipkit/ui` | Emoji suggestion (`:` trigger) UI primitive: floating layer + keyboard navigation |
 
@@ -50,6 +54,9 @@ Extensions never call upload, storage, or rendering services directly — they r
 | `uploadImage` | `(file: File, editor: Editor) => Promise<string>` | Image upload, returns a URL usable for `<img src>` |
 | `uploadAttachment` | `(file: File, editor: Editor) => Promise<AttachmentMeta>` | Attachment upload, returns attachment metadata |
 | `renderKatex` | `(tex: string, displayMode: boolean) => Promise<string>` | KaTeX rendering, returns rendered HTML (works on server or client) |
+| `ai` | `AIProvider` | Streaming AI text generation provider (shared by `AiGeneration` commands and the `AiMenu` overlay) |
+| `t` | `Translate` | i18n translate function; defaults to the built-in Chinese dictionary |
+| `onCommentCreate` / `onCommentClick` | `(range) => void` / `(commentId) => void` | Selection-comment created / clicked callbacks (paired with the `Comment` extension) |
 
 ### Composition Example
 

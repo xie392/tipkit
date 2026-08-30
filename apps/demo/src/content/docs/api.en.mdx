@@ -23,3 +23,7 @@
 | `uploadImage` | `(file, editor) => Promise<string>` | Image upload, returns the `img src` URL |
 | `uploadAttachment` | `(file, editor) => Promise<AttachmentMeta>` | Attachment upload, returns metadata (url / name / size / mimeType) |
 | `renderKatex` | `(tex, displayMode) => Promise<string>` | Math rendering, returns HTML; server or client side both work |
+| `ai` | `AIProvider` | Streaming AI text generation provider (shared by `AiGeneration` commands and the `AiMenu` overlay) |
+| `t` | `Translate` | i18n translate function; defaults to the built-in Chinese dictionary (see the i18n page) |
+| `onCommentCreate` | `(range: CommentRange) => void` | Callback when a selection comment is created (paired with the `Comment` extension) |
+| `onCommentClick` | `(commentId: string) => void` | Callback when an existing comment mark is clicked |

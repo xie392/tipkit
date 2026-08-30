@@ -195,9 +195,9 @@ describe("Schema 约束", () => {
     editor.destroy();
   });
 
-  it("columns 必须包含恰好两个 column", () => {
+  it("columns 至少包含一个 column（column+，支持任意列数）", () => {
     const editor = makeEditor();
-    expect(editor.schema.nodes.columns.spec.content).toBe("column column");
+    expect(editor.schema.nodes.columns.spec.content).toBe("column+");
     editor.destroy();
   });
 });

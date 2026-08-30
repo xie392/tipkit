@@ -2,8 +2,8 @@
 
 Advanced plugins cover the more complex content nodes for images, code, math, and layout. They come from two paths:
 
-- **`createAdvancedExtensions()`** — the full M2 + M3 bundle, wired up in one line: image block, code block, math formula, callout, columns, details, table of contents, iframe, attachment, block handles, file handler, and status.
-- **Opt-in extensions** — not included by default, imported on demand: inline comments (`Comment`), canvas (`Canvas`), plus the interactive overlays from `@tipkit/ui` (`SlashMenu`, `EmojiSuggestion`, etc.).
+- **`createAdvancedExtensions()`** — the full M2 + M3 bundle, wired up in one line: image block, code block (with Mermaid rendering), math formula, callout, columns, details, table of contents, iframe, attachment, video, block handles, file handler, and status.
+- **Opt-in extensions** — not included by default, imported on demand: inline comments (`Comment`), canvas (`Canvas`), footnotes (`Footnotes`), find & replace (`SearchAndReplace`), grammar check (`LanguageTool`), unique node ID (`UniqueID`), emoji node (`Emoji`), AI generation (`AiGeneration`); plus the interactive overlays from `@tipkit/ui` (`SlashMenu`, `EmojiSuggestion`, etc.).
 
 Advanced extensions are passed through the `extensions` array, layered on top of `createBasicExtensions()`:
 
@@ -18,7 +18,7 @@ import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensi
 | Extension | Export (`@tipkit/extensions`) | In bundle | Description |
 | --- | --- | --- | --- |
 | Image block | `ImageBlock` | ✅ | Image + resize / align / caption |
-| Code block | `CustomCodeBlock`, `CODE_LANGUAGES` | ✅ | Syntax highlighting + language switch + light/dark theme |
+| Code block | `CustomCodeBlock`, `CODE_LANGUAGES` | ✅ | Syntax highlighting + language switch + light/dark theme; live Mermaid rendering under the `mermaid` language |
 | Math formula | `Katex` | ✅ | Block-level LaTeX formula |
 | Callout | `Callout`, `CALLOUT_VARIANTS` | ✅ | 5 variants + custom emoji |
 | Columns | `Columns`, `Column`, `ColumnLayout` | ✅ | Two columns / narrow left / narrow right |
@@ -26,11 +26,20 @@ import { createBasicExtensions, createAdvancedExtensions } from "@tipkit/extensi
 | Table of contents | `TableOfContentsNode` | ✅ | Auto-generates a TOC from headings |
 | Iframe | `Iframe` | ✅ | Embed web pages / Bilibili / YouTube |
 | Attachment | `Attachment` | ✅ | Upload + download |
+| Video | `Video` | ✅ | Video block: upload / replace / hover controls |
 | Status | `Status` | ✅ | Confluence-style inline label |
 | Inline comment | `Comment` | ⭕ opt-in | Comment mark + callbacks, UI implemented by the consumer |
 | Canvas | `Canvas` | ⭕ opt-in | Sketch / clean drawing board, PNG export |
 | Slash menu | `SlashMenu` (`@tipkit/ui`) | ⭕ opt-in | Rendered by the consumer |
 | Emoji suggestion | `EmojiSuggestion` (`@tipkit/ui`) | ⭕ opt-in | Rendered by the consumer |
+| Unique node ID | `UniqueID` | ⭕ opt-in | Auto `data-id` on block nodes |
+| Emoji node | `Emoji` | ⭕ opt-in | `:short_code:` input rule + Markdown export |
+| AI generation | `AiGeneration` | ⭕ opt-in | Streaming generation with preview accept/discard (injected provider) |
+| Footnotes | `Footnotes`, `createFootnoteExtensions` | ⭕ opt-in | In-text references + end-of-document entries |
+| Find & replace | `SearchAndReplace` | ⭕ opt-in | Decoration highlights + replace-one/replace-all commands |
+| Grammar check | `LanguageTool` | ⭕ opt-in | Match highlighting + suggestion apply (injectable checker) |
+
+> The last three are open-source alternatives to Tiptap's paid Pro extensions — see [Pro alternatives](/en/docs/plugins-pro).
 
 > **Note**: `createAdvancedExtensions()` caches its result when called without options; passing `tocScrollOffset` creates a dedicated TOC instance, so it is safe to call it multiple times.
 
@@ -73,6 +82,7 @@ editor.chain().focus().setImageBlockCaption("Product diagram").run();
 - **Exports**: `CODE_LANGUAGES` (30+ language entries, including "auto / plain text"), type `CodeLanguage`; theme `CodeBlockTheme = "light" | "dark"` (default `dark`).
 - Built on `@tiptap/extension-code-block-lowlight` + `lowlight` (the `common` language set), with `enableTabIndentation: true` by default.
 - The NodeView provides a language dropdown, light/dark toggle, copy button, and delete button; a copy button is kept in read-only mode.
+- **Mermaid rendering**: when the language is set to `mermaid`, the diagram (flowchart / sequence, etc.) is rendered live below the code with interaction support (zoom / pan / export); the source remains ordinary code text persisted with the document.
 
 ```tsx
 import { CustomCodeBlock, CODE_LANGUAGES, type CodeBlockTheme } from "@tipkit/extensions";
@@ -217,6 +227,24 @@ const deps: EditorDeps = {
 };
 ```
 
+### Video
+
+- **Purpose**: A video block node supporting upload / drag / paste of video files, plus URL insertion and replacement; the NodeView ships playback controls and a replace button.
+- **Enable**: `Video` (already included in the bundle).
+- **Attributes `VideoAttrs`**: `src` (video URL; shows an upload card when null), `error` (upload error message).
+- **Command**: `setVideo`.
+- **Recognition**: video files are detected by the `video/` MIME prefix or extension (`.mp4` / `.webm` / `.ogv` / `.ogg` / `.mov` / `.m4v`).
+- **Serialization**: `div[data-type='video']`, with the URL in `data-src`.
+
+```tsx
+import { Video } from "@tipkit/extensions";
+
+// Already included in the bundle:
+extensions: [..., Video]
+
+editor.chain().focus().setVideo({ src: "https://example.com/a.mp4" }).run();
+```
+
 ### Status
 
 - **Purpose**: A Confluence-style **inline** status label (e.g. "To do", "Done") with customizable text and background color.
@@ -302,6 +330,66 @@ extensions: [..., Canvas]
 editor.chain().focus().setCanvas().run();
 editor.chain().focus().updateCanvas({ style: "sketch", snap: true }).run();
 ```
+
+### Footnotes
+
+- **Purpose**: Footnote support — superscript reference numbers inline, with an entry container maintained automatically at the end of the document; numbering re-flows as footnotes are added or removed. Modeled after tiptap-footnotes.
+- **Enable**: `createFootnoteExtensions()` (equivalent to registering `FootnoteReference` / `FootnoteItem` / `Footnotes` together), imported as an opt-in:
+
+```tsx
+import { createFootnoteExtensions } from "@tipkit/extensions";
+
+extensions: [..., ...createFootnoteExtensions()]
+```
+
+- **Commands**: `setFootnote({ text? })` inserts a reference at the selection (defaults to using the selected text as the footnote content); `deleteFootnote(id)` removes the reference and its entry.
+- **Serialization**: inline references are `span[data-type='footnote-reference']`; the end-of-document container is `div[data-type='footnotes']`; Markdown export uses `[^n]` syntax.
+
+```tsx
+editor.chain().focus().setFootnote({ text: "See the official docs" }).run();
+```
+
+### Find & Replace (SearchAndReplace)
+
+- **Purpose**: The find-and-replace core (modeled after tiptap-search-and-replace): decorates all matches of a search term with highlights and provides replace-one / replace-all commands; the UI (search panel) is implemented by the consumer (the demo ships a panel — see `apps/demo`).
+- **Enable**: import as an opt-in:
+
+```tsx
+import { SearchAndReplace } from "@tipkit/extensions";
+
+extensions: [..., SearchAndReplace]
+```
+
+- **Commands**:
+
+| Command | Description |
+| --- | --- |
+| `setSearchTerm(term, { caseSensitive? })` | Set the search term and highlight all matches |
+| `replaceSearchMatch(replacement)` | Replace the current match |
+| `replaceAllSearchMatches(replacement)` | Replace all matches |
+
+- **Reading state**: `searchAndReplaceKey.getState(editor.state)` returns the `SearchAndReplaceState` (including `SearchMatch[]`) for building your own panel navigation.
+- **Highlight styles**: the theme layer provides the `tk-search-result` / `tk-search-result-current` classes; visuals follow the active theme.
+
+### Grammar Check (LanguageTool)
+
+- **Purpose**: The grammar-check core (modeled after tiptap-languagetool): runs a full-document check and maps matches (spelling / grammar / style) to decoration highlights, with one-click suggestion apply or dismiss.
+- **Enable**: import as an opt-in; by default it calls the public LanguageTool API (`https://api.languagetool.org/v2`). For production, inject your own checker:
+
+```tsx
+import { LanguageTool } from "@tipkit/extensions";
+
+extensions: [
+  ...,
+  LanguageTool.configure({
+    language: "auto",
+    check: async ({ text, language, signal }) => myGrammarCheck(text, signal),
+  }),
+]
+```
+
+- **Commands**: `checkLanguageTool()` runs one check (async); `applyLanguageToolSuggestion(index, replacement?)` applies the suggestion at index; `dismissLanguageToolMatch(index)` dismisses it; `clearLanguageToolMatches()` clears all results.
+- **Reading state**: `languageToolKey.getState(editor.state)` returns position-mapped matches for rendering your own UI.
 
 ### Slash Menu & Emoji Suggestion (`@tipkit/ui` overlays)
 

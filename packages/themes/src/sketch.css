@@ -931,3 +931,14 @@
   text-decoration: underline;
   font-family: var(--tk-font-hand-display);
 }
+
+/* ---------- 查找替换高亮 ---------- */
+.tk-theme-sketch .tk-search-match {
+  background: color-mix(in srgb, var(--primary) 18%, transparent);
+  border-radius: 2px;
+}
+
+.tk-theme-sketch .tk-search-match.is-active {
+  background: color-mix(in srgb, var(--primary) 38%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 55%, transparent);
+}

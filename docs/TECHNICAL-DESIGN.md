@@ -1,6 +1,6 @@
 # TipKit 技术设计
 
-> 版本：v0.1（骨架阶段）
+> 版本：v0.3（功能对齐阶段）
 > 对应架构：docs/ARCHITECTURE.md；需求：docs/PRD.md
 
 ## 1. 技术栈
@@ -56,6 +56,10 @@ interface EditorDeps {
   uploadImage?: (file: File, editor: Editor) => Promise<string>;
   uploadAttachment?: (file: File, editor: Editor) => Promise<AttachmentMeta>;
   renderKatex?: (tex: string, displayMode: boolean) => Promise<string>;
+  ai?: AIProvider;             // AI 流式生成（AiGeneration 命令 + ui/AiMenu 共用）
+  t?: Translate;               // i18n 翻译函数，缺省中文词典
+  onCommentCreate?: (range: CommentRange) => void;
+  onCommentClick?: (commentId: string) => void;
 }
 ```
 
@@ -83,17 +87,24 @@ interface ToolbarAction {
 
 ```
 packages/extensions/src/
-├── slash-menu/        # suggestion 数据 + 命令
+├── basic/             # trailing-node / selection / select-all / font-size / horizontal-rule
+├── markdown/          # 粘贴 + 输入规则（marks / link / paste / list-input-rules / url-autolink / backfill-convert）
+├── slash-menu/        # suggestion 数据 + 命令（getInsertActions 等，UI 原语在 @tipkit/ui）
 ├── image-block/       # 节点 + 宽度调节逻辑
+├── code-block/        # lowlight 高亮 + Mermaid 渲染
 ├── katex/             # 节点（渲染走 EditorDeps）
-├── attachment/
-├── callout/
-├── columns/
-├── details/
-├── toc-node/
-├── block-handles/
-├── emoji/
-├── markdown/          # 粘贴 + 输入规则
+├── attachment/  video/  iframe/  file-handler/
+├── callout/  columns/  details/  toc/  status/
+├── block-handles/  table-readonly-resize/
+├── emoji/             # inline 节点 + 短代码输入规则 + 全量数据（浮层在 @tipkit/ui）
+├── footnotes/         # 脚注引用 + 文末条目
+├── ai/                # AI 流式生成命令层（provider 走 EditorDeps.ai，浮层在 @tipkit/ui）
+├── comment/           # 划词评论（回调走 EditorDeps）
+├── unique-id/         # 块级节点自动 id（opt-in）
+├── search-and-replace/ # 查找替换（装饰高亮 + 替换命令）
+├── languagetool/      # 语法检查（检查函数可注入）
+├── canvas/            # 画板
+├── basic.ts / advanced.ts / index.ts   # 预设集合与出口
 └── styles.css         # 少量可覆盖默认样式（可选）
 ```
 
@@ -125,27 +136,29 @@ packages/extensions/src/
 
 ## 7. 迁移计划
 
-### M1 核心迁移（基础编辑能力）
+> M1–M3 已完成；M4（blog / devkb 接入）进行中。以下保留原始计划供追溯。
+
+### M1 核心迁移（基础编辑能力）✅
 
 1. `core/use-editor.ts`：确认与 blog `use-editor.ts` 的选项对齐
 2. `extensions/markdown/`：迁移 `markdown-paste`、`markdown-marks`、`list-input-rules`、`safe-mark-input-rule`、`link-convert`、backfill-convert
 3. `core/serialization.ts`：接入 `@tiptap/markdown` v3
 
-### M2 主要编辑体验
+### M2 主要编辑体验 ✅
 
 1. `extensions/slash-menu/` + `ui/slash-menu/`：迁移 blog `slash-menu.tsx` + `insert-menu.tsx`，剥离视觉
 2. `extensions/image-block/`：迁移 `image-block/*`
 3. `extensions/code-block/` + 语言菜单
 4. `extensions/table/` + `ui/table-controls/`
 
-### M3 高级节点
+### M3 高级节点 ✅
 
 1. `extensions/katex/`：渲染注入 `EditorDeps.renderKatex`
 2. `extensions/attachment/`：上传注入 `EditorDeps.uploadAttachment`
 3. `extensions/callout|columns|details|toc|emoji/`
 4. `extensions/block-handles/` + `ui/block-handles/`
 
-### M4 接入
+### M4 接入（进行中）
 
 1. blog：`rich-text/` 替换为 `@tipkit/editor`，样式迁移到 `sketch.css`（从 `editor.css` 抽取变量）
 2. devkb：`@devkb/editor` 升级 Tiptap v3，改用 `@tipkit/editor`
@@ -160,3 +173,13 @@ packages/extensions/src/
 | demo | SSR 冒烟（build + dev 启动） | next build |
 
 覆盖率目标：core + extensions ≥ 80%（PRD 非功能需求）。
+
+### M3+ 新增扩展（已完成）
+
+- `extensions/ai/` + `ui/ai-menu/`：AI 流式生成，provider 经 `EditorDeps.ai` 注入
+- `extensions/footnotes/`：脚注引用 + 文末条目容器
+- `extensions/search-and-replace/` + demo 查找替换面板
+- `extensions/languagetool/`：语法检查，检查函数可注入
+- `extensions/video/`、`extensions/emoji/`（完整版）、`extensions/canvas/`、`extensions/unique-id/`、`extensions/comment/`
+- `ui/table-hover-controls/`：表格内联热区 + 气泡工具条；`extensions/table-readonly-resize/` 只读列宽
+- Markdown 导出覆盖表格 / 脚注 / Emoji / 视频等自定义节点；新增 `url-autolink`

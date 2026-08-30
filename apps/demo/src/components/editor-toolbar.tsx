@@ -23,6 +23,7 @@ import {
   PopoverTrigger,
 } from "@tipkit/components";
 import { getInsertActions, getSlashGroupLabel, SLASH_GROUP_ORDER, type InsertAction } from "@tipkit/extensions";
+import { FindReplacePanel } from "@/components/find-replace-panel";
 import { useDemoLang } from "@/components/use-demo-lang";
 import {
   Badge,
@@ -63,6 +64,7 @@ import {
   TriangleAlert,
   Underline,
   Undo2,
+  Video,
   type LucideIcon,
 } from "lucide-react";
 
@@ -91,6 +93,8 @@ const INSERT_ICONS: Record<string, LucideIcon> = {
   Smile,
   Badge,
   Brush,
+  Superscript,
+  Video,
 };
 
 /**
@@ -102,6 +106,7 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
   const [, force] = useState(0);
   const [textOpen, setTextOpen] = useState(false);
   const [insertOpen, setInsertOpen] = useState(false);
+  const [findOpen, setFindOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const { t } = useDemoLang();
   useEffect(() => {
@@ -246,6 +251,22 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
         <Tip label={t("toolbar.codeBlock")}>
           <ToolbarBtn icon={Code2} label={t("toolbar.codeBlock")} active={editor.isActive("codeBlock")} onClick={() => chain().toggleCodeBlock().run()} />
         </Tip>
+
+        {/* 查找替换（语雀式面板） */}
+        <Popover
+          open={findOpen}
+          onOpenChange={(open) => {
+            setFindOpen(open);
+            if (!open) editor.chain().clearSearch().run();
+          }}
+        >
+          <PopoverTrigger asChild>
+            <ToolbarBtn icon={Search} label={t("toolbar.findReplace")} active={findOpen} onClick={() => setFindOpen((v) => !v)} />
+          </PopoverTrigger>
+          <PopoverContent align="end" sideOffset={8}>
+            <FindReplacePanel editor={editor} onClose={() => setFindOpen(false)} />
+          </PopoverContent>
+        </Popover>
 
         <input
           ref={fileRef}

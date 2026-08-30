@@ -1,0 +1,106 @@
+## Pro Alternatives
+
+Some of Tiptap's paid Pro extensions can be implemented in TipKit with open-source approaches. This page lists the built-in alternatives and how to enable them.
+
+| Capability | Tiptap Pro extension | TipKit implementation | In bundle |
+| --- | --- | --- | --- |
+| Unique node ID | `UniqueID` | `UniqueID` | ⭕ opt-in |
+| Emoji (shortcode + node) | `Emoji` | `Emoji` + `EmojiSuggestion` | ⭕ opt-in |
+| AI generation | `AI Generation` / `AI Agent` | `AiGeneration` + `AiMenu` | ⭕ opt-in |
+| Mathematics | `Mathematics` | `Katex` | ✅ |
+| Block drag handle | `DragHandle` | `BlockHandles` | ✅ |
+| Table of contents | `Table of Contents` | `TableOfContentsNode` | ✅ |
+| Comments (single-user) | `Comments` | `Comment` | ⭕ opt-in |
+| Uploads (image/attachment/paste-drag) | `FileBlock` / `Image` | `ImageBlock` + `Attachment` + `FileHandler` | ✅ |
+
+> **Collaboration & version history**: we recommend the open-source Yjs + y-prosemirror (MIT). TipKit will provide an opt-in collaboration wrapper in the future.
+
+### UniqueID
+
+Automatically assigns an `id` attr (rendered as `data-id`) to block nodes — useful for comment anchors, collaboration positioning, and TOC jumps.
+
+- Initial content, new nodes, and split-on-enter are all filled and de-duplicated automatically; existing `data-id` values are never overwritten
+- Options:
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `types` | paragraph / heading / blockquote / listItem / taskItem / codeBlock / imageBlock / callout | Node types that carry an id |
+| `generateID` | 20-char short id from `crypto.randomUUID` | Custom id generator |
+| `attributeName` | `"id"` | Attr name (rendered as `data-{attributeName}`) |
+
+```tsx
+import { UniqueID } from "@tipkit/extensions";
+
+<TipKitEditor extensions={[...createBasicExtensions(), UniqueID]} />
+```
+
+### Emoji node
+
+Inline atom node rendering `<span class="tk-emoji" data-name="smile">😄</span>`:
+
+- **Input rule**: typing `:smile:` replaces it with an emoji node; unknown shortcodes stay as text
+- **Suggestion popup**: `EmojiSuggestion` (`@tipkit/ui`) inserts the node when registered (falls back to plain text otherwise)
+- **Markdown export**: serializes to `:name:` shortcodes
+- Command: `insertEmoji("smile")`
+
+```tsx
+import { Emoji } from "@tipkit/extensions";
+import { EmojiSuggestion } from "@tipkit/ui";
+
+<TipKitEditor extensions={[...createBasicExtensions(), Emoji]}>
+  {(editor) => <EmojiSuggestion editor={editor} />}
+</TipKitEditor>
+```
+
+> Note: Markdown **import** does not include a shortcode tokenizer yet — pasting `:smile:` won't convert (typing is covered by the input rule).
+
+### AI generation
+
+Streaming AI writing: insert at cursor (insert) / replace selection (replace). Generated content is previewed with a `tk-ai-preview` highlight and can be accepted, discarded, or cancelled. Fully headless commands — UI is up to the consumer.
+
+**1. Inject a provider** (core ships no vendor SDK):
+
+```tsx
+const deps: EditorDeps = {
+  ai: {
+    async *streamText({ prompt, selection, signal }) {
+      const stream = await myLLM.chat({ prompt, selection, stream: true, signal });
+      for await (const chunk of stream) yield chunk;
+    },
+  },
+};
+
+<TipKitEditor deps={deps} />
+```
+
+**2. Register the extension + render the popup + enable the slash entry**:
+
+```tsx
+import { AiGeneration } from "@tipkit/extensions";
+import { SlashMenu, AiMenu } from "@tipkit/ui";
+
+<TipKitEditor extensions={[...createBasicExtensions(), AiGeneration]}>
+  {(editor) => (
+    <>
+      <SlashMenu editor={editor} aiEnabled />
+      {/* Type / → AI Assistant opens the popup; or dispatch tk-ai:open yourself */}
+      <AiMenu editor={editor} />
+    </>
+  )}
+</TipKitEditor>
+```
+
+**3. Commands** (you can also build your own UI on top of them):
+
+| Command | Description |
+| --- | --- |
+| `aiRun({ instruction, mode })` | Start streaming generation; `mode: "insert"` at cursor / `"replace"` replaces the selection |
+| `aiAccept()` | Accept the generated content (keep text, clear preview) |
+| `aiDiscard()` | Discard the generated content (delete preview text) |
+| `aiCancel()` | Abort the stream (generated content is kept for accept/discard) |
+
+> Transactions during generation are excluded from undo history (`addToHistory: false`); content joins the document once accepted.
+
+### Demo
+
+The demo editor already ships with all three plugins (AI uses a local mock stream — no API key needed): type `/` and pick "AI Assistant" to open the popup, select some text to try streaming rewrite with accept/discard. Esc or clicking outside the panel aborts and discards.

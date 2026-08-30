@@ -15,6 +15,7 @@ import {
 } from "@tiptap/pm/tables";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@tipkit/components";
 import { useT, useEditorEditable, type Translate } from "@tipkit/core";
+import { TableHoverControls } from "./table-hover-controls";
 
 const PICKER_COLS = 8;
 const PICKER_ROWS = 6;
@@ -243,6 +244,50 @@ function getTableRect(state: Editor["state"]) {
   }
 }
 
+/* ─── 选区形态：决定删除按钮的上下文语义（对齐飞书/语雀） ─── */
+
+type SelectionKind =
+  | { kind: "table" }
+  | { kind: "rows"; count: number }
+  | { kind: "cols"; count: number }
+  | { kind: "cells" }
+  | null;
+
+function getSelectionKind(state: Editor["state"]): SelectionKind {
+  if (isWholeTableSelection(state)) return { kind: "table" };
+  if (!isTableSelection(state)) return null;
+  const rect = getTableRect(state);
+  if (!rect) return { kind: "cells" };
+  // 选区横跨全部列 = 选中完整行；纵跨全部行 = 选中完整列
+  if (rect.left === 0 && rect.right === rect.map.width) {
+    return { kind: "rows", count: rect.bottom - rect.top };
+  }
+  if (rect.top === 0 && rect.bottom === rect.map.height) {
+    return { kind: "cols", count: rect.right - rect.left };
+  }
+  return { kind: "cells" };
+}
+
+/** 清除选区内单元格的内容（保留单元格本身，飞书 Delete 语义） */
+function clearSelectedCells(editor: Editor) {
+  const { state, view } = editor;
+  const rect = getTableRect(state);
+  if (!rect) return;
+  const tr = state.tr;
+  // 先收集再倒序删，避免删除内容导致后续单元格位置偏移
+  const targets: { pos: number; size: number }[] = [];
+  for (const cellPos of rect.map.cellsInRect(rect)) {
+    const pos = rect.tableStart + cellPos;
+    const cell = tr.doc.nodeAt(pos);
+    if (cell && cell.content.size > 0) targets.push({ pos, size: cell.content.size });
+  }
+  if (!targets.length) return;
+  for (const { pos, size } of targets.reverse()) {
+    tr.delete(pos + 1, pos + 1 + size);
+  }
+  view.dispatch(tr.scrollIntoView());
+}
+
 function isHeaderRowActive(state: Editor["state"]): boolean {
   const rect = getTableRect(state);
   if (!rect) return false;
@@ -350,6 +395,24 @@ function IconRowAfter() {
   );
 }
 
+function IconDeleteCol() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="8" height="10" rx="1" />
+      <path d="M11 6.5l4 3.5M15 6.5l-4 3.5" />
+    </svg>
+  );
+}
+
+function IconDeleteRow() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2.5" y="2.5" width="11" height="8" rx="1" />
+      <path d="M6 13.5h4M6.5 12l1.5 1.5L9.5 12" />
+    </svg>
+  );
+}
+
 function IconTrash() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
@@ -415,6 +478,20 @@ export function TableBubbleToolbar({ editor }: { editor: Editor }) {
   useEditorTick(editor);
 
   const align = getCellAlign(editor.state);
+  // 删除按钮随选区形态变化：整表=删除表格；完整行/列=批量删除；零散单元格=清除内容
+  const selKind = getSelectionKind(editor.state);
+  const deleteAction = (() => {
+    switch (selKind?.kind) {
+      case "rows":
+        return { title: t("table.deleteSelectedRows"), run: () => editor.chain().focus().deleteRow().run() };
+      case "cols":
+        return { title: t("table.deleteSelectedCols"), run: () => editor.chain().focus().deleteColumn().run() };
+      case "cells":
+        return { title: t("table.clearContent"), run: () => clearSelectedCells(editor) };
+      default:
+        return { title: t("table.deleteTable"), run: () => editor.chain().focus().deleteTable().run() };
+    }
+  })();
 
   return (
     <BubbleMenu
@@ -447,6 +524,12 @@ export function TableBubbleToolbar({ editor }: { editor: Editor }) {
         </TbBtn>
         <TbBtn title={t("table.insertRowAfter")} onClick={() => editor.chain().focus().addRowAfter().run()}>
           <IconRowAfter />
+        </TbBtn>
+        <TbBtn title={t("table.deleteCol")} onClick={() => editor.chain().focus().deleteColumn().run()}>
+          <IconDeleteCol />
+        </TbBtn>
+        <TbBtn title={t("table.deleteRow")} onClick={() => editor.chain().focus().deleteRow().run()}>
+          <IconDeleteRow />
         </TbBtn>
         <TbDivider />
         <TbBtn
@@ -489,7 +572,7 @@ export function TableBubbleToolbar({ editor }: { editor: Editor }) {
           <IconAutofit />
         </TbBtn>
         <TbDivider />
-        <TbBtn title={t("table.deleteTable")} onClick={() => editor.chain().focus().deleteTable().run()}>
+        <TbBtn title={deleteAction.title} onClick={deleteAction.run}>
           <IconTrash />
         </TbBtn>
       </div>
@@ -525,6 +608,33 @@ export function TableContextMenu({ editor }: { editor: Editor }) {
       const target = e.target as HTMLElement;
       if (!target.closest("td, th")) return;
       e.preventDefault();
+      // 右键时先把单元格选区移到目标格（飞书/语雀习惯），否则菜单会作用于
+      // 旧光标位置，删错行/列。多格选区内右键则保留选区。
+      const result = editor.view.posAtCoords({ left: e.clientX, top: e.clientY });
+      if (result) {
+        const $pos = editor.state.doc.resolve(result.pos);
+        let cellDepth = -1;
+        for (let d = $pos.depth; d > 0; d--) {
+          const name = $pos.node(d).type.name;
+          if (name === "tableCell" || name === "tableHeader") {
+            cellDepth = d;
+            break;
+          }
+        }
+        if (cellDepth >= 0) {
+          const cellPos = $pos.before(cellDepth);
+          const sel = editor.state.selection;
+          const inSelection =
+            sel instanceof CellSelection &&
+            cellPos >= Math.min(sel.$anchorCell.pos, sel.$headCell.pos) &&
+            cellPos <= Math.max(sel.$anchorCell.pos, sel.$headCell.pos);
+          if (!inSelection) {
+            editor.view.dispatch(
+              editor.state.tr.setSelection(CellSelection.create(editor.state.doc, cellPos)),
+            );
+          }
+        }
+      }
       setPos({ x: e.clientX, y: e.clientY });
       setAdjusted({ x: e.clientX, y: e.clientY });
     };
@@ -581,6 +691,8 @@ export function TableContextMenu({ editor }: { editor: Editor }) {
     { key: "merge", label: t("table.mergeCells"), run: () => editor.chain().focus().mergeCells().run() },
     { key: "split", label: t("table.splitCells"), run: () => editor.chain().focus().splitCell().run() },
     { key: "sep1", label: "", run: () => {}, divider: true },
+    { key: "clear", label: t("table.clearContent"), run: () => clearSelectedCells(editor) },
+    { key: "sep1b", label: "", run: () => {}, divider: true },
     { key: "colBefore", label: t("table.insertColBefore"), run: () => editor.chain().focus().addColumnBefore().run() },
     { key: "colAfter", label: t("table.insertColAfter"), run: () => editor.chain().focus().addColumnAfter().run() },
     { key: "colDel", label: t("table.deleteCol"), run: () => editor.chain().focus().deleteColumn().run() },
@@ -638,6 +750,7 @@ export function TableControls({ editor }: { editor: Editor }) {
   return (
     <>
       <TableBubbleToolbar editor={editor} />
+      <TableHoverControls editor={editor} />
       <TableContextMenu editor={editor} />
     </>
   );
