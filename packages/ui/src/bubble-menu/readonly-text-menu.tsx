@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { MessageSquare } from "lucide-react";
+import { useT } from "@tipkit/core";
 
 /**
  * 只读模式划词评论按钮：
@@ -29,6 +30,7 @@ export interface ReadonlyTextMenuProps {
 }
 
 export function ReadonlyTextMenu({ editor, onCommentCreate }: ReadonlyTextMenuProps) {
+  const t = useT();
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const rangeRef = useRef<{ from: number; to: number; text: string } | null>(null);
   const btnRef = useRef<HTMLDivElement | null>(null);
@@ -171,7 +173,8 @@ export function ReadonlyTextMenu({ editor, onCommentCreate }: ReadonlyTextMenuPr
       <button
         type="button"
         className="tk-bubble-btn"
-        title="添加划词评论"
+        title={t("comment.add")}
+        aria-label={t("comment.add")}
         onClick={handleClick}
       >
         <MessageSquare className="tk-icon-md" />

@@ -265,8 +265,8 @@ export function ImagePreview({ src, alt, onClose }: ImagePreviewProps) {
         <button
           type="button"
           className="tk-image-preview-btn"
-          title="缩小 (-)"
-          aria-label="缩小"
+          title={t("imagePreview.zoomOut")}
+          aria-label={t("imagePreview.zoomOut")}
           onClick={() => zoom(-ZOOM_STEP)}
           disabled={scale <= MIN_SCALE}
         >
@@ -276,8 +276,8 @@ export function ImagePreview({ src, alt, onClose }: ImagePreviewProps) {
         <button
           type="button"
           className="tk-image-preview-btn"
-          title="放大 (+)"
-          aria-label="放大"
+          title={t("imagePreview.zoomIn")}
+          aria-label={t("imagePreview.zoomIn")}
           onClick={() => zoom(ZOOM_STEP)}
           disabled={scale >= MAX_SCALE}
         >
@@ -287,8 +287,8 @@ export function ImagePreview({ src, alt, onClose }: ImagePreviewProps) {
         <button
           type="button"
           className="tk-image-preview-btn"
-          title="向左旋转"
-          aria-label="向左旋转"
+          title={t("imagePreview.rotateLeft")}
+          aria-label={t("imagePreview.rotateLeft")}
           onClick={() => rotate(-ROTATE_STEP)}
         >
           <IconRotateLeft />
@@ -296,8 +296,8 @@ export function ImagePreview({ src, alt, onClose }: ImagePreviewProps) {
         <button
           type="button"
           className="tk-image-preview-btn"
-          title="向右旋转"
-          aria-label="向右旋转"
+          title={t("imagePreview.rotateRight")}
+          aria-label={t("imagePreview.rotateRight")}
           onClick={() => rotate(ROTATE_STEP)}
         >
           <IconRotateRight />
@@ -306,8 +306,8 @@ export function ImagePreview({ src, alt, onClose }: ImagePreviewProps) {
         <button
           type="button"
           className="tk-image-preview-btn"
-          title="重置 (0)"
-          aria-label="重置"
+          title={t("imagePreview.reset")}
+          aria-label={t("imagePreview.reset")}
           onClick={reset}
         >
           <IconReset />
@@ -315,8 +315,8 @@ export function ImagePreview({ src, alt, onClose }: ImagePreviewProps) {
         <button
           type="button"
           className="tk-image-preview-btn"
-          title="下载"
-          aria-label="下载"
+          title={t("imagePreview.download")}
+          aria-label={t("imagePreview.download")}
           onClick={handleDownload}
         >
           <IconDownload />

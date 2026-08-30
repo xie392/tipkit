@@ -217,12 +217,22 @@ describe("Details 折叠块", () => {
     editor.destroy();
   });
 
-  it("summary 默认文本为'折叠标题'", () => {
+  it("summary 默认文本走 i18n（details.summaryPlaceholder）", () => {
     const editor = makeEditor();
+    // 未注入 t 时降级返回 key 本身
     editor.chain().focus().setDetails().run();
-    const { node } = findFirstNode(editor, "detailsSummary")!;
-    expect(node.textContent).toBe("折叠标题");
+    let found = findFirstNode(editor, "detailsSummary")!;
+    expect(found.node.textContent).toBe("details.summaryPlaceholder");
     editor.destroy();
+
+    // 注入 zh 词典后为中文默认文案
+    const editor2 = makeEditor();
+    (editor2 as unknown as { __tipkitT?: (k: string) => string }).__tipkitT = (k) =>
+      k === "details.summaryPlaceholder" ? "折叠标题" : k;
+    editor2.chain().focus().setDetails().run();
+    found = findFirstNode(editor2, "detailsSummary")!;
+    expect(found.node.textContent).toBe("折叠标题");
+    editor2.destroy();
   });
 
   it("details 为 isolating 节点（防止内部内容溢出）", () => {

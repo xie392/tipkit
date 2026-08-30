@@ -67,11 +67,12 @@ function saveRecent(mode: "text" | "highlight", color: string) {
 
 function Swatch({ color, active, onClick, title }: { color: string; active?: boolean; onClick?: () => void; title?: string }) {
   const isClear = color === "__clear__";
+  const clearLabel = useT()("toolbar.clearColor");
   return (
     <button
       type="button"
-      title={title ?? (isClear ? "清除颜色" : color)}
-      aria-label={title ?? (isClear ? "清除颜色" : color)}
+      title={title ?? (isClear ? clearLabel : color)}
+      aria-label={title ?? (isClear ? clearLabel : color)}
       className="tk-flex tk-icon-lg tk-items-center tk-justify-center tk-rounded-sm tk-transition-transform tk-hover-scale-110"
       onMouseDown={(e) => {
         e.preventDefault();

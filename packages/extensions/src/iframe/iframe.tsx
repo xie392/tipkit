@@ -84,7 +84,7 @@ export const Iframe = Node.create({
           {
             src: url,
             class: "tk-iframe-frame",
-            title: "iframe 嵌入",
+            title: "iframe",
             loading: "lazy",
             sandbox:
               "allow-scripts allow-same-origin allow-popups allow-forms allow-presentation",
@@ -331,7 +331,7 @@ function IframeView(props: NodeViewProps) {
           <iframe
             src={url}
             className="tk-iframe-frame"
-            title="iframe 嵌入"
+            title="iframe"
             loading="lazy"
             sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
             allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
@@ -339,7 +339,7 @@ function IframeView(props: NodeViewProps) {
         </div>
       ) : (
         <div className="tk-iframe-empty">
-          <div className="tk-iframe-empty-title">嵌入网页 / 视频</div>
+          <div className="tk-iframe-empty-title">{t("iframeView.emptyTitle")}</div>
           <input
             autoFocus
             value={draftUrl}
@@ -348,7 +348,7 @@ function IframeView(props: NodeViewProps) {
               if (e.key === "Enter") commitUrl();
               if (e.key === "Escape") setEditing(!!url);
             }}
-            placeholder="粘贴 B 站 / YouTube / 网页链接"
+            placeholder={t("iframeView.placeholder")}
             className="tk-iframe-input"
           />
           <div className="tk-iframe-empty-actions">
@@ -359,7 +359,7 @@ function IframeView(props: NodeViewProps) {
                 onClick={() => setEditing(false)}
                 className="tk-iframe-btn"
               >
-                取消
+                {t("iframeView.cancel")}
               </button>
             )}
             <button
@@ -368,7 +368,7 @@ function IframeView(props: NodeViewProps) {
               onClick={commitUrl}
               className="tk-iframe-btn tk-iframe-btn-primary"
             >
-              嵌入
+              {t("iframeView.embed")}
             </button>
           </div>
         </div>
