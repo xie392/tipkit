@@ -145,6 +145,10 @@ export const zh: Messages = {
   "slash.video.label": "视频",
   "slash.video.description": "上传视频文件或嵌入视频链接",
   "slash.video.previewTitle": "视频",
+
+  "slash.footnote.label": "脚注",
+  "slash.footnote.description": "插入脚注引用，正文末尾自动生成条目",
+  "slash.footnote.previewTitle": "脚注",
   "emoji.group.common": "常用",
   "emoji.group.smileys": "表情与情感",
   "emoji.group.people": "人物与身体",
@@ -379,6 +383,7 @@ export const zh: Messages = {
   "canvas.boxSelect": "框选",
   "canvas.zoomIn": "放大",
   "canvas.zoomOut": "缩小",
+  "canvas.zoom100": "重置缩放",
   "canvas.fullscreen": "全屏",
   "canvas.exitFullscreen": "退出全屏",
   "canvas.title": "画板",
@@ -416,4 +421,5 @@ export const zh: Messages = {
 
   /* ── 占位符 ── */
   "placeholder.default": "写下点什么…",
+
 };

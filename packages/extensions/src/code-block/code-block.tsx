@@ -409,6 +409,17 @@ function CodeBlockView(props: NodeViewProps) {
         </div>
       )}
 
+      {!isEditable && isMermaid && !codeOpen && (
+        <button
+          type="button"
+          className="tk-code-block-copy-btn"
+          style={{ right: "40px" }}
+          onClick={() => setViewerOpen(true)}
+          title={t("codeBlock.fullscreen")}
+        >
+          <IconExpand />
+        </button>
+      )}
       {!isEditable && (
         <button
           type="button"

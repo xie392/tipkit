@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { TipKitEditor } from "@tipkit/editor";
 import type { EditorDeps, IconRef, CommentRange, AIProvider } from "@tipkit/editor";
-import { createBasicExtensions, createAdvancedExtensions, Comment, Canvas, AiGeneration, Emoji } from "@tipkit/extensions";
+import { createBasicExtensions, createAdvancedExtensions, createFootnoteExtensions, Comment, Canvas, AiGeneration, Emoji } from "@tipkit/extensions";
 import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockHandleMenu, TableControls, ReadonlyTextMenu, AiMenu } from "@tipkit/ui";
 import { useDemoLang } from "@/components/use-demo-lang";
 import type { DemoLang } from "@/components/site-lang-switch";
@@ -53,6 +53,7 @@ import {
   Reply,
   Check,
   Brush,
+  Superscript,
   type LucideIcon,
 } from "lucide-react";
 
@@ -96,6 +97,7 @@ const iconMap: Record<IconRef, LucideIcon> = {
   Badge,
   Brush,
   Sparkles,
+  Superscript,
 };
 
 /** demo 图片上传：本地 blob 预览 */
@@ -188,7 +190,7 @@ export default function App() {
   return &lt;TipKitEditor className="tk-theme-sketch" /&gt;;
 }</code></pre>
 <h2>表格</h2>
-<table><tbody><tr><th>能力</th><th>入口</th><th>说明</th></tr><tr><td>斜杠菜单</td><td><code>/</code></td><td>21 种内容节点</td></tr><tr><td>Markdown</td><td>直接粘贴</td><td>即时转换</td></tr><tr><td>Emoji</td><td><code>:smile</code></td><td>方向键浏览</td></tr></tbody></table>
+<table><tbody><tr><th>能力</th><th>入口</th><th>说明</th></tr><tr><td>斜杠菜单</td><td><code>/</code></td><td>27 种内容节点</td></tr><tr><td>Markdown</td><td>直接粘贴</td><td>即时转换</td></tr><tr><td>Emoji</td><td><code>:smile</code></td><td>方向键浏览</td></tr></tbody></table>
 <h2>Mermaid 图表</h2>
 <p>代码块语言切换到 <code>mermaid</code> 即可渲染图表：默认只显示图，<strong>双击图表</strong>或点右上角 <code>&lt;/&gt;</code> 按钮进入代码编辑（此时隐藏图表），改完点 👁 按钮回到图表视图。</p>
 <pre><code class="language-mermaid">flowchart LR
@@ -222,9 +224,12 @@ export default function App() {
 <p>第一条带下载链接；第二条是空附件，点击卡片即可选择文件 —— demo 用本地 blob URL 模拟上传（含 600ms 假延迟），无需真实服务端。</p>
 <div class="tk-attachment" data-filename="TipKit-产品需求文档.pdf" data-fileext="pdf" data-filetype="application/pdf" data-filesize="2048000" data-url="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"></div>
 <div class="tk-attachment"></div>
+<h3>脚注 Footnotes</h3>
+<p>斜杠菜单或 <code>/footnote</code> 插入脚注：TipKit 是无头编辑器套件<sup class="tk-footnote-ref" data-id="fn-demo-1"></sup>，风格由消费方项目决定<sup class="tk-footnote-ref" data-id="fn-demo-2"></sup>。</p>
 <h3>画板 Canvas</h3>
 <p>下方是一块可交互画板：点击进入编辑，可切换画笔/图形工具，支持手绘(sketch)风格与网格吸附，内容随文档一起序列化。</p>
-<div data-type="canvas" data-width="800" data-height="320" data-style="sketch" data-snap="true" data-shapes="[]"></div>
+<div data-type="canvas" data-width="800" data-height="520" data-style="sketch" data-snap="true" data-shapes="[]"></div>
+<div class="tk-footnotes"><div class="tk-footnote-item" data-id="fn-demo-1"><p>TipKit：基于 Tiptap v3 + shadcn/ui 的无头富文本编辑器套件，供 blog / devkb 等多个项目共用。</p></div><div class="tk-footnote-item" data-id="fn-demo-2"><p>主题系统：一切视觉样式集中在 @tipkit/themes 皮肤层，编辑器内核零样式。</p></div></div>
 `;
 
 export function DemoEditor({
@@ -765,6 +770,7 @@ export function DemoEditor({
             Canvas,
             Emoji,
             AiGeneration,
+            ...createFootnoteExtensions(),
             ...createAdvancedExtensions({ tocScrollOffset: 120 }),
           ]}
           placeholder={placeholder ?? PLACEHOLDER[lang]}

@@ -1,7 +1,7 @@
 "use client";
 
 import rough from "roughjs";
-import type { CanvasShape } from "./canvas-types";
+import type { CanvasShape, Point } from "./canvas-types";
 
 /* 手绘渲染：用 rough.js 的 svg 渲染器直接生成 Excalidraw 风格的手绘 SVG 节点，
  * 再取其 outerHTML 字符串（含抖动描边 + 斜线填充）。 */
@@ -102,8 +102,15 @@ export function toRoughHtml(shape: CanvasShape): string {
         rc.line(shape.x1, shape.y1, shape.x2, shape.y2, options).outerHTML +
         rc.polygon(headPoints(shape.x1, shape.y1, shape.x2, shape.y2), solidHead()).outerHTML
       );
-    case "path":
-      return rc.linearPath(shape.points as unknown as never[], options).outerHTML;
+    case "path": {
+      // 防御：过滤非有限坐标（拖拽/落点异常时会产生 NaN，导致 MNaN 路径报错刷屏），
+      // 少于 2 个有效点无法连线，直接跳过渲染
+      const pts = (shape.points as Point[]).filter(
+        (pt) => pt && Number.isFinite(pt.x) && Number.isFinite(pt.y),
+      );
+      if (pts.length < 2) return "";
+      return rc.linearPath(pts as unknown as never[], options).outerHTML;
+    }
     default:
       return "";
   }

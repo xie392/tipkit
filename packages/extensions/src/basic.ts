@@ -24,12 +24,14 @@ import { MarkdownLink } from "./markdown/link";
 import { LinkBackfillConvert } from "./markdown/link-backfill-convert";
 import { CodeBackfillConvert } from "./markdown/code-backfill-convert";
 import { MarkdownPaste } from "./markdown/paste";
+import { UrlAutolink } from "./markdown/url-autolink";
 import { ListInputRules } from "./markdown/list-input-rules";
 import { TrailingNode } from "./basic/trailing-node";
 import { Selection } from "./basic/selection";
 import { SelectAll } from "./basic/select-all";
 import { FontSize } from "./basic/font-size";
 import { CustomHorizontalRule } from "./basic/horizontal-rule";
+import { TableReadonlyResize } from "./table-readonly-resize/table-readonly-resize";
 
 /* TipKit 基础扩展集合（M1：基础格式 + markdown 输入规则 + 序列化）。
  * 编排方式对齐 blog use-editor.ts 的 M1 范围；高级节点（图片块/斜杠菜单/
@@ -91,6 +93,8 @@ function buildBasicExtensions(): AnyExtension[] {
     TableRow,
     TableHeader,
     TableCell,
+    // 只读列宽拖拽（内置 columnResizing 仅编辑态生效）
+    TableReadonlyResize,
     // 链接（markdown 输入规则 + 自动链接）
     MarkdownLink,
     // 链接回填转换：IME 组合输入等场景下 [文字](url) 兜底转链接
@@ -100,6 +104,8 @@ function buildBasicExtensions(): AnyExtension[] {
     // markdown 粘贴 / 序列化
     Markdown,
     MarkdownPaste,
+    // 裸 URL 识别：收紧 marked 内置规则，避免吞掉中文/全角标点
+    UrlAutolink,
     // 编辑器体验（对齐 blog use-editor.ts）
     TrailingNode,
     Selection,

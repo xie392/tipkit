@@ -63,6 +63,7 @@ import {
   TriangleAlert,
   Underline,
   Undo2,
+  Video,
   type LucideIcon,
 } from "lucide-react";
 
@@ -91,6 +92,8 @@ const INSERT_ICONS: Record<string, LucideIcon> = {
   Smile,
   Badge,
   Brush,
+  Superscript,
+  Video,
 };
 
 /**

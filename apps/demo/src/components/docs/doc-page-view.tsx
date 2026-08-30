@@ -1,32 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import { notFound } from "next/navigation";
-import { MDXRemote } from "next-mdx-remote/rsc";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { DocsSidebar } from "@/components/docs-sidebar";
-import { mdxComponents } from "@/components/docs/mdx-components";
 import { DocsEditorView } from "@/components/docs/docs-editor-view";
 import { DocsPager } from "@/components/docs/docs-pager";
-import { rehypeShiki } from "@/lib/rehype-shiki";
 import { DOC_SECTIONS, DOC_PAGES, DOC_SLUGS, isValidDocSlug } from "@/lib/docs-sections";
 import { SITE_COPY } from "@/lib/site-i18n";
 import { DocsToc } from "@/components/docs/docs-toc";
-
-/** 由 TipKit 编辑器只读渲染的文档页（源文件为纯 Markdown），其余走 MDX 管线 */
-const EDITOR_RENDERED_SLUGS = new Set([
-  "intro",
-  "install",
-  "quickstart",
-  "concepts",
-  "api",
-  "plugins",
-  "plugins-basic",
-  "plugins-advanced",
-  "plugins-custom",
-  "advanced",
-  "i18n",
-]);
 
 /** 读文档源：en 优先 {slug}.en.mdx，缺失回退中文；zh 读 {slug}.mdx */
 function readDocSource(slug: string, lang: "zh" | "en"): string {
@@ -41,6 +23,7 @@ function readDocSource(slug: string, lang: "zh" | "en"): string {
 /**
  * 文档页共享视图：/docs/{slug}（中文）与 /en/docs/{slug}（英文）复用。
  * 语言由路径决定（服务端渲染即正确），切换语言 = 导航到对应路径，无重挂载闪烁。
+ * 全部页面统一由 TipKit 编辑器只读渲染（源文件为纯 Markdown）。
  */
 export function DocPageView({ slug, lang }: { slug: string; lang: "zh" | "en" }) {
   if (!isValidDocSlug(slug)) notFound();
@@ -60,15 +43,7 @@ export function DocPageView({ slug, lang }: { slug: string; lang: "zh" | "en" })
         <DocsSidebar sections={DOC_SECTIONS} currentSlug={slug} />
         <main className="docs-content">
           <div id="docs-content">
-            {EDITOR_RENDERED_SLUGS.has(slug) ? (
-              <DocsEditorView source={source} lang={lang} head={headCopy} />
-            ) : (
-              <MDXRemote
-                source={source}
-                components={mdxComponents}
-                options={{ mdxOptions: { rehypePlugins: [rehypeShiki] } }}
-              />
-            )}
+            <DocsEditorView source={source} lang={lang} head={headCopy} />
           </div>
 
           {/* 文档翻页 */}

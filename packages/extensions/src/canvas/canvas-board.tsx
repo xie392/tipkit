@@ -123,7 +123,21 @@ export function CanvasBoard({ shapes, width, height, tool, editable, view, rough
   // 滚轮缩放：用原生非 passive 监听，确保 preventDefault 生效，阻止页面/外层滚动条跟着滚动
   const wheelHandlerRef = useRef<(e: WheelEvent) => void>(() => {});
   wheelHandlerRef.current = (e: WheelEvent) => {
-    if (!editable) return;
+    if (!editable) {
+      // 只读：仍允许滚轮缩放浏览（不响应其他编辑交互）
+      e.preventDefault();
+      e.stopPropagation();
+      const el = containerRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const sx = e.clientX - rect.left;
+      const sy = e.clientY - rect.top;
+      const factor = e.deltaY < 0 ? WHEEL_STEP : 1 / WHEEL_STEP;
+      const newZoom = clamp(view.zoom * factor, MIN_ZOOM, MAX_ZOOM);
+      const k = newZoom / view.zoom;
+      onViewChange({ x: sx - (sx - view.x) * k, y: sy - (sy - view.y) * k, zoom: newZoom });
+      return;
+    }
     e.preventDefault();
     e.stopPropagation();
     const el = containerRef.current;

@@ -39,7 +39,7 @@ function ToolButton({ active, label, icon, side = "right", onClick }: ToolButton
 }
 
 /** 顶部工具栏按钮：带 tooltip，默认在下方 */
-function TopToolButton({ active, label, icon, onClick }: Omit<ToolButtonProps, "side">) {
+export function TopToolButton({ active, label, icon, onClick }: Omit<ToolButtonProps, "side">) {
   return <ToolButton active={active} label={label} icon={icon} side="bottom" onClick={onClick} />;
 }
 
@@ -164,7 +164,7 @@ const ExitFullscreenIcon = () => (
     <path d="M15 21v-5h5" />
   </svg>
 );
-export { ExitFullscreenIcon };
+export { ExitFullscreenIcon, DownloadIcon, FullscreenIcon };
 
 const StyleIcon = () => (
   <svg {...ICON_PROPS}>

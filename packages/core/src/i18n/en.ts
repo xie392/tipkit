@@ -145,6 +145,10 @@ export const en: Messages = {
   "slash.video.label": "Video",
   "slash.video.description": "Upload a video file or embed a video URL",
   "slash.video.previewTitle": "Video",
+
+  "slash.footnote.label": "Footnote",
+  "slash.footnote.description": "Insert a footnote reference and auto-append the entry",
+  "slash.footnote.previewTitle": "Footnote",
   "emoji.group.common": "Frequently Used",
   "emoji.group.smileys": "Smileys & Emotion",
   "emoji.group.people": "People & Body",
@@ -379,6 +383,7 @@ export const en: Messages = {
   "canvas.boxSelect": "Box select",
   "canvas.zoomIn": "Zoom in",
   "canvas.zoomOut": "Zoom out",
+  "canvas.zoom100": "Reset zoom",
   "canvas.fullscreen": "Fullscreen",
   "canvas.exitFullscreen": "Exit fullscreen",
   "canvas.title": "Canvas",
@@ -416,4 +421,5 @@ export const en: Messages = {
 
   /* ── Placeholder ── */
   "placeholder.default": "Start writing…",
+
 };

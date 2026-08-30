@@ -90,3 +90,25 @@ export type { CommentOptions } from "./comment/comment";
 export { Canvas } from "./canvas/canvas";
 export type { CanvasAttrs } from "./canvas/canvas";
 export type { CanvasShape, CanvasView, CanvasTool, Point, Bounds } from "./canvas/canvas-types";
+
+// Footnotes（脚注：正文引用 + 文末条目容器；参考 tiptap-footnotes）
+export { FootnoteReference, FootnoteItem, Footnotes, createFootnoteExtensions } from "./footnotes/footnotes";
+export type { FootnoteReferenceAttrs, FootnoteItemAttrs, SetFootnoteOptions } from "./footnotes/footnotes";
+
+// SearchAndReplace（查找替换：装饰高亮 + 替换命令；参考 tiptap-search-and-replace）
+export { SearchAndReplace, searchAndReplaceKey } from "./search-and-replace/search-and-replace";
+export type { SearchMatch, SearchAndReplaceState } from "./search-and-replace/search-and-replace";
+
+// LanguageTool（语法检查：检查函数可注入，缺省走公共 API；参考 tiptap-languagetool）
+export { LanguageTool, languageToolKey, languageToolMetaKey, collectTextSegments, mapMatchToDoc } from "./languagetool/languagetool";
+export type {
+  LanguageToolMatch,
+  PositionedLanguageToolMatch,
+  LanguageToolState,
+  LanguageToolChecker,
+  LanguageToolOptions,
+} from "./languagetool/languagetool";
+
+
+// TableReadonlyResize（表格只读列宽拖拽；内置 columnResizing 仅编辑态生效）
+export { TableReadonlyResize, tableReadonlyResizeKey } from "./table-readonly-resize/table-readonly-resize";

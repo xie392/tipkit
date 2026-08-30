@@ -3895,3 +3895,38 @@
 .tk-canvas-rotate-handle:active {
   cursor: grabbing;
 }
+
+/* ── Footnotes 脚注 ── */
+/* 引用编号：由 footnotesNumbering 插件按文档顺序注入 data-num（弃 CSS counter，
+ * counter 的作用域规则在块级容器/后续兄弟节点下会重启编号） */
+sup.tk-footnote-ref::after {
+  content: "[" attr(data-num) "]";
+  font-size: 0.72em;
+  line-height: 1;
+  color: var(--primary, #2563eb);
+  font-weight: 600;
+  cursor: default;
+}
+
+/* 文末脚注区 */
+.tk-footnotes {
+  margin: 2em 0 0.75em;
+  padding-top: 0.75em;
+  border-top: 1px solid var(--border, #ddd);
+  font-size: 0.86em;
+  color: var(--muted-foreground, #6b7280);
+}
+.tk-footnote-item {
+  margin: 0.35em 0;
+}
+.tk-footnote-item::before {
+  content: "[" attr(data-num) "]";
+  font-weight: 600;
+  margin-right: 0.5em;
+  color: var(--muted-foreground, #6b7280);
+}
+.tk-footnote-item p {
+  display: inline;
+  margin: 0;
+}
+

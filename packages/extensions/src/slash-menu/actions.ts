@@ -532,5 +532,21 @@ export function getInsertActions({
         editor.chain().focus().setCanvas().run();
       },
     },
+    {
+      id: "footnote",
+      group: "structure",
+      label: tr("slash.footnote.label"),
+      description: tr("slash.footnote.description"),
+      aliases: ["footnote", "jiaozhu", "zhushi"],
+      icon: "Superscript",
+      available: true,
+      previewTitle: tr("slash.footnote.previewTitle"),
+      preview:
+        '<div style="background:#fff;border-radius:6px;padding:12px"><div style="font-size:11px;color:#374151;line-height:1.6">正文内容<span style="font-size:9px;vertical-align:super;color:#2563eb">[1]</span></div><div style="margin-top:8px;border-top:1px solid #e5e7eb;padding-top:6px"><div style="display:flex;gap:6px;align-items:center"><span style="font-size:9px;color:#9ca3af">[1]</span><span style="height:5px;width:64px;border-radius:3px;background:#e5e7eb"></span></div></div></div>',
+      run: () => {
+        prepareInsert();
+        editor.chain().focus().setFootnote().run();
+      },
+    },
   ];
 }
