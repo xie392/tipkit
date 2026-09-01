@@ -29,6 +29,8 @@ export interface UseTipKitEditorOptions {
   /** SSR 场景传 false（默认 false，与 Tiptap v3 默认值相反） */
   immediatelyRender?: boolean;
   editable?: boolean;
+  /** 透传给内部 useEditor 的 editorProps；attributes.class 会与默认的 "tk-prosemirror" 合并，消费方可扩展 scrollThreshold/scrollMargin 或附加 class */
+  editorProps?: EditorOptions["editorProps"];
 }
 
 export function useTipKitEditor(options: UseTipKitEditorOptions) {
@@ -37,20 +39,36 @@ export function useTipKitEditor(options: UseTipKitEditorOptions) {
     ? { contentType: options.contentType }
     : {};
 
+  const userExtensions = options.extensions ?? [];
+
+  // 若消费方已通过 extensions 注入同名 Placeholder（如自定义随机多文案版），
+  // 则跳过内置默认占位符，避免两个同键插件实例冲突
+  // ("Adding different instances of a keyed plugin (tiptap__placeholder$)")。
+  const hasPlaceholder = userExtensions.some(
+    (ext) =>
+      ext &&
+      typeof ext === "object" &&
+      (ext as { name?: string }).name === "placeholder"
+  );
+
   const editor = useEditor({
-    extensions: [
-      Placeholder.configure({
-        placeholder: options.placeholder ?? "Write something…",
-      }),
-      ...(options.extensions ?? []),
-    ],
+    extensions: hasPlaceholder
+      ? userExtensions
+      : [
+          Placeholder.configure({
+            placeholder: options.placeholder ?? "Write something…",
+          }),
+          ...userExtensions,
+        ],
     content: options.content,
     ...contentTypeOption,
     editable: options.editable ?? true,
     immediatelyRender: options.immediatelyRender ?? false,
     editorProps: {
+      ...options.editorProps,
       attributes: {
         class: "tk-prosemirror",
+        ...options.editorProps?.attributes,
       },
     },
     onUpdate: ({ editor }) => options.onUpdate?.(editor),
