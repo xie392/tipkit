@@ -992,8 +992,8 @@
 .tk-mermaid-preview {
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 320px;
+  align-items: flex-start;
+  min-height: 120px;
   overflow-x: auto;
   padding: 16px;
 }
@@ -1025,11 +1025,19 @@
   border-top: none;
   border-radius: 0 0 10px 10px;
 }
+.tk-code-block-dark[data-editable="false"] .tk-mermaid-preview {
+  border-top: 1px solid #21262d;
+  border-radius: 10px;
+}
 .tk-code-block-light .tk-mermaid-preview {
   background: #ffffff;
   border: 1px solid #d0d7de;
   border-top: none;
   border-radius: 0 0 10px 10px;
+}
+.tk-code-block-light[data-editable="false"] .tk-mermaid-preview {
+  border-top: 1px solid #d0d7de;
+  border-radius: 10px;
 }
 
 /* 全屏查看器 */
@@ -1886,8 +1894,7 @@
 /* 块级工具栏按钮 tooltip（纯 CSS，黑底白字与 Radix Tooltip 同风格）。
  * 覆盖：块工具栏 tk-ct-btn、代码块工具栏 tk-code-block-action-btn、代码块悬浮复制 tk-code-block-copy-btn */
 .tk-ct-btn[data-tip],
-.tk-code-block-action-btn[data-tip],
-.tk-code-block-copy-btn[data-tip] {
+.tk-code-block-action-btn[data-tip] {
   position: relative;
 }
 

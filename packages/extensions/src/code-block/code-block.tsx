@@ -421,7 +421,7 @@ function CodeBlockView(props: NodeViewProps) {
         <button
           type="button"
           className="tk-code-block-copy-btn"
-          style={{ right: "40px" }}
+          style={{ top: "8px", right: "40px" }}
           onClick={() => setViewerOpen(true)}
           data-tip={t("codeBlock.fullscreen")}
           aria-label={t("codeBlock.fullscreen")}
