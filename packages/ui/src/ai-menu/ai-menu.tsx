@@ -7,12 +7,12 @@ import type { Editor } from "@tiptap/react";
 import { useEditorDeps, useT } from "@tipkit/core";
 import { aiKey } from "@tipkit/extensions";
 
-/* AI 助手浮层（自控开关，由斜杠菜单「AI 助手」或其他触发按钮通过
- * editor.view.dom 上的 "tk-ai:open" 事件打开）。
- * 仅布局：flex/gap/z-index，视觉归主题 tk-ai-*。
- * 面板定位在打开时光标/选区处，不随光标移动（避免生成中点正文把面板带走）。
- * 关闭方式：Esc / 点击面板外部 / 接受或放弃后自动关闭。
- * 生成中点外部 = 中断并放弃，保证任何时刻都能退出。 */
+/* AI 助手浮层：
+ * - 斜杠菜单「AI 助手」或 editor.view.dom 上 "tk-ai:open" 事件打开
+ * - 事件可传 detail: { mode?: "insert"|"replace", preset?: string, autoRun?: boolean }
+ * - 面板支持标题栏拖拽移动；点击外部不关闭；仅通过 ✕ / 接受 / 放弃 / Esc 关闭
+ * - 流式预览时显示生成中的纯文本；流结束进入 review，800ms 后自动接受并把 Markdown 转为富文本节点
+ */
 
 type Phase = "input" | "generating" | "review";
 
@@ -20,6 +20,12 @@ interface AnchorRect {
   top: number;
   left: number;
   bottom: number;
+}
+
+interface OpenDetail {
+  mode?: "insert" | "replace";
+  preset?: string;
+  autoRun?: boolean;
 }
 
 export function AiMenu({ editor }: { editor: Editor | null }) {
@@ -30,25 +36,30 @@ export function AiMenu({ editor }: { editor: Editor | null }) {
   const [phase, setPhase] = useState<Phase>("input");
   const [instruction, setInstruction] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const [hasSelection, setHasSelection] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
-  const openRef = useRef(open);
-  openRef.current = open;
+  const instructionRef = useRef("");
+  instructionRef.current = instruction;
+  const depsRef = useRef(deps);
+  depsRef.current = deps;
 
   const close = useCallback(() => {
     setOpen(false);
     setPhase("input");
     setInstruction("");
     setError(null);
+    setPos(null);
   }, []);
 
+  const closeRef = useRef(close);
+  closeRef.current = close;
+
   const discardAndClose = useCallback(() => {
-    if (editor && !editor.isDestroyed) {
-      // 生成中：中断 + 删除预览；review：删除预览
-      editor.commands.aiDiscard();
-    }
+    if (editor && !editor.isDestroyed) editor.commands.aiDiscard();
     close();
   }, [editor, close]);
 
@@ -57,72 +68,132 @@ export function AiMenu({ editor }: { editor: Editor | null }) {
     close();
   }, [editor, close]);
 
-  /* 打开事件：定位到当前光标/选区 */
+  const runGenerate = useCallback(
+    (mode: "insert" | "replace", prompt: string) => {
+      if (!editor || editor.isDestroyed) return;
+      const ed = editor;
+      const curDeps = depsRef.current;
+      if (!curDeps.ai) {
+        setError(t("ai.needProvider"));
+        return;
+      }
+      const sel = ed.state.selection;
+      const canReplace = sel instanceof TextSelection && !sel.empty && mode === "replace";
+      const actualMode: "insert" | "replace" = canReplace ? "replace" : "insert";
+      const ok = ed
+        .chain()
+        .focus()
+        .aiRun({ instruction: prompt, mode: actualMode, provider: curDeps.ai })
+        .run();
+      if (!ok) setError(t("ai.emptySelection"));
+      else setError(null);
+    },
+    [editor, t],
+  );
+  const runGenerateRef = useRef(runGenerate);
+  runGenerateRef.current = runGenerate;
+
+  /* 打开事件 */
   useEffect(() => {
     if (!editor) return;
     const dom = editor.view.dom;
-    const handleOpen = () => {
-      const coords = editor.view.coordsAtPos(editor.state.selection.to);
+    const handleOpen = (e: Event) => {
+      const detail = (e as CustomEvent<OpenDetail>).detail ?? {};
+      const sel = editor.state.selection;
+      const selHasText = sel instanceof TextSelection && !sel.empty;
+      setHasSelection(selHasText);
+      const coords = editor.view.coordsAtPos(sel.to);
       setAnchor({ top: coords.top, left: coords.left, bottom: coords.bottom });
+      setPos(null);
       setPhase("input");
-      setInstruction("");
       setError(null);
+      const preset = detail.preset?.trim() ?? "";
+      setInstruction(preset);
       setOpen(true);
+      if (detail.autoRun && preset) {
+        const m: "insert" | "replace" = detail.mode ?? (selHasText ? "replace" : "insert");
+        setTimeout(() => runGenerateRef.current(m, preset), 0);
+      }
     };
     dom.addEventListener("tk-ai:open", handleOpen);
     return () => dom.removeEventListener("tk-ai:open", handleOpen);
   }, [editor]);
 
-  /* Esc 关闭 / 生成中 Esc = 中断并放弃 */
+  /* Esc：任何阶段都 = 放弃（恢复原文）+ 关闭 */
   useEffect(() => {
     if (!open) return;
     const handleKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       e.preventDefault();
       e.stopPropagation();
-      if (phaseRef.current === "generating") discardAndClose();
-      else close();
+      discardAndClose();
     };
     document.addEventListener("keydown", handleKey, true);
     return () => document.removeEventListener("keydown", handleKey, true);
-  }, [open, close, discardAndClose]);
+  }, [open, discardAndClose]);
 
-  /* 点击面板外部关闭（生成中 = 中断并放弃，保证可退出） */
+  /* 标题栏拖拽 */
+  const dragRef = useRef<{ startX: number; startY: number; startLeft: number; startTop: number } | null>(null);
   useEffect(() => {
     if (!open) return;
-    const handleMouseDown = (e: MouseEvent) => {
-      if (panelRef.current?.contains(e.target as Node)) return;
-      if (phaseRef.current === "generating") discardAndClose();
-      else close();
+    const onMove = (e: MouseEvent) => {
+      const d = dragRef.current;
+      if (!d) return;
+      e.preventDefault();
+      const panel = panelRef.current;
+      const w = panel?.offsetWidth ?? 360;
+      const h = panel?.offsetHeight ?? 200;
+      setPos({
+        left: Math.max(4, Math.min(window.innerWidth - w - 4, d.startLeft + (e.clientX - d.startX))),
+        top: Math.max(4, Math.min(window.innerHeight - h - 4, d.startTop + (e.clientY - d.startY))),
+      });
     };
-    document.addEventListener("mousedown", handleMouseDown, true);
-    return () => document.removeEventListener("mousedown", handleMouseDown, true);
-  }, [open, close, discardAndClose]);
+    const onUp = () => {
+      dragRef.current = null;
+      document.body.style.userSelect = "";
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    return () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+  }, [open]);
 
-  /* 跟随 aiKey 状态：generating → review。
-   * 注意必须延迟（宏任务）切换：点击「生成」的回调里同步替换按钮行时，
-   * React 会把同一次点击重放到新渲染出的按钮上（如「放弃」），导致误丢弃。 */
+  const onDragStart = useCallback((e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    if (target.closest("button, input, a")) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    const rect = panel.getBoundingClientRect();
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startLeft: rect.left,
+      startTop: rect.top,
+    };
+    document.body.style.userSelect = "none";
+    e.preventDefault();
+  }, []);
+
+  /* 跟随 aiKey 状态 */
   useEffect(() => {
     if (!editor || !open) return;
     let pending: Phase | null = null;
-    const flushPending = () => {
+    const flush = () => {
       if (pending) {
         setPhase(pending);
         pending = null;
       }
     };
     const sync = () => {
-      const st = aiKey.getState(editor.state) as
-        | { generating: boolean; from: number | null }
-        | undefined;
+      const st = aiKey.getState(editor.state) as { generating: boolean; from: number | null } | undefined;
       if (!st) return;
       if (st.generating) pending = "generating";
-      else if (st.from !== null && (phaseRef.current === "generating" || phaseRef.current === "review")) {
-        pending = "review";
-      } else {
-        return;
-      }
-      setTimeout(flushPending, 0);
+      else if (st.from !== null && (phaseRef.current === "generating" || phaseRef.current === "review")) pending = "review";
+      else return;
+      setTimeout(flush, 0);
     };
     editor.on("update", sync);
     return () => {
@@ -131,89 +202,99 @@ export function AiMenu({ editor }: { editor: Editor | null }) {
     };
   }, [editor, open]);
 
-  /* 打开时聚焦输入框 */
   useEffect(() => {
     if (open && phase === "input") inputRef.current?.focus();
   }, [open, phase]);
 
+  /* 面板打开时，监听选区变化以更新 hasSelection */
+  useEffect(() => {
+    if (!open || !editor) return;
+    const updateSel = () => {
+      const sel = editor.state.selection;
+      setHasSelection(sel instanceof TextSelection && !sel.empty);
+    };
+    editor.on("selectionUpdate", updateSel);
+    return () => {
+      editor.off("selectionUpdate", updateSel);
+    };
+  }, [open, editor]);
+
   if (!editor || !open || !anchor) return null;
 
-  // 仅文本选区可改写：NodeSelection（空段落）按无选区处理
-  const selection = editor.state.selection;
-  const hasSelection = selection instanceof TextSelection && !selection.empty;
+  const PANEL_WIDTH = 360;
+  const initialLeft = Math.min(Math.max(anchor.left, 8), Math.max(8, window.innerWidth - PANEL_WIDTH - 8));
+  const above = anchor.top - 140 - 12;
+  const initialTop = above >= 70 ? above : Math.min(anchor.bottom + 8, window.innerHeight - 160);
+  const panelLeft = pos?.left ?? initialLeft;
+  const panelTop = pos?.top ?? initialTop;
 
-  const start = (mode: "insert" | "replace", prompt: string) => {
-    if (!deps.ai) {
-      setError(t("ai.needProvider"));
-      return;
-    }
-    const ok = editor
-      .chain()
-      .focus()
-      .aiRun({ instruction: prompt, mode, provider: deps.ai })
-      .run();
-    if (!ok) {
-      setError(t("ai.emptySelection"));
-      return;
-    }
-    setError(null);
-    // 不在这里 setPhase("generating")：点击回调内同步替换按钮行，
-    // React 会把同一次点击重放给新渲染出的「放弃」按钮导致误丢弃。
-    // 生成状态由下方监听 aiKey 的 sync 效果（首个 flush 事务）驱动切换。
+  const PRESETS = hasSelection
+    ? [
+        { label: t("ai.polish"), prompt: "请对这段文字润色，使其表达更流畅自然，保持原意" },
+        { label: t("ai.formal"), prompt: "请将这段文字改写为更正式专业的语气" },
+        { label: t("ai.concise"), prompt: "请将这段文字精简，去除冗余表达" },
+        { label: t("ai.expand"), prompt: "请扩写这段文字，补充细节与论述" },
+      ]
+    : [];
+
+  const onSubmit = () => {
+    const p = instructionRef.current.trim();
+    if (!p) return;
+    runGenerate(hasSelection ? "replace" : "insert", p);
   };
-
-  const PANEL_WIDTH = 340;
-  const left = Math.min(
-    Math.max(anchor.left, 8),
-    Math.max(8, (typeof window !== "undefined" ? window.innerWidth : 1200) - PANEL_WIDTH - 8),
-  );
-  // 默认在光标上方打开，避免盖住下方流式生成的内容；上方空间不足时退到下方
-  const PANEL_HEIGHT_ESTIMATE = 140;
-  const above = anchor.top - PANEL_HEIGHT_ESTIMATE - 12;
-  const top = above >= 70 ? above : Math.min(anchor.bottom + 8, (typeof window !== "undefined" ? window.innerHeight : 800) - 160);
 
   const panel = (
     <div
       ref={panelRef}
       className="tk-ai-panel"
       data-phase={phase}
-      style={{
-        position: "fixed",
-        top,
-        left,
-        width: PANEL_WIDTH,
-        zIndex: 10000,
-      }}
+      style={{ position: "fixed", top: panelTop, left: panelLeft, width: PANEL_WIDTH, zIndex: 10000 }}
     >
-      <div className="tk-ai-panel-head">
+      <div className="tk-ai-panel-head" style={{ cursor: "move" }} onMouseDown={onDragStart}>
         <span className="tk-ai-title">{t("ai.title")}</span>
-        {phase !== "input" && (
-          <button
-            type="button"
-            className="tk-ai-btn tk-ai-close"
-            onMouseDown={(e) => e.preventDefault()}
-            // 用 phaseRef 而非闭包 phase，避免阶段切换瞬间的过期状态误判
-            onClick={() => (phaseRef.current === "generating" ? discardAndClose() : close())}
-            aria-label={t("ai.cancel")}
-          >
-            ✕
-          </button>
-        )}
+        <button
+          type="button"
+          className="tk-ai-btn tk-ai-close"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => discardAndClose()}
+          aria-label={t("ai.cancel")}
+          style={{ cursor: "pointer" }}
+        >
+          ✕
+        </button>
       </div>
 
       {phase === "input" && (
         <>
+          {PRESETS.length > 0 && (
+            <div className="tk-ai-presets">
+              {PRESETS.map((p) => (
+                <button
+                  key={p.label}
+                  type="button"
+                  className="tk-ai-preset"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setInstruction(p.prompt);
+                    runGenerate("replace", p.prompt);
+                  }}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="tk-ai-input-row">
             <input
               ref={inputRef}
               className="tk-ai-input"
               value={instruction}
-              placeholder={t("ai.placeholder")}
+              placeholder={hasSelection ? t("ai.rewritePlaceholder") : t("ai.placeholder")}
               onChange={(e) => setInstruction(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && instruction.trim()) {
                   e.preventDefault();
-                  start(hasSelection ? "replace" : "insert", instruction.trim());
+                  onSubmit();
                 }
                 if (e.key === "Escape") close();
               }}
@@ -223,7 +304,7 @@ export function AiMenu({ editor }: { editor: Editor | null }) {
               className="tk-ai-btn"
               disabled={!instruction.trim()}
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => start(hasSelection ? "replace" : "insert", instruction.trim())}
+              onClick={onSubmit}
             >
               {hasSelection ? t("ai.rewrite") : t("ai.generate")}
             </button>
@@ -231,29 +312,21 @@ export function AiMenu({ editor }: { editor: Editor | null }) {
           {error ? (
             <span className="tk-ai-error">{error}</span>
           ) : (
-            <span className="tk-ai-hint">{t("ai.emptySelection")}</span>
+            <span className="tk-ai-hint">{hasSelection ? t("ai.rewriteHint") : t("ai.emptySelection")}</span>
           )}
         </>
       )}
 
       {phase === "generating" && (
         <div className="tk-ai-progress-row">
-          <span className="tk-ai-status">{t("ai.generating")}</span>
+          <span className="tk-ai-status">{t(hasSelection ? "ai.rewriting" : "ai.generating")}</span>
           <button
             type="button"
             className="tk-ai-btn"
             onMouseDown={(e) => e.preventDefault()}
-            onClick={() => editor.commands.aiCancel()}
+            onClick={() => editor && !editor.isDestroyed && editor.commands.aiCancel()}
           >
-            {t("ai.cancel")}
-          </button>
-          <button
-            type="button"
-            className="tk-ai-btn"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => discardAndClose()}
-          >
-            {t("ai.discard")}
+            {t("ai.stop")}
           </button>
         </div>
       )}
@@ -262,7 +335,7 @@ export function AiMenu({ editor }: { editor: Editor | null }) {
         <div className="tk-ai-review-row">
           <button
             type="button"
-            className="tk-ai-btn"
+            className="tk-ai-btn tk-ai-btn-primary"
             onMouseDown={(e) => e.preventDefault()}
             onClick={acceptAndClose}
           >
@@ -276,7 +349,7 @@ export function AiMenu({ editor }: { editor: Editor | null }) {
           >
             {t("ai.discard")}
           </button>
-          <span className="tk-ai-hint">Esc = {t("ai.discard")}</span>
+          <span className="tk-ai-hint">{t("ai.autoAcceptHint")}</span>
         </div>
       )}
     </div>

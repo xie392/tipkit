@@ -210,6 +210,7 @@ export const zh: Messages = {
   "text.code": "行内代码",
   "text.link": "链接",
   "text.comment": "评论",
+  "text.aiRewrite": "AI 改写",
 
   /* ── 块浮动菜单 ── */
   "block.duplicate": "复制块",
@@ -421,17 +422,26 @@ export const zh: Messages = {
   /* ── AI ── */
   "ai.title": "AI 助手",
   "ai.placeholder": "输入指令，如：改写为更正式的语气…",
+  "ai.rewritePlaceholder": "输入改写指令，如：润色、精简、更正式…",
+  "ai.rewriteHint": "选中文本后输入指令，AI 将替换所选内容",
   "ai.generate": "生成",
   "ai.rewrite": "改写",
   "ai.continue": "续写",
   "ai.accept": "接受",
   "ai.discard": "放弃",
   "ai.cancel": "停止",
+  "ai.stop": "停止",
   "ai.retry": "重试",
   "ai.generating": "生成中…",
+  "ai.rewriting": "改写中…",
   "ai.error": "生成失败",
   "ai.emptySelection": "选中文本后可改写；光标处可续写",
   "ai.needProvider": "未配置 AI 能力（EditorDeps.ai）",
+  "ai.autoAcceptHint": "点击接受应用结果，放弃恢复原文",
+  "ai.polish": "润色",
+  "ai.formal": "正式化",
+  "ai.concise": "精简",
+  "ai.expand": "扩写",
 
   /* ── 视频块 ── */
   "video.copyLink": "复制视频链接",

@@ -6,7 +6,7 @@ import type { Editor } from "@tiptap/react";
 import { useEditorState } from "@tiptap/react";
 import { NodeSelection } from "@tiptap/pm/state";
 import { CellSelection } from "@tiptap/pm/tables";
-import { Bold, Italic, Underline, Strikethrough, Code, Link, MessageSquare } from "lucide-react";
+import { Bold, Italic, Underline, Strikethrough, Code, Link, MessageSquare, Sparkles } from "lucide-react";
 import { useT, useEditorDeps } from "@tipkit/core";
 import { openLinkDialog } from "./link-dialog";
 
@@ -107,16 +107,23 @@ export function TextMenu({ editor }: { editor: Editor | null }) {
     const { from, to } = editor.state.selection;
     const text = editor.state.doc.textBetween(from, to, "\n");
     const commentId = `c_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-    // readonly 下 chain().focus() 会被 can() 短路，直接调命令
     (editor.commands as unknown as { setComment: (id: string) => boolean }).setComment(commentId);
     deps.onCommentCreate?.({ from, to, text, commentId });
   }, [editor, deps]);
+
+  const triggerAI = useCallback(() => {
+    if (!editor) return;
+    editor.view.dom.dispatchEvent(
+      new CustomEvent("tk-ai:open", { bubbles: true, detail: { mode: "replace" as const } }),
+    );
+  }, [editor]);
 
   if (!editor || !states) return null;
 
   const chain = () => editor.chain().focus();
   const isEditable = states.isEditable;
   const showCommentBtn = !!editor.schema.marks.comment;
+  const hasAIDeps = !!deps.ai;
 
   return (
     <BubbleMenu
@@ -162,6 +169,15 @@ export function TextMenu({ editor }: { editor: Editor | null }) {
             >
               <Link className="tk-icon-md" />
             </MenuBtn>
+
+            {hasAIDeps && (
+              <>
+                <span className="tk-bubble-divider" />
+                <MenuBtn title={t("text.aiRewrite")} onClick={triggerAI}>
+                  <Sparkles className="tk-icon-md" />
+                </MenuBtn>
+              </>
+            )}
           </>
         )}
 

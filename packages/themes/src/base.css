@@ -2649,6 +2649,44 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  padding: 2px 0;
+  user-select: none;
+}
+
+.tk-ai-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tk-ai-preset {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 12px;
+  line-height: 1;
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 999px;
+  background: var(--background, #fff);
+  color: var(--foreground, #18181b);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tk-ai-preset:hover {
+  background: var(--accent, #f4f4f5);
+  border-color: var(--accent-foreground, #a1a1aa);
+}
+
+.tk-ai-btn-primary {
+  background: var(--accent-foreground, #18181b);
+  color: var(--accent, #fafafa);
+  border-color: transparent;
+}
+
+.tk-ai-btn-primary:hover {
+  opacity: 0.9;
+  background: var(--accent-foreground, #18181b);
 }
 
 .tk-ai-close {

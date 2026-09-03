@@ -210,6 +210,7 @@ export const en: Messages = {
   "text.code": "Inline Code",
   "text.link": "Link",
   "text.comment": "Comment",
+  "text.aiRewrite": "AI Rewrite",
 
   /* ── Block bubble ── */
   "block.duplicate": "Duplicate block",
@@ -421,17 +422,26 @@ export const en: Messages = {
   /* ── AI ── */
   "ai.title": "AI Assistant",
   "ai.placeholder": "Enter an instruction, e.g. rewrite in a formal tone…",
+  "ai.rewritePlaceholder": "Enter an instruction, e.g. polish, shorten, formalize…",
+  "ai.rewriteHint": "With text selected, AI will replace the selection",
   "ai.generate": "Generate",
   "ai.rewrite": "Rewrite",
   "ai.continue": "Continue",
   "ai.accept": "Accept",
   "ai.discard": "Discard",
   "ai.cancel": "Stop",
+  "ai.stop": "Stop",
   "ai.retry": "Retry",
   "ai.generating": "Generating…",
+  "ai.rewriting": "Rewriting…",
   "ai.error": "Generation failed",
   "ai.emptySelection": "Select text to rewrite; place cursor to continue writing",
   "ai.needProvider": "AI capability not configured (EditorDeps.ai)",
+  "ai.autoAcceptHint": "Accept to apply, Discard to restore original",
+  "ai.polish": "Polish",
+  "ai.formal": "Formalize",
+  "ai.concise": "Shorten",
+  "ai.expand": "Expand",
 
   /* ── Video block ── */
   "video.copyLink": "Copy video link",

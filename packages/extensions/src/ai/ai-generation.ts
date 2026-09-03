@@ -6,7 +6,8 @@ import type { AIProvider } from "@tipkit/core";
 
 /* AI 生成（headless 命令层）：
  * - aiRun({ instruction, mode }) 启动流式生成，内容以 Decoration 高亮预览
- * - aiAccept() 接受（保留文本）/ aiDiscard() 放弃（删除预览内容）
+ * - aiAccept() 接受（保留文本，含 Markdown 自动解析为富文本）
+ * - aiDiscard() 放弃（删除预览；replace 模式下恢复被替换的原文）
  * - aiCancel() 中断流（内容保留，等待接受/放弃）
  * 流式写入用节流 dispatch（~80ms），避免每个 token 一次事务。
  * provider 通过 configure({ provider }) 注入；UI 浮层见 @tipkit/ui 的 AiMenu。 */
@@ -24,19 +25,18 @@ export interface AiRunOptions {
 }
 
 interface AiState {
-  /** 生成中（流未结束） */
   generating: boolean;
-  /** 预览内容范围；insert 模式开始前为 null */
   from: number | null;
   to: number | null;
+  /** replace 模式：被删掉的原文（用于 aiDiscard 时恢复） */
+  replacedText: string | null;
+  replacedFrom: number | null;
 }
 
-const EMPTY_STATE: AiState = { generating: false, from: null, to: null };
+const EMPTY_STATE: AiState = { generating: false, from: null, to: null, replacedText: null, replacedFrom: null };
 
 export interface AiGenerationOptions {
-  /** AI 能力实现（EditorDeps.ai 的同一契约） */
   provider?: AIProvider;
-  /** 流式 dispatch 节流间隔 ms */
   flushInterval?: number;
 }
 
@@ -80,20 +80,12 @@ export const AiGeneration = Extension.create<AiGenerationOptions>({
 
           const mode: AiMode = options.mode ?? "insert";
           const { selection } = editor.state;
-          // 仅文本选区可替换：NodeSelection（如斜杠菜单选中的空段落）empty 为 false
-          // 但没有可替换内容，走 replace 会删掉空节点并在块边界插入导致错乱
           const hasContent = selection instanceof TextSelection && !selection.empty;
           const replaceMode = mode === "replace" && hasContent;
-          // 先捕获选区文本（tr 删除后 state 即失效）
           const selectionText = replaceMode
             ? editor.state.doc.textBetween(selection.from, selection.to, "\n")
             : undefined;
 
-          // replace：删除选区文本，生成内容落在同一起点。
-          // 注意 selection.to 可能是块边界（如 NodeSelection 选中空段落），直接 insertText
-          // 会在边界上创建独立段落。必须规范到文本块内部：
-          // bias=-1 向前找——NodeSelection 选中空段落时 to 在段落之后，
-          // 向前 bias 才能落进该空段落本身，而不是跳到下一个节点（否则会并进下方的标题）。
           const $to = tr.doc.resolve(selection.to);
           const safe =
             $to.parent.isTextblock && $to.pos < $to.end()
@@ -102,15 +94,25 @@ export const AiGeneration = Extension.create<AiGenerationOptions>({
           if (!replaceMode && safe.from !== selection.to) {
             tr.setSelection(TextSelection.create(tr.doc, safe.from));
           }
-          if (replaceMode) tr.delete(selection.from, selection.to);
-          tr.setMeta(aiKey, { generating: true, from: null, to: null });
+
+          let replacedFrom: number | null = null;
+          if (replaceMode) {
+            replacedFrom = selection.from;
+            tr.delete(selection.from, selection.to);
+          }
+          tr.setMeta(aiKey, {
+            generating: true,
+            from: null,
+            to: null,
+            replacedText: replaceMode ? selectionText ?? null : null,
+            replacedFrom,
+          } as AiState);
           tr.setMeta("addToHistory", false);
 
           const controller = new AbortController();
           this.storage.controller = controller;
           this.storage.running = true;
 
-          // 流式写入必须等本次命令的事务派发完成后再启动，否则事务错序
           const flushInterval = this.options.flushInterval ?? 80;
           const onDone = () => {
             this.storage.running = false;
@@ -122,7 +124,7 @@ export const AiGeneration = Extension.create<AiGenerationOptions>({
               provider,
               instruction: options.instruction,
               selectionText,
-              signal: controller.signal,
+              controller,
               insertFrom: replaceMode ? tr.mapping.map(selection.from) : safe.from,
               flushInterval,
               onDone,
@@ -136,7 +138,28 @@ export const AiGeneration = Extension.create<AiGenerationOptions>({
         ({ editor, tr, dispatch }) => {
           const state = aiKey.getState(editor.state) as AiState | undefined;
           if (!state || (!state.generating && state.from === null)) return false;
-          if (dispatch) tr.setMeta(aiKey, EMPTY_STATE);
+          if (!dispatch) return true;
+          const from = state.from;
+          const to = state.to;
+          // 接受：清除 AI 状态（不再高亮预览）
+          tr.setMeta(aiKey, { ...EMPTY_STATE }).setMeta("addToHistory", true);
+          // 若预览内容含 Markdown 语法，下一帧异步替换为富文本节点（等本事务派发后再执行，避免事务错序）
+          if (from !== null && to !== null && to > from) {
+            const text = editor.state.doc.textBetween(from, to, "\n");
+            if (looksLikeMarkdown(text)) {
+              const startPos = from;
+              const endPos = to;
+              setTimeout(() => {
+                if (editor.isDestroyed) return;
+                editor
+                  .chain()
+                  .focus()
+                  .deleteRange({ from: startPos, to: endPos })
+                  .insertContentAt(startPos, text, { contentType: "markdown" })
+                  .run();
+              }, 0);
+            }
+          }
           return true;
         },
 
@@ -144,13 +167,19 @@ export const AiGeneration = Extension.create<AiGenerationOptions>({
         () =>
         ({ editor, tr, dispatch }) => {
           const state = aiKey.getState(editor.state) as AiState | undefined;
-          if (!state || state.from === null) return false;
-          // 丢弃时同时中断未完成的流
+          if (!state) return false;
+          // 中断未完成的流
           this.storage.controller?.abort();
           if (dispatch) {
             const from = state.from;
             const to = state.to;
-            if (to !== null && to > from) tr.delete(from, to);
+            // 1. 删除已生成的预览内容
+            if (from !== null && to !== null && to > from) tr.delete(from, to);
+            // 2. replace 模式：把原文插回（位置已被 delete 映射，用 mapping 后再插）
+            if (state.replacedText && state.replacedFrom !== null) {
+              const mappedFrom = tr.mapping.map(state.replacedFrom);
+              tr.insertText(state.replacedText, mappedFrom);
+            }
             tr.setMeta(aiKey, EMPTY_STATE);
           }
           return true;
@@ -176,7 +205,15 @@ export const AiGeneration = Extension.create<AiGenerationOptions>({
           apply(tr, prev) {
             const meta = tr.getMeta(aiKey);
             if (meta) return meta as AiState;
-            // 文档被外部编辑时，收缩预览范围可能导致错位——简单处理：保留原范围
+            // 普通编辑（用户输入/其他命令）时，映射预览范围，避免错位
+            if (prev.from !== null && prev.to !== null) {
+              const from = tr.mapping.map(prev.from);
+              const to = tr.mapping.map(prev.to);
+              const replacedFrom = prev.replacedFrom !== null ? tr.mapping.map(prev.replacedFrom) : null;
+              if (from !== prev.from || to !== prev.to || replacedFrom !== prev.replacedFrom) {
+                return { ...prev, from, to, replacedFrom };
+              }
+            }
             return prev;
           },
         },
@@ -194,7 +231,6 @@ export const AiGeneration = Extension.create<AiGenerationOptions>({
   },
 });
 
-/** EditorDeps 兜底：React 层通过 storage 注入 provider 时可从 storage.aiProvider 读取 */
 function readDepsProvider(editor: Editor): AIProvider | undefined {
   const storage = editor.storage as typeof editor.storage & { aiProvider?: AIProvider };
   return storage.aiProvider;
@@ -205,40 +241,74 @@ interface RunStreamParams {
   provider: AIProvider;
   instruction: string;
   selectionText?: string;
-  signal: AbortSignal;
+  controller: AbortController;
   insertFrom: number;
   flushInterval: number;
   onDone: () => void;
 }
 
+function looksLikeMarkdown(text: string): boolean {
+  return (
+    /(^|\n)\s{0,3}(#{1,6}\s|>\s|[-*+]\s|\d+\.\s|```|~~~)/.test(text) ||
+    /\*\*[^*\n]+\*\*|__[^_\n]+__/.test(text) ||
+    /(^|[^*])\*[^\s*][^*\n]*\*(?!\*)/.test(text) ||
+    /~~[^~\n]+~~/.test(text) ||
+    /`[^`\n]+`/.test(text) ||
+    /\[[^\]]+\]\([^)\s]+\)/.test(text) ||
+    /(^|\n)\s{0,3}(-{3,}|\*{3,}|_{3,})\s*(\n|$)/.test(text)
+  );
+}
+
 async function runStream(params: RunStreamParams): Promise<void> {
-  const { editor, provider, instruction, selectionText, signal, insertFrom, flushInterval, onDone } = params;
+  const { editor, provider, instruction, selectionText, controller, insertFrom, flushInterval, onDone } = params;
+  const signal = controller.signal;
 
   let acc = "";
   let lastFlush = 0;
   let from: number | null = null;
   let to: number | null = null;
+  /** 静默超时兜底：30s 无新 chunk 则 abort（防止上游连接不关闭导致永久 generating） */
+  const SILENCE_TIMEOUT = 30000;
+  let silenceTimer: ReturnType<typeof setTimeout> | null = null;
+  const resetSilence = () => {
+    if (silenceTimer) clearTimeout(silenceTimer);
+    silenceTimer = setTimeout(() => {
+      try {
+        controller.abort();
+      } catch {
+        /* ignore */
+      }
+    }, SILENCE_TIMEOUT);
+  };
 
   const flush = (final: boolean) => {
     if (from === null) return;
     const start = from;
     const end = to;
     const schema = editor.state.schema;
+    // 保留 replace 模式下记录的原文，直到 accept/discard 显式清空
+    const cur = aiKey.getState(editor.state) as AiState | undefined;
     const tr = editor.state.tr;
     if (end !== null && end > start) tr.delete(start, end);
-    // 用精确的 replaceWith 而非 insertText：后者在空段落/块边界处会触发
-    // replaceRange 的"贴合"行为（吞并相邻空段落），导致后续 flush 位置漂移
     tr.replaceWith(start, start, schema.text(acc));
     to = start + acc.length;
-    tr.setMeta(aiKey, { generating: !final, from: start, to });
+    tr.setMeta(aiKey, {
+      generating: !final,
+      from: start,
+      to,
+      replacedText: cur?.replacedText ?? null,
+      replacedFrom: cur?.replacedFrom ?? null,
+    } as AiState);
     tr.setMeta("addToHistory", false);
     editor.view.dispatch(tr);
   };
 
   try {
+    resetSilence();
     for await (const chunk of provider.streamText({ prompt: instruction, selection: selectionText, signal })) {
       if (signal.aborted) break;
       acc += chunk;
+      resetSilence();
       const now = Date.now();
       if (from === null) {
         from = insertFrom;
@@ -249,15 +319,18 @@ async function runStream(params: RunStreamParams): Promise<void> {
         flush(false);
       }
     }
-    // 中断时：若用户已放弃（预览状态被清空），不再把内容写回；仅取消则保留内容等待接受/放弃
-    const st = aiKey.getState(editor.state) as AiState | undefined;
-    if (!signal.aborted || st?.generating) flush(true);
+    if (silenceTimer) clearTimeout(silenceTimer);
+    // 流结束：最终 flush
+    if (from !== null) flush(true);
   } catch (err) {
-    // 出错/中断时保留已生成内容并结束 generating 状态，由 UI 层提示重试
-    const st = aiKey.getState(editor.state) as AiState | undefined;
-    if (!signal.aborted || st?.generating) flush(true);
+    if (silenceTimer) clearTimeout(silenceTimer);
+    if (from !== null) {
+      // 出错或被 abort：把已累积内容 flush 进去，标记生成结束，让用户决定接受/放弃
+      flush(true);
+    }
     if (!signal.aborted) console.error("[tipkit] ai generation failed:", err);
   } finally {
+    if (silenceTimer) clearTimeout(silenceTimer);
     onDone();
   }
 }
