@@ -109,29 +109,63 @@ const uploadAttachment = async (file: File) => {
   return { url: URL.createObjectURL(file), name: file.name, size: file.size, mimeType: file.type };
 };
 
-/** demo AI provider：本地假流式（按指令返回 canned 文案），接真实 LLM 时替换即可 */
-const mockAI: AIProvider = {
+/** DeepSeek AI provider：通过 Next.js /api/ai 代理（解决 CORS，key 只存服务端） */
+const deepseekAI: AIProvider = {
   async *streamText({ prompt, selection, signal }) {
-    const text = mockReply(prompt, selection);
-    for (const ch of text) {
-      if (signal?.aborted) return;
-      await new Promise((r) => setTimeout(r, 12));
-      yield ch;
+    const res = await fetch("/api/ai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, selection }),
+      signal,
+    });
+
+    if (!res.ok) {
+      let msg = `AI 请求失败 (${res.status})`;
+      try {
+        const err = await res.json();
+        if (err?.error) msg = err.error;
+      } catch {
+        // ignore
+      }
+      throw new Error(msg);
+    }
+
+    const reader = res.body?.getReader();
+    if (!reader) throw new Error("响应体不可读");
+
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let newlineIdx: number;
+        while ((newlineIdx = buffer.indexOf("\n")) !== -1) {
+          const line = buffer.slice(0, newlineIdx).trim();
+          buffer = buffer.slice(newlineIdx + 1);
+          if (!line || !line.startsWith("data:")) continue;
+          const data = line.slice(5).trim();
+          if (data === "[DONE]") return;
+          try {
+            const json = JSON.parse(data);
+            const delta = json.choices?.[0]?.delta?.content;
+            if (delta) yield delta;
+          } catch {
+            // ignore malformed lines
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
     }
   },
 };
 
-function mockReply(prompt: string, selection?: string): string {
-  const p = prompt.toLowerCase();
-  const base = selection ? `「${selection.slice(0, 24)}${selection.length > 24 ? "…" : ""}」` : "";
-  if (p.includes("formal") || p.includes("正式")) {
-    return `${base ? base + " 的正式表述如下：" : ""}兹就相关事项说明如下：本段内容为演示用示例文本，用于展示 TipKit 的 AI 流式改写能力。实际接入时，只需在 EditorDeps.ai 中注入真实的大模型服务即可。`;
-  }
-  if (p.includes("续") || p.includes("continue")) {
-    return "接下来的部分依然由 AI 续写完成：TipKit 的扩展体系是自包含的，每个插件一个目录，可以整体裁剪。你需要的能力，也许只需要几行配置。";
-  }
-  return `${base || "这里是 AI 生成的内容。"}演示提示：这是一个本地 mock 流，输出按字符逐个推送，用于验证流式插入、高亮预览与接受/放弃流程。`;
-}
+/** AI provider：通过 Next.js /api/ai 代理调用 DeepSeek（解决 CORS，key 只存服务端） */
+const aiProvider: AIProvider = deepseekAI;
 
 const PLACEHOLDER: Record<DemoLang, string> = {
   zh: "输入 / 打开斜杠菜单，或直接粘贴 Markdown…",
@@ -298,7 +332,7 @@ export function DemoEditor({
     () => ({
       uploadImage,
       uploadAttachment,
-      ai: mockAI,
+      ai: aiProvider,
       t,
       onCommentCreate: (range) => {
         setPendingRange(range);
