@@ -4,7 +4,13 @@
     "plugins": [{ "name": "next" }],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@tipkit/core": ["../../packages/core/src/index.ts"],
+      "@tipkit/extensions": ["../../packages/extensions/src/index.ts"],
+      "@tipkit/ui": ["../../packages/ui/src/index.ts"],
+      "@tipkit/components": ["../../packages/components/src/index.ts"],
+      "@tipkit/themes": ["../../packages/themes/src/index.ts"],
+      "@tipkit/editor": ["../../packages/editor/src/index.ts"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

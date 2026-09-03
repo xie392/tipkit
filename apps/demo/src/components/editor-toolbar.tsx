@@ -363,11 +363,11 @@ function InsertPanel({
         (a) =>
           a.label.toLowerCase().includes(q) ||
           a.description.toLowerCase().includes(q) ||
-          a.aliases?.some((al) => al.toLowerCase().includes(q)),
+          a.aliases?.some((al: string) => al.toLowerCase().includes(q)),
       )
     : actions;
 
-  const groups = SLASH_GROUP_ORDER.map((g) => ({
+  const groups = SLASH_GROUP_ORDER.map((g: InsertAction["group"]) => ({
     group: g,
     label: getSlashGroupLabel(g, t),
     items: filtered.filter((a) => a.group === g),
