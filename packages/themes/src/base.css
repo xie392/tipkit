@@ -3913,7 +3913,7 @@ sup.tk-footnote-ref::after {
   line-height: 1;
   color: var(--primary, #2563eb);
   font-weight: 600;
-  cursor: default;
+  cursor: pointer;
 }
 
 /* 文末脚注区 */
@@ -3933,9 +3933,28 @@ sup.tk-footnote-ref::after {
   margin-right: 0.5em;
   color: var(--muted-foreground, #6b7280);
 }
+/* 跳转目标滚动定位：预留固定顶栏高度，消费方可通过 --tk-scroll-margin-top 覆盖 */
+sup.tk-footnote-ref,
+.tk-footnote-item {
+  scroll-margin-top: var(--tk-scroll-margin-top, 5rem);
+  scroll-margin-bottom: 5rem;
+}
 .tk-footnote-item p {
   display: inline;
   margin: 0;
+}
+/* 条目内返回箭头：点击跳回正文引用处 */
+.tk-footnote-backref {
+  display: inline-block;
+  margin-right: 0.35em;
+  color: var(--primary, #2563eb);
+  cursor: pointer;
+  user-select: none;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+.tk-footnote-backref:hover {
+  opacity: 1;
 }
 
 

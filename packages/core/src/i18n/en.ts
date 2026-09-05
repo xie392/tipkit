@@ -74,7 +74,6 @@ export const en: Messages = {
   "toolbar.export": "Export",
   "toolbar.exportMarkdown": "Export Markdown (.md)",
   "toolbar.exportWord": "Export Word (.docx)",
-  "toolbar.exportPdf": "Export PDF",
   "toolbar.exportPdfServer": "Export PDF (Server, Vector)",
 
   /* ── Find & Replace ── */

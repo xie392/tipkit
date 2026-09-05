@@ -74,7 +74,6 @@ export const zh: Messages = {
   "toolbar.export": "导出",
   "toolbar.exportMarkdown": "导出 Markdown (.md)",
   "toolbar.exportWord": "导出 Word (.docx)",
-  "toolbar.exportPdf": "导出 PDF",
   "toolbar.exportPdfServer": "导出 PDF（服务端·矢量）",
 
   /* ── 查找替换 ── */

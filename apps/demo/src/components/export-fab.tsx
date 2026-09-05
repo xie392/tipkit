@@ -9,8 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@tipkit/components";
 import { useDemoLang } from "@/components/use-demo-lang";
-import { exportMarkdown, exportPdf, exportPdfServer, exportWord } from "@/lib/export-document";
-import { FileDown, FileText, FileType, Loader2, Printer } from "lucide-react";
+import { exportMarkdown, exportPdfServer, exportWord } from "@/lib/export-document";
+import { FileDown, FileText, FileType, Loader2 } from "lucide-react";
 
 /* 右下角悬浮「导出」按钮（与编辑/只读开关并排）：Markdown / Word / PDF */
 export function ExportFab({ editor }: { editor: Editor | null }) {
@@ -51,10 +51,6 @@ export function ExportFab({ editor }: { editor: Editor | null }) {
         <DropdownMenuItem onClick={() => run(() => exportWord(editor))}>
           <FileType className="w-4 h-4" />
           {t("toolbar.exportWord")}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => run(() => exportPdf(editor))}>
-          <Printer className="w-4 h-4" />
-          {t("toolbar.exportPdf")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => run(() => exportPdfServer(editor))}>
           <FileDown className="w-4 h-4" />

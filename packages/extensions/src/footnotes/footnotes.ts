@@ -3,6 +3,7 @@ import type { EditorState, Transaction, TextSelection as TextSelectionType } fro
 import { TextSelection } from "@tiptap/pm/state";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import type { Node as PMNode } from "@tiptap/pm/model";
+import type { EditorView } from "@tiptap/pm/view";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
 /* 脚注扩展（参考 tiptap-footnotes 设计）。
@@ -39,6 +40,8 @@ declare module "@tiptap/core" {
       deleteFootnote: (id: string) => ReturnType;
       /** 光标跳转到文末对应脚注条目 */
       focusFootnote: (id: string) => ReturnType;
+      /** 光标跳转回正文中对应脚注引用的位置 */
+      focusFootnoteReference: (id: string) => ReturnType;
     };
   }
 }
@@ -139,6 +142,7 @@ export const Footnotes = Node.create({
   },
 
   addProseMirrorPlugins() {
+    const editor = this.editor;
     return [
       // 编号插件：按文档顺序给引用/条目注入 data-num（CSS 用 attr() 显示）。
       // 不用 CSS counter——counter 的作用域规则在块级容器/嵌套结构下会重启编号
@@ -151,6 +155,27 @@ export const Footnotes = Node.create({
         props: {
           decorations(state: EditorState) {
             return (this as unknown as { getState(d: EditorState): DecorationSet }).getState(state);
+          },
+        },
+      }),
+      // 互相跳转：点击正文引用 → 滚动到文末条目；点击条目内返回箭头 → 滚动回引用
+      new Plugin({
+        key: new PluginKey("footnotesJump"),
+        props: {
+          handleClick(_view, _pos, event) {
+            const target = event.target as HTMLElement | null;
+            if (!target?.closest) return false;
+            const backref = target.closest<HTMLElement>(".tk-footnote-backref");
+            if (backref?.dataset.id) {
+              editor.commands.focusFootnoteReference(backref.dataset.id);
+              return true;
+            }
+            const ref = target.closest<HTMLElement>(".tk-footnote-ref");
+            if (ref?.dataset.id) {
+              editor.commands.focusFootnote(ref.dataset.id);
+              return true;
+            }
+            return false;
           },
         },
       }),
@@ -301,10 +326,12 @@ export const Footnotes = Node.create({
           state,
           tr,
           dispatch,
+          view,
         }: {
           state: EditorState;
           tr: Transaction;
           dispatch?: (tr: Transaction) => void;
+          view?: EditorView;
         }) => {
           let target: { pos: number } | null = null;
           state.doc.descendants((node, pos) => {
@@ -320,8 +347,42 @@ export const Footnotes = Node.create({
           tr.setSelection(
             TextSelection.near(tr.doc.resolve(pos + 1)) as unknown as TextSelectionType,
           );
-          tr.scrollIntoView();
-          if (dispatch) dispatch(tr);
+          if (dispatch) {
+            dispatch(tr);
+            scrollPosIntoView(view, pos);
+          }
+          return true;
+        },
+
+      focusFootnoteReference:
+        (id: string) =>
+        ({
+          state,
+          tr,
+          dispatch,
+          view,
+        }: {
+          state: EditorState;
+          tr: Transaction;
+          dispatch?: (tr: Transaction) => void;
+          view?: EditorView;
+        }) => {
+          let target: { pos: number } | null = null;
+          state.doc.descendants((node, pos) => {
+            if (target) return false;
+            if (node.type.name === "footnoteReference" && node.attrs.id === id) {
+              target = { pos };
+              return false;
+            }
+            return true;
+          });
+          if (!target) return false;
+          const { pos } = target as { pos: number };
+          tr.setSelection(TextSelection.near(tr.doc.resolve(pos)) as unknown as TextSelectionType);
+          if (dispatch) {
+            dispatch(tr);
+            scrollPosIntoView(view, pos);
+          }
           return true;
         },
     };
@@ -332,9 +393,20 @@ function createFootnoteId(): string {
   return `fn-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
+/** 创建脚注条目内的返回箭头元素（视觉归主题层，点击行为由 footnotesJump 插件处理） */
+function createBackrefWidget(id: string): () => HTMLElement {
+  return () => {
+    const span = document.createElement("span");
+    span.className = "tk-footnote-backref";
+    span.dataset.id = id;
+    span.setAttribute("contenteditable", "false");
+    span.textContent = "↩";
+    return span;
+  };
+}
+
 /** 在文档中查找 footnotes 容器 */
-function findFootnotesContainer(doc: PMNode): { pos: number; node: PMNode } | null {
-  let found: { pos: number; node: PMNode } | null = null;
+function findFootnotesContainer(doc: PMNode): { pos: number; node: PMNode } | null {  let found: { pos: number; node: PMNode } | null = null;
   doc.descendants((node, pos) => {
     if (found) return false;
     if (node.type.name === "footnotes") {
@@ -344,6 +416,18 @@ function findFootnotesContainer(doc: PMNode): { pos: number; node: PMNode } | nu
     return true;
   });
   return found;
+}
+
+/**
+ * 平滑滚动到 pos 所在节点并使其居中可见。
+ * 不用 tr.scrollIntoView()——它按视口边缘对齐，目标会被固定顶栏遮挡；
+ * 居中定位天然避开顶栏，主题层还可用 scroll-margin-top 微调。
+ */
+function scrollPosIntoView(view: EditorView | undefined, pos: number): void {
+  const dom = view?.nodeDOM(pos);
+  if (dom instanceof HTMLElement) {
+    dom.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 }
 
 /** 便捷组合：一次引入三个节点（引用 / 条目 / 容器），供消费方与测试使用 */
@@ -372,6 +456,16 @@ function buildNumberDecorations(doc: PMNode): DecorationSet {
       let n = numOfId.get(node.attrs.id as string);
       if (n == null) n = ++orphanSeq;
       decos.push(Decoration.node(pos, pos + node.nodeSize, { "data-num": String(n) }));
+      // 条目内的返回箭头（点击跳回正文引用），放在第一个文本块的起始处
+      const first = node.firstChild;
+      if (first?.isTextblock && node.attrs.id) {
+        decos.push(
+          Decoration.widget(pos + 2, createBackrefWidget(node.attrs.id as string), {
+            side: -1,
+            ignoreSelection: true,
+          }),
+        );
+      }
     }
     return true;
   });
