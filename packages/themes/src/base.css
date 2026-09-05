@@ -336,6 +336,33 @@
   line-height: 0;
 }
 
+/* 图片上传中遮罩（extensions/image-block 占位态叠加在图片上） */
+.tk-image-block-uploading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: color-mix(in srgb, var(--tk-foreground, #000) 45%, transparent);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.tk-image-block-uploading-spinner {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border: 2px solid rgb(255 255 255 / 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: tk-spin 0.8s linear infinite;
+}
+
 .tk-image-block-img {
   display: block;
   border-radius: 8px;
@@ -442,124 +469,6 @@
   border-radius: 4px;
   pointer-events: none;
   z-index: 3;
-}
-
-/* 图片预览（lightbox） */
-.tk-image-preview-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-  background: color-mix(in srgb, #000 78%, transparent);
-  overflow: hidden;
-}
-
-.tk-image-preview-stage {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5vh 5vw;
-}
-
-.tk-image-preview-img {
-  max-width: 100%;
-  max-height: 90vh;
-  border-radius: 8px;
-  box-shadow: 0 12px 48px rgb(0 0 0 / 0.5);
-  user-select: none;
-  -webkit-user-drag: none;
-  will-change: transform;
-}
-
-.tk-image-preview-img.is-dragging {
-  transition: none;
-}
-
-.tk-image-preview-toolbar {
-  position: absolute;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 8px;
-  border-radius: 10px;
-  background: color-mix(in srgb, #1a1a1a 85%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid color-mix(in srgb, #fff 12%, transparent);
-  box-shadow: 0 8px 32px rgb(0 0 0 / 0.4);
-}
-
-.tk-image-preview-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: #e5e5e5;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-.tk-image-preview-btn:hover {
-  background: color-mix(in srgb, #fff 15%, transparent);
-  color: #fff;
-}
-
-.tk-image-preview-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.tk-image-preview-btn:disabled:hover {
-  background: transparent;
-  color: #e5e5e5;
-}
-
-.tk-image-preview-btn.tk-image-preview-close:hover {
-  background: color-mix(in srgb, #ef4444 60%, transparent);
-}
-
-.tk-image-preview-zoom {
-  min-width: 52px;
-  text-align: center;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  color: #d4d4d4;
-  user-select: none;
-  padding: 0 4px;
-}
-
-.tk-image-preview-sep {
-  width: 1px;
-  height: 20px;
-  margin: 0 4px;
-  background: color-mix(in srgb, #fff 15%, transparent);
-}
-
-.tk-image-preview-info {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-  padding: 4px 12px;
-  border-radius: 6px;
-  background: color-mix(in srgb, #1a1a1a 75%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  font-size: 12px;
-  color: #a3a3a3;
-  font-variant-numeric: tabular-nums;
-  user-select: none;
 }
 
 .tk-image-block-caption,

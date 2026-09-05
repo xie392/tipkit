@@ -257,7 +257,7 @@ export const zh: Messages = {
   "image.styleBorderShadow": "边框+阴影",
   "image.resize": "拖拽调整大小",
   "image.captionPlaceholder": "图片说明…",
-
+  "image.uploading": "上传中…",
   /* ── 图片预览 ── */
   "imagePreview.zoomOut": "缩小 (-)",
   "imagePreview.zoomIn": "放大 (+)",

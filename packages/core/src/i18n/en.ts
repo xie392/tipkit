@@ -257,7 +257,7 @@ export const en: Messages = {
   "image.styleBorderShadow": "Border + Shadow",
   "image.resize": "Drag to resize",
   "image.captionPlaceholder": "Caption…",
-
+  "image.uploading": "Uploading…",
   /* ── Image preview ── */
   "imagePreview.zoomOut": "Zoom out (-)",
   "imagePreview.zoomIn": "Zoom in (+)",

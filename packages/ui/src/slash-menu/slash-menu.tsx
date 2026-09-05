@@ -10,7 +10,7 @@ import {
   type InsertAction,
   type SlashCommandState,
 } from "@tipkit/extensions";
-import { useT } from "@tipkit/core";
+import { createUploadId, finalizeImageUpload, useT } from "@tipkit/core";
 import { openLinkDialog } from "../bubble-menu/link-dialog";
 
 export interface SlashMenuProps {
@@ -222,9 +222,24 @@ export function SlashMenu({ editor, onUploadImage, iconRenderer, aiEnabled = fal
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !onUploadImage || !editor) return;
-    onUploadImage(file).then((src) => {
-      editor.chain().focus().setImageBlock({ src }).run();
-    });
+    // 先插入占位节点（本地 blob 预览 + 上传中遮罩），上传结束后替换 src 或移除
+    const uploadId = createUploadId();
+    const previewUrl = URL.createObjectURL(file);
+    editor
+      .chain()
+      .focus()
+      .setImageBlock({ src: previewUrl, uploading: true, uploadId })
+      .run();
+    onUploadImage(file)
+      .then((src) => {
+        finalizeImageUpload(editor, uploadId, src || null);
+      })
+      .catch(() => {
+        finalizeImageUpload(editor, uploadId, null);
+      })
+      .finally(() => {
+        URL.revokeObjectURL(previewUrl);
+      });
   };
 
   const execute = (action: InsertAction) => {

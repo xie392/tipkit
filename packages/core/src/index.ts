@@ -11,6 +11,7 @@ export type { ToolbarPlacement } from "./use-toolbar-placement";
 export { useToolbarVisibility } from "./use-toolbar-visibility";
 export { EditorProvider, useEditorDeps, useT } from "./context";
 export { createSerializer } from "./serialization";
+export { createUploadId, finalizeImageUpload } from "./image-upload";
 export type { TipKitSerializer } from "./serialization";
 export type {
   ToolbarAction,

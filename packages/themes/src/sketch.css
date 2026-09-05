@@ -765,8 +765,30 @@
   height: 0;
 }
 
-/* ---------- 图片 ---------- */
+/* ---------- 图片 ----------
+ * 手绘外观按用户选择的 imageStyle 分别落地（特异性高于 base.css 的
+ * .tk-image-style-*，避免整图块统一强制边框+阴影、导致"无样式"失效） */
 .tk-theme-sketch .tk-image-block-img {
+  border-radius: 12px 8px 14px 10px;
+}
+
+.tk-theme-sketch .tk-image-style-none {
+  border: none;
+  box-shadow: none;
+}
+
+.tk-theme-sketch .tk-image-style-border {
+  border: 1.5px solid var(--tk-sketch-line-soft);
+  border-radius: 12px 8px 14px 10px;
+  box-shadow: none;
+}
+
+.tk-theme-sketch .tk-image-style-shadow {
+  border: none;
+  box-shadow: 3px 3px 0 var(--tk-sketch-shadow);
+}
+
+.tk-theme-sketch .tk-image-style-border-shadow {
   border: 1.5px solid var(--tk-sketch-line-soft);
   border-radius: 12px 8px 14px 10px;
   box-shadow: 3px 3px 0 var(--tk-sketch-shadow);

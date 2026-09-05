@@ -1,9 +1,11 @@
 import { Extension, type Editor } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
+import { createUploadId, finalizeImageUpload } from "@tipkit/core";
 
 /* 文件拖拽/粘贴处理（迁移自 blog rich-text/ext/file-handler.ts）。
- * 图片拖入或粘贴自动上传并插入；上传函数由配置注入（EditorDeps.uploadImage）。 */
+ * 图片拖入或粘贴自动上传并插入；上传函数由配置注入（EditorDeps.uploadImage）。
+ * 配置了上传时先插入占位节点（本地 blob 预览 + loading 遮罩），完成后替换 src。 */
 
 export interface FileHandlerOptions {
   allowedMimeTypes: string[];
@@ -51,12 +53,27 @@ export const FileHandler = Extension.create<FileHandlerOptions>({
         reader.readAsDataURL(file);
         return;
       }
+      // 先插入占位节点（本地 blob 预览 + 上传中遮罩），上传结束后落盘或移除
+      const uploadId = createUploadId();
+      const previewUrl = URL.createObjectURL(file);
+      const attrs = { src: previewUrl, uploading: true, uploadId };
+      const chain = editor.chain().focus(undefined, { scrollIntoView: false });
+      if (typeof pos === "number") {
+        chain.setImageBlockAt({ pos, ...attrs }).run();
+      } else {
+        chain.setImageBlock(attrs).run();
+      }
       opts
         .onUpload(file)
         .then((url) => {
-          if (url) insertImage(url, pos);
+          finalizeImageUpload(editor, uploadId, url);
         })
-        .catch(() => {});
+        .catch(() => {
+          finalizeImageUpload(editor, uploadId, null);
+        })
+        .finally(() => {
+          URL.revokeObjectURL(previewUrl);
+        });
     };
 
     const pluginKey = new PluginKey("fileHandler");
