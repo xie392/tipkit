@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mergeAttributes, Node, nodeInputRule } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
-import { useT, useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
+import { useT, useEditorDeps, useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
 import { Copy, Check } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
@@ -87,6 +87,14 @@ export const Katex = Node.create({
   },
 });
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function KatexView(props: NodeViewProps) {
   const { node, updateAttributes, deleteNode } = props;
   const attrs = node.attrs as KatexAttrs;
@@ -142,8 +150,10 @@ function KatexView(props: NodeViewProps) {
     }
   }, [editing]);
 
+  const renderInjected = useEditorDeps().renderKatex;
+
   const html = useMemo(() => {
-    if (!text.trim()) return "";
+    if (!text.trim() || renderInjected) return "";
     try {
       return katex.renderToString(text, {
         throwOnError: false,
@@ -151,9 +161,32 @@ function KatexView(props: NodeViewProps) {
         output: "html",
       });
     } catch {
-      return `<span style="color:#dc2626">${t("katex.renderError")}${text}</span>`;
+      return `<span class="tk-katex-error">${t("katex.renderError")}${escapeHtml(text)}</span>`;
     }
-  }, [text, t]);
+  }, [text, t, renderInjected]);
+
+  // 注入了 renderKatex 时走异步渲染（SSR/服务端渲染场景），否则用本地 katex
+  const [injectedHtml, setInjectedHtml] = useState("");
+  useEffect(() => {
+    if (!renderInjected || !text.trim()) {
+      setInjectedHtml("");
+      return;
+    }
+    let cancelled = false;
+    renderInjected(text, true)
+      .then((html) => {
+        if (!cancelled) setInjectedHtml(html);
+      })
+      .catch(() => {
+        if (!cancelled)
+          setInjectedHtml(`<span class="tk-katex-error">${t("katex.renderError")}${escapeHtml(text)}</span>`);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [renderInjected, text, t]);
+
+  const displayHtml = renderInjected ? injectedHtml : html;
 
   const previewHtml = useMemo(() => {
     if (!draft.trim()) return "";
@@ -173,11 +206,20 @@ function KatexView(props: NodeViewProps) {
     setEditing(false);
   };
 
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    },
+    [],
+  );
+
   const copySource = async () => {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+      copiedTimerRef.current = setTimeout(() => setCopied(false), 1500);
     } catch {
       /* ignore */
     }
@@ -301,7 +343,7 @@ function KatexView(props: NodeViewProps) {
               </button>
             )}
             {text.trim() ? (
-              <span dangerouslySetInnerHTML={{ __html: html }} />
+              <span dangerouslySetInnerHTML={{ __html: displayHtml }} />
             ) : isEditable ? (
               <button
                 type="button"

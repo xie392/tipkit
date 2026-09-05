@@ -19,10 +19,12 @@ describe("扩展装配集成（防 keyed plugin 冲突）", () => {
     editor.destroy();
   });
 
-  it("重复调用扩展工厂返回同一批实例（单例缓存）", () => {
+  it("重复调用扩展工厂返回全新实例（避免跨编辑器共享 storage 状态）", () => {
     const a = createBasicExtensions();
     const b = createBasicExtensions();
-    expect(a).toBe(b);
-    expect(createAdvancedExtensions()).toBe(createAdvancedExtensions());
+    expect(a).not.toBe(b);
+    // 但结构一致（同样的扩展名与数量）
+    expect(a.map((e) => e.name)).toEqual(b.map((e) => e.name));
+    expect(createAdvancedExtensions()).not.toBe(createAdvancedExtensions());
   });
 });

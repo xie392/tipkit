@@ -69,6 +69,7 @@ export const zh: Messages = {
   "toolbar.clearHighlight": "清除高亮",
   "toolbar.align": "对齐方式",
   "toolbar.findReplace": "查找替换",
+  "toolbar.grammarCheck": "语法检查",
 
   /* ── 查找替换 ── */
   "find.tab": "查找",

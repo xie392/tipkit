@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
-import { emojiFilter, emojiByGroup, EMOJI_GROUPS } from "./emoji-data";
+import { emojiFilter, emojiByGroup, EMOJI_GROUPS } from "../shared/emoji/emoji-data";
 
 /* Emoji 建议浮层。
  * 输入 :xxx 触发，方向键选择，Enter/Tab 插入。视觉归主题（tk-emoji-*）。

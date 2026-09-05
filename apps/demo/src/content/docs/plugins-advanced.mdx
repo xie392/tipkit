@@ -117,7 +117,7 @@ editor.chain().focus().setKatex({ text: "E = mc^2" }).run();
 
 - **用途**：强调性提示框（提示 / 成功 / 警告 / 危险 / 备注），可切换变体与自定义 emoji 图标，内容区可放多个段落。
 - **启用**：`Callout`（集合内默认已有）。
-- **变体 `CalloutVariant`**：`info` / `success` / `warning` / `danger` / `note`；`CALLOUT_VARIANTS` 常量记录每种变体的文案与配色。
+- **变体 `CalloutVariant`**：`info` / `success` / `warning` / `danger` / `note`；`CALLOUT_VARIANTS` 为变体名列表，`CALLOUT_VARIANT_EMOJIS` 记录默认 emoji；变体配色由主题层 `.tk-callout-{variant}` 提供。
 - **命令**：`setCallout`、`setCalloutVariant`、`setCalloutEmoji`；**输入规则**：`>!` 回车转换为 info 提示框。
 
 | 变体 | emoji | 适用场景 |

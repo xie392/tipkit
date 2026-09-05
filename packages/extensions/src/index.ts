@@ -26,8 +26,10 @@ export { MarkdownPaste } from "./markdown/paste";
 export { ListInputRules } from "./markdown/list-input-rules";
 export { TrailingNode } from "./basic/trailing-node";
 export { Selection } from "./basic/selection";
+export { SelectAll } from "./basic/select-all";
 export { FontSize } from "./basic/font-size";
 export { CustomHorizontalRule } from "./basic/horizontal-rule";
+export { UrlAutolink } from "./markdown/url-autolink";
 
 // M2：斜杠菜单命令 + 图片块 + 代码块
 export {
@@ -52,7 +54,7 @@ export { Katex } from "./katex/katex";
 export type { KatexAttrs } from "./katex/katex";
 export { Status } from "./status/status";
 export type { StatusAttrs } from "./status/status";
-export { Callout, CALLOUT_VARIANTS } from "./callout/callout";
+export { Callout, CALLOUT_VARIANTS, CALLOUT_VARIANT_EMOJIS } from "./callout/callout";
 export type { CalloutVariant } from "./callout/callout";
 export { Columns, Column, ColumnLayout } from "./columns/columns";
 export { Details, DetailsSummary, DetailsContent } from "./details/details";
@@ -66,8 +68,8 @@ export type { VideoAttrs } from "./video/video";
 export { BlockHandles, blockHandlesKey, getActiveBlockPos } from "./block-handles/block-handles";
 export { FileHandler } from "./file-handler/file-handler";
 export type { FileHandlerOptions } from "./file-handler/file-handler";
-export { emojisToName, emojiSearch, emojiFilter, emojiByGroup, emojiLibrary, EMOJI_GROUPS, COMMON_EMOJI_COUNT } from "./emoji/emoji-data";
-export type { EmojiEntry, EmojiGroup } from "./emoji/emoji-data";
+export { emojisToName, emojiSearch, emojiFilter, emojiByGroup, emojiLibrary, EMOJI_GROUPS, COMMON_EMOJI_COUNT } from "./shared/emoji/emoji-data";
+export type { EmojiEntry, EmojiGroup } from "./shared/emoji/emoji-data";
 
 // Emoji（inline 节点 + 短代码输入规则；建议浮层在 @tipkit/ui）
 export { Emoji, findEmoji } from "./emoji/emoji-node";

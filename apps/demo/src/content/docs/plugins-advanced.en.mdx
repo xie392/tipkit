@@ -117,7 +117,7 @@ editor.chain().focus().setKatex({ text: "E = mc^2" }).run();
 
 - **Purpose**: An emphasis callout (info / success / warning / danger / note) with switchable variants and a custom emoji icon; the content area can hold multiple paragraphs.
 - **Enable**: `Callout` (included in the bundle by default).
-- **Variants `CalloutVariant`**: `info` / `success` / `warning` / `danger` / `note`; the `CALLOUT_VARIANTS` constant records each variant's label and colors.
+- **Variants `CalloutVariant`**: `info` / `success` / `warning` / `danger` / `note`; `CALLOUT_VARIANTS` is the list of variant names and `CALLOUT_VARIANT_EMOJIS` holds the default emoji; variant colors come from the theme layer via `.tk-callout-{variant}`.
 - **Commands**: `setCallout`, `setCalloutVariant`, `setCalloutEmoji`; **input rule**: `>!` + Enter converts to an info callout.
 
 | Variant | Emoji | Use case |

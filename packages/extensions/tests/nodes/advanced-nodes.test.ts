@@ -130,12 +130,11 @@ describe("Callout 提示块", () => {
   });
 
   it("CALLOUT_VARIANTS 包含 info/warning/danger/success/note", () => {
-    const variants = Object.keys(CALLOUT_VARIANTS);
-    expect(variants).toContain("info");
-    expect(variants).toContain("warning");
-    expect(variants).toContain("danger");
-    expect(variants).toContain("success");
-    expect(variants).toContain("note");
+    expect(CALLOUT_VARIANTS).toContain("info");
+    expect(CALLOUT_VARIANTS).toContain("warning");
+    expect(CALLOUT_VARIANTS).toContain("danger");
+    expect(CALLOUT_VARIANTS).toContain("success");
+    expect(CALLOUT_VARIANTS).toContain("note");
   });
 
   it("setCalloutVariant 可切换 variant", () => {

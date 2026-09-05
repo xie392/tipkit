@@ -69,6 +69,7 @@ export const en: Messages = {
   "toolbar.clearHighlight": "Clear highlight",
   "toolbar.align": "Alignment",
   "toolbar.findReplace": "Find & Replace",
+  "toolbar.grammarCheck": "Grammar Check",
 
   /* ── Find & Replace ── */
   "find.tab": "Find",

@@ -19,5 +19,10 @@
   "devDependencies": {
     "turbo": "^2.3.3",
     "typescript": "^5.7.2"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "@tiptap/react@3.30.5": "patches/@tiptap__react@3.30.5.patch"
+    }
   }
 }

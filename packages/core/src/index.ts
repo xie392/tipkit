@@ -9,6 +9,8 @@ export { useEditorEditable } from "./use-editor-editable";
 export { useToolbarPlacement } from "./use-toolbar-placement";
 export type { ToolbarPlacement } from "./use-toolbar-placement";
 export { useToolbarVisibility } from "./use-toolbar-visibility";
+export { useDismiss } from "./use-dismiss";
+export { beginPointerDrag } from "./pointer-drag";
 export { EditorProvider, useEditorDeps, useT } from "./context";
 export { createSerializer } from "./serialization";
 export { createUploadId, finalizeImageUpload } from "./image-upload";

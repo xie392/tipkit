@@ -6,7 +6,7 @@ import { createLowlight, common } from "lowlight";
 import type { NodeViewProps } from "@tiptap/react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useT, useEditorEditable } from "@tipkit/core";
+import { useDismiss, useT, useEditorEditable } from "@tipkit/core";
 import { IconCheck, IconChevron, IconCopy, IconMoon, IconSun, IconTrash } from "./code-block-icons";
 import { IconCode, IconExpand, IconEye } from "./mermaid-icons";
 import { MermaidPreview } from "./mermaid-preview";
@@ -222,31 +222,7 @@ function CodeBlockView(props: NodeViewProps) {
     requestAnimationFrame(calcPosition);
   }, [langOpen, calcPosition]);
 
-  useEffect(() => {
-    if (!langOpen) return;
-    const onDown = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (
-        !langBtnRef.current?.contains(target) &&
-        !dropdownRef.current?.contains(target)
-      ) {
-        setLangOpen(false);
-      }
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLangOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    window.addEventListener("scroll", calcPosition, true);
-    window.addEventListener("resize", calcPosition);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-      window.removeEventListener("scroll", calcPosition, true);
-      window.removeEventListener("resize", calcPosition);
-    };
-  }, [langOpen, calcPosition]);
+  useDismiss(langOpen, [langBtnRef, dropdownRef], () => setLangOpen(false), calcPosition);
 
   useEffect(() => {
     if (!isEditable) return;
@@ -259,11 +235,20 @@ function CodeBlockView(props: NodeViewProps) {
     prevContentRef.current = node.textContent;
   }, [node.textContent, language, autoDetected, userSelectedAuto, updateAttributes, isEditable]);
 
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    },
+    [],
+  );
+
   const copyCode = async () => {
     try {
       await navigator.clipboard.writeText(node.textContent);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+      copiedTimerRef.current = setTimeout(() => setCopied(false), 1500);
     } catch {
       // ignore
     }

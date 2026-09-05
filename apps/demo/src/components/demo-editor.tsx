@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { TipKitEditor } from "@tipkit/editor";
 import type { EditorDeps, IconRef, CommentRange, AIProvider } from "@tipkit/editor";
-import { createBasicExtensions, createAdvancedExtensions, createFootnoteExtensions, Comment, Canvas, AiGeneration, Emoji, SearchAndReplace } from "@tipkit/extensions";
+import { createBasicExtensions, createAdvancedExtensions, createFootnoteExtensions, Comment, Canvas, AiGeneration, Emoji, SearchAndReplace, UniqueID, LanguageTool } from "@tipkit/extensions";
 import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockHandleMenu, TableControls, ReadonlyTextMenu, AiMenu } from "@tipkit/ui";
 import { useDemoLang } from "@/components/use-demo-lang";
 import type { DemoLang } from "@/components/site-lang-switch";
@@ -224,7 +224,7 @@ export default function App() {
   return &lt;TipKitEditor className="tk-theme-sketch" /&gt;;
 }</code></pre>
 <h2>表格</h2>
-<table><tbody><tr><th>能力</th><th>入口</th><th>说明</th></tr><tr><td>斜杠菜单</td><td><code>/</code></td><td>27 种内容节点</td></tr><tr><td>Markdown</td><td>直接粘贴</td><td>即时转换</td></tr><tr><td>Emoji</td><td><code>:smile</code></td><td>方向键浏览</td></tr></tbody></table>
+<table><tbody><tr><th>能力</th><th>入口</th><th>说明</th></tr><tr><td>斜杠菜单</td><td><code>/</code></td><td>22 种内容节点</td></tr><tr><td>Markdown</td><td>直接粘贴</td><td>即时转换</td></tr><tr><td>Emoji</td><td><code>:smile</code></td><td>方向键浏览</td></tr></tbody></table>
 <h2>Mermaid 图表</h2>
 <p>代码块语言切换到 <code>mermaid</code> 即可渲染图表：默认只显示图，<strong>双击图表</strong>或点右上角 <code>&lt;/&gt;</code> 按钮进入代码编辑（此时隐藏图表），改完点 👁 按钮回到图表视图。</p>
 <pre><code class="language-mermaid">flowchart LR
@@ -800,7 +800,9 @@ export function DemoEditor({
           }}
           extensions={[
             ...createBasicExtensions(),
+            UniqueID,
             SearchAndReplace,
+            LanguageTool.configure({ language: "auto" }),
             commentExt,
             Canvas,
             Emoji,

@@ -59,6 +59,7 @@ import {
   Strikethrough,
   Subscript,
   Superscript,
+  SpellCheck,
   Table2,
   Text,
   TriangleAlert,
@@ -250,6 +251,15 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
         <TablePicker editor={editor} t={t} />
         <Tip label={t("toolbar.codeBlock")}>
           <ToolbarBtn icon={Code2} label={t("toolbar.codeBlock")} active={editor.isActive("codeBlock")} onClick={() => chain().toggleCodeBlock().run()} />
+        </Tip>
+
+        {/* 语法检查（LanguageTool，headless 装饰高亮） */}
+        <Tip label={t("toolbar.grammarCheck")}>
+          <ToolbarBtn
+            icon={SpellCheck}
+            label={t("toolbar.grammarCheck")}
+            onClick={() => editor.chain().checkLanguageTool().run()}
+          />
         </Tip>
 
         {/* 查找替换（语雀式面板） */}

@@ -1,140 +1,16 @@
-import type { Editor } from "@tiptap/react";
-import { NodeSelection } from "@tiptap/pm/state";
-import type { IconRef, Translate } from "@tipkit/core";
+import type { Translate } from "@tipkit/core";
+import { replaceSlashWithEmpty } from "./state";
+import type { GetInsertActionsOptions, InsertAction } from "./types";
+import * as pv from "./preview";
 
 /* 斜杠菜单命令列表（迁移自 blog rich-text/insert-actions.tsx）。
- * 视觉剥离：icon 用 lucide 图标名（IconRef），由消费方映射渲染；
- * 命令逻辑保持与 blog 一致（getSlashCommandState / filterInsertActions）。 */
+ * 视觉剥离：icon 用 lucide 图标名（IconRef），预览 HTML 只用主题 CSS 变量。 */
 
-export interface InsertAction {
-  id: string;
-  group: "basic" | "structure" | "media";
-  label: string;
-  description: string;
-  aliases?: string[];
-  /** lucide 图标名，消费方映射 */
-  icon: IconRef;
-  shortcut?: string;
-  run: () => void;
-  /** false 表示命令依赖尚未迁移的扩展（M3），菜单中仍可展示但禁用 */
-  available: boolean;
-  /** 右侧预览面板的标题 */
-  previewTitle?: string;
-  /** 右侧预览面板的 HTML（内联样式，消费方也可忽略） */
-  preview?: string;
-}
+export type { GetInsertActionsOptions, InsertAction, SlashCommandState } from "./types";
+export { SLASH_GROUP_ORDER, getSlashGroupLabel } from "./types";
+export { getSlashCommandState, replaceSlashWithEmpty, filterInsertActions } from "./state";
 
-export interface SlashCommandState {
-  active: boolean;
-  query: string;
-  from: number;
-  to: number;
-  key: string;
-}
-
-const INACTIVE_SLASH_COMMAND: SlashCommandState = {
-  active: false,
-  query: "",
-  from: 0,
-  to: 0,
-  key: "",
-};
-
-/** 检测光标前是否为 "/关键词"（段落内生效，支持 blockquote / callout / listItem / column / details 等嵌套容器内的段落） */
-export function getSlashCommandState(editor: Editor): SlashCommandState {
-  const { state } = editor;
-  const { $anchor, empty } = state.selection;
-
-  if (!empty) return INACTIVE_SLASH_COMMAND;
-
-  const node = $anchor.parent;
-  if (node.type.name !== "paragraph") return INACTIVE_SLASH_COMMAND;
-
-  const textBeforeCursor = node.textBetween(0, $anchor.parentOffset, "\n", "\n");
-  if (!textBeforeCursor.startsWith("/")) return INACTIVE_SLASH_COMMAND;
-
-  const query = textBeforeCursor.slice(1);
-  const from = $anchor.start();
-  const to = from + textBeforeCursor.length;
-
-  return { active: true, query, from, to, key: `${from}:${to}:${query}` };
-}
-
-/** 执行动作前删除 "/关键词" 文本（slash 菜单用）。
- *  删除后若当前段落为空，将选区设为 NodeSelection 选中该空段落，
- *  这样后续 insertContent 会替换整块而非在空段落后追加，避免多一行。 */
-export function replaceSlashWithEmpty(editor: Editor) {
-  const slash = getSlashCommandState(editor);
-  if (!slash.active) return;
-  const { state, view } = editor;
-  const tr = state.tr.deleteRange(slash.from, slash.to);
-  const $from = tr.doc.resolve(slash.from);
-  if ($from.parent.type.name === "paragraph" && $from.parent.content.size === 0) {
-    const nodePos = $from.before($from.depth);
-    if (nodePos >= 0) {
-      tr.setSelection(NodeSelection.create(tr.doc, nodePos));
-    }
-  }
-  view.dispatch(tr.scrollIntoView());
-}
-
-export function filterInsertActions(actions: InsertAction[], query: string) {
-  const normalizedQuery = query.trim().toLowerCase();
-  if (!normalizedQuery) return actions;
-  const isSingleCjkQuery = normalizedQuery.length === 1 && /[一-鿿]/.test(normalizedQuery);
-
-  return actions.filter((action) => {
-    const label = action.label.toLowerCase();
-    const aliases = action.aliases ?? [];
-
-    if (isSingleCjkQuery) {
-      return (
-        label.startsWith(normalizedQuery) ||
-        aliases.some((alias) => alias.toLowerCase() === normalizedQuery)
-      );
-    }
-
-    const haystack = [label, action.description, action.id, ...aliases]
-      .join(" ")
-      .toLowerCase();
-    return haystack.includes(normalizedQuery);
-  });
-}
-
-export interface GetInsertActionsOptions {
-  editor: Editor;
-  /** 有值时"图片"走本地文件选择 */
-  openImagePicker?: () => void;
-  /** 有值时"链接"走自定义弹窗（否则退化 window.prompt） */
-  openLinkDialog?: () => void;
-  /** 执行动作前删除 "/关键词" 文本（slash 菜单用） */
-  clearSlashQuery?: boolean;
-  /** i18n 翻译函数 */
-  t?: Translate;
-  /** 是否展示 AI 助手入口（消费方需已注册 AiGeneration + AiMenu） */
-  aiEnabled?: boolean;
-}
-
-/** 斜杠菜单分组排序 key */
-export const SLASH_GROUP_ORDER: InsertAction["group"][] = ["basic", "structure", "media"];
-
-/** 分组 key → i18n key 映射 */
-const GROUP_LABEL_KEY: Record<InsertAction["group"], string> = {
-  basic: "slash.group.basic",
-  structure: "slash.group.structure",
-  media: "slash.group.media",
-};
-
-/** 获取分组本地化标题 */
-export function getSlashGroupLabel(group: InsertAction["group"], t: Translate): string {
-  return t(GROUP_LABEL_KEY[group]);
-}
-
-/**
- * 生成插入命令列表。
- * M2 可用：标题/正文/列表/引用/代码块/图片/表格/链接；
- * M3 待启用（available: false）：分栏/折叠/目录/提示框/嵌入/公式/附件/emoji。
- */
+/** 生成插入命令列表（各扩展命令的可用性与消费方注册的扩展保持一致）。 */
 export function getInsertActions({
   editor,
   openImagePicker,
@@ -143,7 +19,7 @@ export function getInsertActions({
   t,
   aiEnabled = false,
 }: GetInsertActionsOptions): InsertAction[] {
-  const tr = t ?? ((k: string) => k);
+  const tr: Translate = t ?? ((k: string) => k);
   const prepareInsert = () => {
     if (clearSlashQuery) replaceSlashWithEmpty(editor);
   };
@@ -159,8 +35,7 @@ export function getInsertActions({
     icon: "Sparkles",
     available: true,
     previewTitle: tr("slash.ai.previewTitle"),
-    preview:
-      '<div style="background:#fff;border-radius:6px;padding:16px;display:flex;align-items:center;justify-content:center;gap:6px"><span style="font-size:14px">✨</span><span style="height:6px;width:64px;border-radius:3px;background:#e5e7eb"></span><span style="height:6px;width:44px;border-radius:3px;background:#f3f4f6"></span></div>',
+    preview: pv.previewAI(),
     run: () => {
       prepareInsert();
       // 打开 AI 助手浮层（AiMenu 在 editor.view.dom 上监听）
@@ -168,25 +43,22 @@ export function getInsertActions({
     },
   };
 
-  const heading = (level: 1 | 2 | 3 | 4): InsertAction => {
-    const size = level === 1 ? 18 : level === 2 ? 15 : level === 3 ? 13 : 12;
-    return {
-      id: `heading-${level}`,
-      group: "basic",
-      label: tr(`slash.heading${level}.label`),
-      description: tr(`slash.heading${level}.description`),
-      aliases: [`h${level}`, `biaoti${level}`],
-      icon: `Heading${level}`,
-      shortcut: "#".repeat(level),
-      available: true,
-      previewTitle: tr(`slash.heading${level}.previewTitle`),
-      preview: `<div style="background:#fff;border-radius:6px;padding:12px"><div style="font-size:${size}px;font-weight:700;line-height:1.25;color:#111">${tr(`slash.heading${level}.label`)}</div><div style="margin-top:6px;height:6px;width:100%;border-radius:3px;background:#e5e7eb"></div><div style="margin-top:4px;height:6px;width:78%;border-radius:3px;background:#e5e7eb"></div></div>`,
-      run: () => {
-        prepareInsert();
-        editor.chain().focus().toggleHeading({ level }).run();
-      },
-    };
-  };
+  const heading = (level: 1 | 2 | 3 | 4): InsertAction => ({
+    id: `heading-${level}`,
+    group: "basic",
+    label: tr(`slash.heading${level}.label`),
+    description: tr(`slash.heading${level}.description`),
+    aliases: [`h${level}`, `biaoti${level}`],
+    icon: `Heading${level}`,
+    shortcut: "#".repeat(level),
+    available: true,
+    previewTitle: tr(`slash.heading${level}.previewTitle`),
+    preview: pv.previewHeading(level, tr),
+    run: () => {
+      prepareInsert();
+      editor.chain().focus().toggleHeading({ level }).run();
+    },
+  });
 
   return [
     ...(aiEnabled ? [aiAction] : []),
@@ -203,8 +75,7 @@ export function getInsertActions({
       icon: "Text",
       available: true,
       previewTitle: tr("slash.paragraph.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:12px"><div style="height:6px;width:100%;border-radius:3px;background:#d1d5db"></div><div style="margin-top:6px;height:6px;width:100%;border-radius:3px;background:#e5e7eb"></div><div style="margin-top:6px;height:6px;width:60%;border-radius:3px;background:#e5e7eb"></div></div>',
+      preview: pv.previewParagraph(),
       run: () => {
         prepareInsert();
         editor.chain().focus().setParagraph().run();
@@ -220,8 +91,7 @@ export function getInsertActions({
       shortcut: "- ",
       available: true,
       previewTitle: tr("slash.bulletList.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border-radius:50%;background:#6b7280;flex-shrink:0"></span><span style="font-size:11px;color:#4b5563">列表项一</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border-radius:50%;background:#6b7280;flex-shrink:0"></span><span style="font-size:11px;color:#4b5563">列表项二</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border-radius:50%;background:#6b7280;flex-shrink:0"></span><span style="font-size:11px;color:#4b5563">列表项三</span></div></div>',
+      preview: pv.previewBulletList(),
       run: () => {
         prepareInsert();
         editor.chain().focus().toggleBulletList().run();
@@ -237,8 +107,7 @@ export function getInsertActions({
       shortcut: "1. ",
       available: true,
       previewTitle: tr("slash.orderedList.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:8px"><span style="width:12px;flex-shrink:0;font-size:11px;font-weight:500;color:#6b7280">1.</span><span style="font-size:11px;color:#4b5563">第一项内容</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:12px;flex-shrink:0;font-size:11px;font-weight:500;color:#6b7280">2.</span><span style="font-size:11px;color:#4b5563">第二项内容</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:12px;flex-shrink:0;font-size:11px;font-weight:500;color:#6b7280">3.</span><span style="font-size:11px;color:#4b5563">第三项内容</span></div></div>',
+      preview: pv.previewOrderedList(),
       run: () => {
         prepareInsert();
         editor.chain().focus().toggleOrderedList().run();
@@ -254,8 +123,7 @@ export function getInsertActions({
       shortcut: "[] ",
       available: true,
       previewTitle: tr("slash.taskList.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:3px;background:#22c55e;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px">✓</span><span style="font-size:11px;color:#9ca3af;text-decoration:line-through">已完成任务</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:3px;border:1.5px solid #d1d5db;flex-shrink:0"></span><span style="font-size:11px;color:#4b5563">待办任务一</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:3px;border:1.5px solid #d1d5db;flex-shrink:0"></span><span style="font-size:11px;color:#4b5563">待办任务二</span></div></div>',
+      preview: pv.previewTaskList(),
       run: () => {
         prepareInsert();
         editor.chain().focus().toggleTaskList().run();
@@ -270,8 +138,7 @@ export function getInsertActions({
       icon: "Badge",
       available: true,
       previewTitle: tr("slash.status.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:16px;display:flex;align-items:center;justify-content:center"><span style="display:inline-block;background:#ffcccc;border-radius:4px;padding:2px 8px;font-size:11px;color:#111">待处理</span></div>',
+      preview: pv.previewStatus(tr),
       run: () => {
         prepareInsert();
         editor.chain().focus().setStatus().run();
@@ -287,8 +154,7 @@ export function getInsertActions({
       shortcut: "> ",
       available: true,
       previewTitle: tr("slash.blockquote.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:12px"><div style="border-left:3px solid #111;padding-left:10px"><div style="font-size:11px;font-style:italic;line-height:1.6;color:#4b5563">真知无形，大音希声。这是一段引用的示例文本。</div></div></div>',
+      preview: pv.previewBlockquote(),
       run: () => {
         prepareInsert();
         editor.chain().focus().toggleBlockquote().run();
@@ -304,8 +170,7 @@ export function getInsertActions({
       shortcut: "```",
       available: true,
       previewTitle: tr("slash.codeBlock.previewTitle"),
-      preview:
-        '<div style="background:#111827;border-radius:6px;padding:12px;font-family:monospace;font-size:10px;line-height:1.7;color:#d1d5db"><div><span style="color:#a78bfa">const</span> <span style="color:#60a5fa">greet</span> = () =&gt; &#123;</div><div style="padding-left:12px"><span style="color:#9ca3af">// Hello</span></div><div style="padding-left:12px"><span style="color:#fcd34d">return</span> <span style="color:#34d399">"Hi"</span>;</div><div>&#125;;</div></div>',
+      preview: pv.previewCodeBlock(),
       run: () => {
         prepareInsert();
         editor.chain().focus().toggleCodeBlock().run();
@@ -320,8 +185,7 @@ export function getInsertActions({
       icon: "Table2",
       available: !inTable,
       previewTitle: tr("slash.table.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:8px"><table style="border-collapse:collapse;width:100%;font-size:9px"><tr><th style="border:1px solid #e5e7eb;padding:4px 6px;background:#f9fafb;text-align:left;color:#6b7280">列 A</th><th style="border:1px solid #e5e7eb;padding:4px 6px;background:#f9fafb;text-align:left;color:#6b7280">列 B</th><th style="border:1px solid #e5e7eb;padding:4px 6px;background:#f9fafb;text-align:left;color:#6b7280">列 C</th></tr><tr><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据1</td><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据2</td><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据3</td></tr><tr><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据4</td><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据5</td><td style="border:1px solid #f3f4f6;padding:4px 6px;color:#6b7280">数据6</td></tr></table></div>',
+      preview: pv.previewTable(),
       run: () => {
         prepareInsert();
         editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
@@ -336,8 +200,7 @@ export function getInsertActions({
       icon: "Image",
       available: true,
       previewTitle: tr("slash.image.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;overflow:hidden"><div style="display:flex;align-items:center;justify-content:center;height:72px;background:linear-gradient(135deg,#f3f4f6,#e5e7eb)"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#9ca3af" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div></div>',
+      preview: pv.previewImage(),
       run: () => {
         prepareInsert();
         if (openImagePicker) {
@@ -358,8 +221,7 @@ export function getInsertActions({
       icon: "Link",
       available: true,
       previewTitle: tr("slash.link.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:16px;display:flex;align-items:center;justify-content:center"><span style="display:inline-flex;align-items:center;gap:4px;background:#eff6ff;padding:4px 8px;border-radius:6px;font-size:11px;color:#2563eb;text-decoration:underline">链接文字</span></div>',
+      preview: pv.previewLink(tr),
       run: () => {
         prepareInsert();
         if (openLinkDialog) {
@@ -381,8 +243,7 @@ export function getInsertActions({
       icon: "Columns2",
       available: true,
       previewTitle: tr("slash.columns.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:10px;display:flex;gap:8px"><div style="flex:1;display:flex;flex-direction:column;gap:4px"><div style="height:6px;width:100%;border-radius:3px;background:#d1d5db"></div><div style="height:6px;width:72%;border-radius:3px;background:#e5e7eb"></div></div><div style="width:1px;background:#e5e7eb"></div><div style="flex:1;display:flex;flex-direction:column;gap:4px"><div style="height:6px;width:100%;border-radius:3px;background:#d1d5db"></div><div style="height:6px;width:64%;border-radius:3px;background:#e5e7eb"></div></div></div>',
+      preview: pv.previewColumns(),
       run: () => {
         prepareInsert();
         editor.chain().focus().setColumns().run();
@@ -397,8 +258,7 @@ export function getInsertActions({
       icon: "ChevronDownSquare",
       available: true,
       previewTitle: tr("slash.details.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:12px;display:flex;align-items:center;gap:6px"><svg viewBox="0 0 12 12" width="10" height="10" fill="#6b7280"><path d="M4 2l4 4-4 4z"/></svg><span style="font-size:11px;font-weight:500;color:#374151">点击展开 / 收起</span></div>',
+      preview: pv.previewDetails(),
       run: () => {
         prepareInsert();
         editor.chain().focus().setDetails().run();
@@ -413,8 +273,7 @@ export function getInsertActions({
       icon: "ListTree",
       available: true,
       previewTitle: tr("slash.toc.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:8px"><span style="width:5px;height:5px;border-radius:50%;background:#9ca3af"></span><span style="height:5px;width:64px;border-radius:3px;background:#d1d5db"></span></div><div style="display:flex;align-items:center;gap:8px;padding-left:12px"><span style="width:4px;height:4px;border-radius:50%;background:#d1d5db"></span><span style="height:5px;width:48px;border-radius:3px;background:#e5e7eb"></span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:5px;height:5px;border-radius:50%;background:#9ca3af"></span><span style="height:5px;width:80px;border-radius:3px;background:#d1d5db"></span></div></div>',
+      preview: pv.previewTOC(),
       run: () => {
         prepareInsert();
         editor.chain().focus().insertTableOfContents().run();
@@ -429,8 +288,7 @@ export function getInsertActions({
       icon: "TriangleAlert",
       available: true,
       previewTitle: tr("slash.callout.previewTitle"),
-      preview:
-        '<div style="display:flex;gap:8px;border-radius:6px;background:#fffbeb;padding:10px"><span style="font-size:14px">💡</span><div style="flex:1;display:flex;flex-direction:column;gap:4px"><span style="font-size:11px;font-weight:500;color:#92400e">提示</span><span style="height:5px;width:100%;border-radius:3px;background:#fde68a"></span><span style="height:5px;width:72%;border-radius:3px;background:#fde68a"></span></div></div>',
+      preview: pv.previewCallout(tr),
       run: () => {
         prepareInsert();
         editor.chain().focus().setCallout().run();
@@ -445,8 +303,7 @@ export function getInsertActions({
       icon: "Sigma",
       available: true,
       previewTitle: tr("slash.katex.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:16px;display:flex;align-items:center;justify-content:center"><span style="font-size:18px;font-style:italic;color:#111;font-family:Georgia,serif">E = mc²</span></div>',
+      preview: pv.previewKatex(),
       run: () => {
         prepareInsert();
         editor.chain().focus().setKatex({ text: "" }).run();
@@ -461,8 +318,7 @@ export function getInsertActions({
       icon: "Frame",
       available: true,
       previewTitle: tr("slash.iframe.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;overflow:hidden"><div style="display:flex;align-items:center;justify-content:center;height:64px;background:#f3f4f6"><span style="font-size:10px;color:#9ca3af">🔗 外部网页</span></div></div>',
+      preview: pv.previewIframe(),
       run: () => {
         prepareInsert();
         editor.chain().focus().setIframe({ url: null }).run();
@@ -477,8 +333,7 @@ export function getInsertActions({
       icon: "Video",
       available: true,
       previewTitle: tr("slash.video.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;overflow:hidden"><div style="display:flex;align-items:center;justify-content:center;height:64px;background:#111827"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></div></div>',
+      preview: pv.previewVideo(),
       run: () => {
         prepareInsert();
         editor.chain().focus().setVideo({ src: null }).run();
@@ -493,8 +348,7 @@ export function getInsertActions({
       icon: "Paperclip",
       available: true,
       previewTitle: tr("slash.attachment.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:12px"><div style="display:flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:6px;padding:8px"><span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#fef2f2;font-size:10px;font-weight:700;color:#ef4444">PDF</span><span style="flex:1;display:flex;flex-direction:column;gap:4px"><span style="height:5px;width:80px;border-radius:3px;background:#d1d5db"></span><span style="height:4px;width:40px;border-radius:2px;background:#e5e7eb"></span></span></div></div>',
+      preview: pv.previewAttachment(),
       run: () => {
         prepareInsert();
         editor.chain().focus().setAttachment().run();
@@ -509,8 +363,7 @@ export function getInsertActions({
       icon: "Smile",
       available: true,
       previewTitle: tr("slash.emoji.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:16px;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-size:20px">😀</span><span style="font-size:20px">🎉</span><span style="font-size:20px">❤️</span><span style="font-size:20px">🔥</span><span style="font-size:20px">✨</span></div>',
+      preview: pv.previewEmoji(),
       run: () => {
         prepareInsert();
         editor.chain().focus().insertContent(":").run();
@@ -525,8 +378,7 @@ export function getInsertActions({
       icon: "Brush",
       available: true,
       previewTitle: tr("slash.canvas.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:12px"><div style="border:1px solid #e5e7eb;border-radius:6px;height:72px;position:relative;overflow:hidden;background:linear-gradient(135deg,#f8fafc,#eef2f7)"><div style="position:absolute;left:6px;top:6px;width:20px;height:20px;border:1.5px solid #2563eb;border-radius:3px"></div><div style="position:absolute;left:40px;top:10px;width:26px;height:16px;border:1.5px solid #9ca3af;border-radius:3px"></div><div style="position:absolute;left:14px;top:34px;width:36px;height:1.5px;background:#2563eb;transform:rotate(-12deg)"></div><div style="position:absolute;left:52px;top:44px;width:1.5px;height:14px;background:#9ca3af"></div></div></div>',
+      preview: pv.previewCanvas(),
       run: () => {
         prepareInsert();
         editor.chain().focus().setCanvas().run();
@@ -541,8 +393,7 @@ export function getInsertActions({
       icon: "Superscript",
       available: true,
       previewTitle: tr("slash.footnote.previewTitle"),
-      preview:
-        '<div style="background:#fff;border-radius:6px;padding:12px"><div style="font-size:11px;color:#374151;line-height:1.6">正文内容<span style="font-size:9px;vertical-align:super;color:#2563eb">[1]</span></div><div style="margin-top:8px;border-top:1px solid #e5e7eb;padding-top:6px"><div style="display:flex;gap:6px;align-items:center"><span style="font-size:9px;color:#9ca3af">[1]</span><span style="height:5px;width:64px;border-radius:3px;background:#e5e7eb"></span></div></div></div>',
+      preview: pv.previewFootnote(),
       run: () => {
         prepareInsert();
         editor.chain().focus().setFootnote().run();

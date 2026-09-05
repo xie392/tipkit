@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { mergeAttributes, Node, nodeInputRule } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
-import { useT, useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
+import { beginPointerDrag, useT, useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
 
 /* Iframe 嵌入（迁移自 blog rich-text/ext/iframe.tsx）。
  * 属性：url / width / height；空 url 显示输入卡片，有 url 渲染 iframe，可拖拽改高度。 */
@@ -141,7 +141,8 @@ function disableScrollAnchoring(): () => void {
   if (!style) {
     style = document.createElement("style");
     style.id = STYLE_ID;
-    style.textContent = "* { overflow-anchor: none !important; }";
+    // 只作用于编辑器内部，避免全局 * 选择器影响页面其它区域
+    style.textContent = ".ProseMirror, .ProseMirror * { overflow-anchor: none !important; }";
     document.head.appendChild(style);
   }
   return () => {
@@ -187,7 +188,6 @@ function IframeView(props: NodeViewProps) {
   const { visible, show, hide } = useToolbarVisibility();
   const [hovered, setHovered] = useState(false);
   const dragHRef = useRef<number | null>(null);
-  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     setDraftUrl(url ?? "");
@@ -197,13 +197,6 @@ function IframeView(props: NodeViewProps) {
   useEffect(() => {
     if (!isEditable) setEditing(false);
   }, [isEditable]);
-
-  useEffect(
-    () => () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    },
-    [],
-  );
 
   const commitUrl = () => {
     const u = draftUrl.trim();
@@ -217,44 +210,27 @@ function IframeView(props: NodeViewProps) {
       if (!isEditable) return;
       e.preventDefault();
       e.stopPropagation();
-      const handle = e.currentTarget as HTMLElement;
-      handle.setPointerCapture(e.pointerId);
-
       const startY = e.clientY;
       const startH = height;
 
       const restoreAnchoring = disableScrollAnchoring();
 
-      const onMove = (ev: PointerEvent) => {
-        const next = Math.max(120, Math.min(1200, startH + (ev.clientY - startY)));
-        dragHRef.current = next;
-        if (rafRef.current === null) {
-          rafRef.current = requestAnimationFrame(() => {
-            rafRef.current = null;
-            if (dragHRef.current !== null && wrapRef.current) {
-              wrapRef.current.style.height = `${dragHRef.current}px`;
-            }
-          });
-        }
-      };
-
-      const finish = (commit: boolean) => {
-        handle.removeEventListener("pointermove", onMove);
-        handle.removeEventListener("pointerup", onUp);
-        handle.removeEventListener("pointercancel", onCancel);
-        if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-        const finalH = dragHRef.current;
-        dragHRef.current = null;
-        restoreAnchoring();
-        if (commit && finalH !== null) updateAttributes({ height: finalH });
-      };
-      const onUp = () => finish(true);
-      const onCancel = () => finish(false);
-
-      handle.addEventListener("pointermove", onMove);
-      handle.addEventListener("pointerup", onUp);
-      handle.addEventListener("pointercancel", onCancel);
+      beginPointerDrag(e, {
+        onMove: (ev) => {
+          dragHRef.current = Math.max(120, Math.min(1200, startH + (ev.clientY - startY)));
+        },
+        onFrame: () => {
+          if (dragHRef.current !== null && wrapRef.current) {
+            wrapRef.current.style.height = `${dragHRef.current}px`;
+          }
+        },
+        onFinish: (commit) => {
+          const finalH = dragHRef.current;
+          dragHRef.current = null;
+          restoreAnchoring();
+          if (commit && finalH !== null) updateAttributes({ height: finalH });
+        },
+      });
     },
     [height, isEditable, updateAttributes],
   );

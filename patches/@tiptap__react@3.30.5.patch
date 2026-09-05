@@ -1,0 +1,20 @@
+diff --git a/dist/index.js b/dist/index.js
+index 549e54460da92226742d4f55b3b60583e20ddeab..275fa6137c27109b5af68e75951634e8322c50a5 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -610,9 +610,13 @@ var ReactRenderer = class {
+ 		this.element = document.createElement(as);
+ 		this.element.classList.add("react-renderer");
+ 		if (className) this.element.classList.add(...className.split(" "));
+-		if (this.editor.isEditorContentInitialized) flushSync(() => {
++		// TipKit patch: 不在 React 生命周期内调用 flushSync（React 19 会告警
++		// "flushSync was called from inside a lifecycle method"）。
++		// render() 的订阅通知本就经由 queueMicrotask 异步分发（见 createContentComponent），
++		// 直接同步调用即可，行为等价。
++		if (this.editor.isEditorContentInitialized) {
+ 			this.render();
+-		});
++		}
+ 		else queueMicrotask(() => {
+ 			if (this.destroyed) return;
+ 			this.render();

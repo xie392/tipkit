@@ -1,5 +1,5 @@
 import { mergeAttributes, Node, InputRule } from "@tiptap/core";
-import { emojiLibrary } from "./emoji-data";
+import { emojiLibrary } from "../shared/emoji/emoji-data";
 
 /* Emoji 节点：inline atom，短代码 `:name:` 输入规则 / 从数据表选择后插入。
  * 渲染 <span class="tk-emoji" data-name>😀</span>；Markdown 导出还原为 :name:。

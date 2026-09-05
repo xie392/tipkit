@@ -43,12 +43,8 @@ import { TableReadonlyResize } from "./table-readonly-resize/table-readonly-resi
  *   useTipKitEditor({ extensions: [...createBasicExtensions(), ImageBlock, Katex] })
  */
 export function createBasicExtensions(): AnyExtension[] {
-  if (cachedBasic) return cachedBasic;
-  cachedBasic = buildBasicExtensions();
-  return cachedBasic;
+  return buildBasicExtensions();
 }
-
-let cachedBasic: AnyExtension[] | null = null;
 
 function buildBasicExtensions(): AnyExtension[] {
   return [

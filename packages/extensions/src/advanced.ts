@@ -41,20 +41,12 @@ export interface AdvancedExtensionsOptions {
  *   FileHandler.configure({ onUpload }) 覆盖。
  * - EmojiSuggestion（浮层 UI）在 @tipkit/ui，消费方按需渲染。
  */
-let cachedAdvanced: AnyExtension[] | null = null;
-
 export function createAdvancedExtensions(options: AdvancedExtensionsOptions = {}): AnyExtension[] {
-  // 传了 tocScrollOffset 时 TOC 是 configure 出的新实例，不走缓存；
-  // 默认（无 options）路径做单例缓存，避免消费方多次调用产生不同数组实例
-  // （与 createBasicExtensions 的缓存策略保持一致）。
-  if (options.tocScrollOffset != null) {
-    return buildAdvancedExtensions(
-      TableOfContentsNode.configure({ scrollOffset: options.tocScrollOffset }),
-    );
-  }
-  if (cachedAdvanced) return cachedAdvanced;
-  cachedAdvanced = buildAdvancedExtensions(TableOfContentsNode);
-  return cachedAdvanced;
+  // 每次调用都产出全新扩展实例：模块级单例的 storage 等实例状态
+  // 会跨编辑器共享，多编辑器同屏时会互相串状态，不能缓存复用。
+  return buildAdvancedExtensions(
+    TableOfContentsNode.configure({ scrollOffset: options.tocScrollOffset ?? 0 }),
+  );
 }
 
 function buildAdvancedExtensions(toc: AnyExtension): AnyExtension[] {

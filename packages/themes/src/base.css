@@ -1327,6 +1327,11 @@
   border-radius: 8px;
 }
 
+/* 公式渲染失败提示 */
+.tk-katex-error {
+  color: var(--destructive, #dc2626);
+}
+
 .tk-katex-placeholder,
 .tk-katex-btn {
   border: 1px dashed var(--border, #ccc);
@@ -1456,6 +1461,44 @@
 .tk-callout.is-hovered {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 30%, transparent);
 }
+
+/* 提示框变体配色（视觉归主题层，data-variant 决定语义） */
+.tk-callout-info {
+  color: #1e40af;
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.tk-callout-success {
+  color: #166534;
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.tk-callout-warning {
+  color: #854d0e;
+  border-color: #fcd34d;
+  background: #fefce8;
+}
+
+.tk-callout-danger {
+  color: #991b1b;
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.tk-callout-note {
+  color: #3f3f46;
+  border-color: #d4d4d8;
+  background: #f4f4f5;
+}
+
+/* 变体切换面板中的预览色块 */
+.tk-callout-variant-cell.is-info { color: #1e40af; border-color: #93c5fd; background: #eff6ff; }
+.tk-callout-variant-cell.is-success { color: #166534; border-color: #86efac; background: #f0fdf4; }
+.tk-callout-variant-cell.is-warning { color: #854d0e; border-color: #fcd34d; background: #fefce8; }
+.tk-callout-variant-cell.is-danger { color: #991b1b; border-color: #fca5a5; background: #fef2f2; }
+.tk-callout-variant-cell.is-note { color: #3f3f46; border-color: #d4d4d8; background: #f4f4f5; }
 
 .tk-callout-content {
   flex: 1;
@@ -3895,3 +3938,25 @@ sup.tk-footnote-ref::after {
   margin: 0;
 }
 
+
+/* ============================================================
+ * 查找替换 / 语法检查装饰高亮（少量可覆盖默认样式，视觉由主题决定）
+ * ============================================================ */
+
+/* 查找替换：全部匹配 / 当前匹配 */
+.tk-search-match {
+  background: color-mix(in srgb, var(--warning, #f59e0b) 30%, transparent);
+  border-radius: 2px;
+}
+
+.tk-search-match.is-active {
+  background: color-mix(in srgb, var(--warning, #f59e0b) 60%, transparent);
+  outline: 1px solid var(--warning, #f59e0b);
+}
+
+/* LanguageTool：语法 / 拼写问题下划线（red squiggly 用双下划线模拟，视觉归主题） */
+.tk-lt-issue {
+  text-decoration: underline wavy var(--destructive, #dc2626);
+  text-decoration-skip-ink: none;
+  text-underline-offset: 3px;
+}

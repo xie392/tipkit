@@ -3,6 +3,7 @@
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import type { Translate } from "@tipkit/core";
+import { STATUS_PALETTE } from "./status-popover";
 import { StatusView } from "./status-view";
 
 /* Status 状态标签（Confluence /status 风格的内联原子节点）。
@@ -40,8 +41,8 @@ export const Status = Node.create({
         renderHTML: (attributes) => ({ "data-text": attributes.text }),
       },
       color: {
-        default: "#ffcccc",
-        parseHTML: (el) => (el as HTMLElement).getAttribute("data-color") ?? "#ffcccc",
+        default: STATUS_PALETTE[0],
+        parseHTML: (el) => (el as HTMLElement).getAttribute("data-color") ?? STATUS_PALETTE[0],
         renderHTML: (attributes) => ({ "data-color": attributes.color }),
       },
     };
@@ -76,7 +77,7 @@ export const Status = Node.create({
                   attrs?.text ??
                   (editor as unknown as { __tipkitT?: Translate }).__tipkitT?.("status.defaultText") ??
                   "待处理",
-                color: attrs?.color ?? "#ffcccc",
+                color: attrs?.color ?? STATUS_PALETTE[0],
               },
             })
             .run(),
