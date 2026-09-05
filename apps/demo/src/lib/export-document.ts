@@ -201,6 +201,11 @@ export async function exportPdfServer(editor: Editor, filename = "document.pdf")
       ".ProseMirror-widget, [class*='tk-ct-toolbar-bridge'], [class*='tk-image-block-handle'], [class*='tk-callout-switcher'], [class*='tk-table-hover']",
     )
     .forEach((el) => el.remove());
+  // 勾选框状态：cloneNode 只拷贝 attribute 不拷贝 property，
+  // 已勾选的 checked 属性要按 data-checked 补回来，否则打印全是不勾选样式
+  clone
+    .querySelectorAll('li[data-checked="true"] input[type="checkbox"]')
+    .forEach((i) => i.setAttribute("checked", ""));
   // 服务端 Chrome 可以渲染 iframe/video；但为避免空白大块，替换为等高占位框
   // （注意：不能先 remove 再替换，否则节点树里已找不到媒体元素）
   const mediaHolders: Array<[Element, string]> = [];

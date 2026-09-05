@@ -47,6 +47,18 @@ export async function POST(req: Request) {
            .tk-pdf-print { width: 794px; margin: 0 auto; }
            .tk-pdf-print button { display: none !important; }
            .tk-pdf-print .tk-code-block-toolbar { display: none !important; }
+           /* 工具条隐藏后，圆角容器需要自己裁剪，否则内部 pre 的方角会露出来 */
+           .tk-pdf-print .tk-code-block { overflow: hidden; }
+           /* 主题里 pre 是"方角+无顶边框"（顶部靠工具条提供），工具条隐藏后补回：
+              完整圆角 + 四边边框 + 顶部留白 */
+           .tk-pdf-print .tk-code-block-pre {
+             border-radius: 10px !important;
+             border: 1px solid var(--border, #d0d7de);
+             padding: 16px;
+             padding-top: 18px;
+           }
+           /* 任务勾选框：与编辑器一致的原生蓝色勾选态 */
+           .tk-pdf-print input[type="checkbox"] { accent-color: #2563eb; width: 15px; height: 15px; }
            /* PDF 底色纯白：去掉主题铺在编辑器容器上的整页"纸张"灰底，
               只保留块级元素自身的底色（代码块/callout/目录卡片等不受影响）。
               用 html 前缀抬高优先级，确保压过 .tk-theme-default .tk-editor */
@@ -55,7 +67,9 @@ export async function POST(req: Request) {
              background: #ffffff !important;
              background-image: none !important;
              box-shadow: none !important;
+             border: none !important;
              border-radius: 0 !important;
+             outline: none !important;
            }
            /* 入场动画在 headless 里不会执行，透明度会冻在初始帧，强制复位。
               注意不要动 transform：Mermaid 等 SVG 靠 transform 定位节点 */
@@ -83,7 +97,7 @@ export async function POST(req: Request) {
       const pdf = await page.pdf({
         format: "a4",
         printBackground: true,
-        margin: { top: "10mm", bottom: "10mm", left: "6mm", right: "6mm" },
+        margin: { top: "16mm", bottom: "10mm", left: "6mm", right: "6mm" },
       });
       return new NextResponse(new Uint8Array(pdf), {
         headers: {
