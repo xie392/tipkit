@@ -480,6 +480,20 @@ body::after {
   color: var(--primary);
 }
 
+/* 右下角悬浮操作组：导出 + 编辑/只读开关并排（组内按钮改为静态定位） */
+.demo-fab-group {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 80;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.demo-fab-group .demo-mode-toggle {
+  position: static;
+}
+
 /* ---------- 主区：内容区 960px 居中（与工具栏同宽），评论抽屉浮层不占布局空间 ---------- */
 .demo-main {
   padding: 24px 0 72px;

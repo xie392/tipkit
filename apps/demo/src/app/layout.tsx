@@ -53,7 +53,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-CN" className={`${caveat.variable} ${patrick.variable}`} suppressHydrationWarning>
       <head />
-      <body>
+      <body suppressHydrationWarning>
+        {/* suppressHydrationWarning：浏览器扩展（翻译类）会在 body 上注入 class，导致水合告警 */}
         <ThemeScript />
         {children}
       </body>

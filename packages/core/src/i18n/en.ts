@@ -71,6 +71,11 @@ export const en: Messages = {
   "toolbar.findReplace": "Find & Replace",
   "toolbar.grammarCheck": "Grammar Check",
   "toolbar.importDoc": "Import Document (docx)",
+  "toolbar.export": "Export",
+  "toolbar.exportMarkdown": "Export Markdown (.md)",
+  "toolbar.exportWord": "Export Word (.docx)",
+  "toolbar.exportPdf": "Export PDF",
+  "toolbar.exportPdfServer": "Export PDF (Server, Vector)",
 
   /* ── Find & Replace ── */
   "find.tab": "Find",
