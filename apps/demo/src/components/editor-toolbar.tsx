@@ -36,6 +36,7 @@ import {
   Code2,
   Columns2,
   Eraser,
+  FileInput,
   Frame,
   Heading1,
   Heading2,
@@ -109,6 +110,7 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
   const [insertOpen, setInsertOpen] = useState(false);
   const [findOpen, setFindOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const docFileRef = useRef<HTMLInputElement>(null);
   const { t } = useDemoLang();
   useEffect(() => {
     if (!editor) return;
@@ -262,6 +264,15 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
           />
         </Tip>
 
+        {/* 导入文档（ImportDoc 扩展，转换函数由消费方注入） */}
+        <Tip label={t("toolbar.importDoc")}>
+          <ToolbarBtn
+            icon={FileInput}
+            label={t("toolbar.importDoc")}
+            onClick={() => docFileRef.current?.click()}
+          />
+        </Tip>
+
         {/* 查找替换（语雀式面板） */}
         <Popover
           open={findOpen}
@@ -289,6 +300,18 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
             if (!file) return;
             const src = URL.createObjectURL(file);
             chain().setImageBlock({ src }).run();
+          }}
+        />
+        <input
+          ref={docFileRef}
+          type="file"
+          accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (!file) return;
+            void editor.commands.importDocument(file);
           }}
         />
       </div>

@@ -68,6 +68,10 @@ export type { VideoAttrs } from "./video/video";
 export { BlockHandles, blockHandlesKey, getActiveBlockPos } from "./block-handles/block-handles";
 export { FileHandler } from "./file-handler/file-handler";
 export type { FileHandlerOptions } from "./file-handler/file-handler";
+
+// ImportDoc（文档导入：docx/pdf → 编辑器内容；转换函数由消费方注入，可走前端或服务端）
+export { ImportDoc } from "./import-doc/import-doc";
+export type { ImportDocOptions } from "./import-doc/import-doc";
 export { emojisToName, emojiSearch, emojiFilter, emojiByGroup, emojiLibrary, EMOJI_GROUPS, COMMON_EMOJI_COUNT } from "./shared/emoji/emoji-data";
 export type { EmojiEntry, EmojiGroup } from "./shared/emoji/emoji-data";
 

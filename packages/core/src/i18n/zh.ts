@@ -70,6 +70,7 @@ export const zh: Messages = {
   "toolbar.align": "对齐方式",
   "toolbar.findReplace": "查找替换",
   "toolbar.grammarCheck": "语法检查",
+  "toolbar.importDoc": "导入文档（docx）",
 
   /* ── 查找替换 ── */
   "find.tab": "查找",

@@ -70,6 +70,7 @@ export const en: Messages = {
   "toolbar.align": "Alignment",
   "toolbar.findReplace": "Find & Replace",
   "toolbar.grammarCheck": "Grammar Check",
+  "toolbar.importDoc": "Import Document (docx)",
 
   /* ── Find & Replace ── */
   "find.tab": "Find",

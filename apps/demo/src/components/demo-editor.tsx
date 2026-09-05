@@ -5,7 +5,8 @@ import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { TipKitEditor } from "@tipkit/editor";
 import type { EditorDeps, IconRef, CommentRange, AIProvider } from "@tipkit/editor";
-import { createBasicExtensions, createAdvancedExtensions, createFootnoteExtensions, Comment, Canvas, AiGeneration, Emoji, SearchAndReplace, UniqueID, LanguageTool } from "@tipkit/extensions";
+import mammoth from "mammoth/mammoth.browser";
+import { createBasicExtensions, createAdvancedExtensions, createFootnoteExtensions, Comment, Canvas, AiGeneration, Emoji, SearchAndReplace, UniqueID, LanguageTool, ImportDoc } from "@tipkit/extensions";
 import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockHandleMenu, TableControls, ReadonlyTextMenu, AiMenu } from "@tipkit/ui";
 import { useDemoLang } from "@/components/use-demo-lang";
 import type { DemoLang } from "@/components/site-lang-switch";
@@ -372,6 +373,22 @@ export function DemoEditor({
   }, []);
 
   const commentExt = useMemo(() => Comment.configure(), []);
+
+  // 文档导入：demo 用 mammoth 在前端把 docx 转 HTML（真实场景建议交给消费方服务端转换）。
+  const importDocExt = useMemo(
+    () =>
+      ImportDoc.configure({
+        onConvert: async (file) => {
+          if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+            const arrayBuffer = await file.arrayBuffer();
+            const { value } = await mammoth.convertToHtml({ arrayBuffer });
+            return value;
+          }
+          return null;
+        },
+      }),
+    [],
+  );
 
   const submitComment = () => {
     if (!pendingRange || !draft.trim()) return;
@@ -804,6 +821,7 @@ export function DemoEditor({
             SearchAndReplace,
             LanguageTool.configure({ language: "auto" }),
             commentExt,
+            importDocExt,
             Canvas,
             Emoji,
             AiGeneration,
