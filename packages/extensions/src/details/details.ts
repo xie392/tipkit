@@ -1,8 +1,26 @@
-import { Node, mergeAttributes } from "@tiptap/core";
+import {
+  Node,
+  mergeAttributes,
+  createBlockMarkdownSpec,
+  parseAttributes as parsePandocAttributes,
+  serializeAttributes as serializePandocAttributes,
+} from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
 import type { Translate } from "@tipkit/core";
 
 /* 折叠块（迁移自 blog rich-text/ext/details.ts）：details + summary + content。 */
+
+/* Markdown 双向转换辅助：open 属性以 Pandoc 布尔表示（{open} / {open="false"}），
+ * 解析时统一收敛为 boolean，避免字符串 "false" 被当真值。 */
+function parseDetailsAttributes(attrString: string): Record<string, unknown> {
+  const attrs = parsePandocAttributes(attrString);
+  return { ...attrs, open: attrs.open === true || attrs.open === "true" };
+}
+
+function serializeDetailsAttributes(attrs: Record<string, unknown>): string {
+  // open=false 需显式落盘为 open="false"，否则解析时会回退到 schema 默认值 true
+  return serializePandocAttributes({ open: attrs.open ? true : "false" });
+}
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -29,6 +47,14 @@ export const Details = Node.create({
   content: "detailsSummary detailsContent+",
 
   isolating: true,
+
+  // Markdown 双向转换：:::details {open} 围栏，内嵌 summary / content 围栏
+  ...createBlockMarkdownSpec({
+    nodeName: "details",
+    allowedAttributes: ["open"],
+    parseAttributes: parseDetailsAttributes,
+    serializeAttributes: serializeDetailsAttributes,
+  }),
 
   addAttributes() {
     return {
@@ -379,6 +405,12 @@ export const DetailsSummary = Node.create({
 
   draggable: false,
 
+  // Markdown 双向转换：:::detailsSummary 围栏（行内内容）
+  ...createBlockMarkdownSpec({
+    nodeName: "detailsSummary",
+    content: "inline",
+  }),
+
   parseHTML() {
     return [{ tag: "summary[data-type='summary']" }];
   },
@@ -403,6 +435,11 @@ export const DetailsContent = Node.create({
   selectable: false,
 
   draggable: false,
+
+  // Markdown 双向转换：:::detailsContent 围栏（块级内容）
+  ...createBlockMarkdownSpec({
+    nodeName: "detailsContent",
+  }),
 
   parseHTML() {
     return [{ tag: "div[data-type='details-content']" }];

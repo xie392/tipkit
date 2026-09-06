@@ -1,6 +1,6 @@
 "use client";
 
-import { Node } from "@tiptap/core";
+import { Node, type MarkdownParseHelpers, type MarkdownToken, type MarkdownTokenizer } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { useEffect, useRef, useState } from "react";
 import { useT, useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
@@ -200,6 +200,28 @@ export const TableOfContentsNode = Node.create<TableOfContentsOptions>({
   renderHTML({ HTMLAttributes }) {
     return ["div", { ...HTMLAttributes, "data-type": "table-of-content" }];
   },
+
+  // Markdown 双向转换：[TOC] 占位符（目录内容由文档标题动态生成，无可序列化属性）
+  markdownTokenName: "toc",
+  renderMarkdown() {
+    return "[TOC]";
+  },
+  parseMarkdown(_token: MarkdownToken, h: MarkdownParseHelpers) {
+    return h.createNode("tableOfContentsNode");
+  },
+  markdownTokenizer: {
+    name: "toc",
+    level: "block",
+    start(src) {
+      const index = src.search(/^\[TOC\]\s*$/m);
+      return index !== -1 ? index : -1;
+    },
+    tokenize(src) {
+      const match = /^\[TOC\]\s*(?:\n|$)/.exec(src);
+      if (!match) return;
+      return { type: "toc", raw: match[0] };
+    },
+  } as MarkdownTokenizer,
 
   addNodeView() {
     return ReactNodeViewRenderer(TocView);

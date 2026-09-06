@@ -7,6 +7,7 @@ import { useT, useEditorDeps, useEditorEditable, useToolbarPlacement, useToolbar
 import { Copy, Check } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
+import { katexMarkdownTokenizer, parseKatexMarkdown, renderKatexMarkdown } from "./markdown";
 
 /* Katex 数学公式（迁移自 blog rich-text/ext/katex.tsx）。
  * 客户端用 katex 渲染（SSR 场景消费方可通过 EditorDeps.renderKatex 注入服务端渲染）。
@@ -84,6 +85,14 @@ export const Katex = Node.create<KatexOptions>({
         getAttributes: () => ({ text: "" }),
       }),
     ];
+  },
+
+  // Markdown 双向转换（$$...$$），规格见 ./markdown.ts
+  markdownTokenName: "katex",
+  markdownTokenizer: katexMarkdownTokenizer,
+  parseMarkdown: parseKatexMarkdown,
+  renderMarkdown(node) {
+    return renderKatexMarkdown((node.attrs as KatexAttrs).text ?? "");
   },
 
   addNodeView() {

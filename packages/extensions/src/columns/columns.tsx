@@ -1,6 +1,6 @@
 "use client";
 
-import { Node, mergeAttributes } from "@tiptap/core";
+import { Node, mergeAttributes, createBlockMarkdownSpec } from "@tiptap/core";
 import {
   ReactNodeViewRenderer,
   NodeViewWrapper,
@@ -253,6 +253,12 @@ export const Columns = Node.create({
 
   isolating: true,
 
+  // Markdown 双向转换：:::columns {layout=...} 围栏，内嵌 :::column
+  ...createBlockMarkdownSpec({
+    nodeName: "columns",
+    allowedAttributes: ["layout"],
+  }),
+
   addAttributes() {
     return {
       layout: {
@@ -328,6 +334,13 @@ export const Column = Node.create({
   selectable: false,
 
   draggable: false,
+
+  // Markdown 双向转换：:::column {position=...} 围栏
+  ...createBlockMarkdownSpec({
+    nodeName: "column",
+    defaultAttributes: { position: "" },
+    allowedAttributes: ["position"],
+  }),
 
   addAttributes() {
     return {

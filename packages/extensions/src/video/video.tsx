@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Node, mergeAttributes } from "@tiptap/core";
+import { Node, mergeAttributes, createAtomBlockMarkdownSpec } from "@tiptap/core";
 import {
   ReactNodeViewRenderer,
   NodeViewWrapper,
@@ -86,6 +86,12 @@ export const Video = Node.create<VideoOptions>({
   selectable: true,
   atom: true,
   draggable: true,
+
+  // Markdown 双向转换：:::video {src=...} 围栏
+  ...createAtomBlockMarkdownSpec({
+    nodeName: "video",
+    allowedAttributes: ["src"],
+  }),
 
   addOptions() {
     return { HTMLAttributes: { class: "tk-video" } };

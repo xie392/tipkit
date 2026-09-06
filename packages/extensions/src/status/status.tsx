@@ -1,6 +1,6 @@
 "use client";
 
-import { mergeAttributes, Node } from "@tiptap/core";
+import { createInlineMarkdownSpec, mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import type { Translate } from "@tipkit/core";
 import { STATUS_PALETTE } from "./status-popover";
@@ -32,6 +32,14 @@ export const Status = Node.create({
   selectable: true,
   atom: true,
   draggable: true,
+
+  // Markdown 双向转换：行内 shortcode [status text=".." color=".."]
+  ...createInlineMarkdownSpec({
+    nodeName: "status",
+    selfClosing: true,
+    defaultAttributes: { text: "待处理", color: STATUS_PALETTE[0] },
+    allowedAttributes: ["text", "color"],
+  }),
 
   addAttributes() {
     return {

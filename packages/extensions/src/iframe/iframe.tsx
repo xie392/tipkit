@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { mergeAttributes, Node, nodeInputRule } from "@tiptap/core";
+import {
+  createAtomBlockMarkdownSpec,
+  mergeAttributes,
+  Node,
+  nodeInputRule,
+  parseAttributes as parsePandocAttributes,
+} from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { beginPointerDrag, useT, useEditorEditable, useToolbarPlacement, useToolbarVisibility } from "@tipkit/core";
 
@@ -34,6 +40,18 @@ export const Iframe = Node.create<IframeOptions>({
   selectable: true,
   atom: true,
   draggable: true,
+
+  // Markdown 双向转换：:::iframe {url=... width=... height=...} 围栏
+  ...createAtomBlockMarkdownSpec({
+    nodeName: "iframe",
+    allowedAttributes: ["url", "width", "height"],
+    // height 在围栏属性里是字符串，收敛回 number
+    parseAttributes: (attrString) => {
+      const attrs = parsePandocAttributes(attrString);
+      if ("height" in attrs) attrs.height = Number(attrs.height) || 360;
+      return attrs;
+    },
+  }),
 
   addOptions() {
     return { HTMLAttributes: { class: "tk-iframe" } };

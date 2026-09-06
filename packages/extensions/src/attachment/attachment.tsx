@@ -1,7 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { mergeAttributes, Node } from "@tiptap/core";
+import {
+  createAtomBlockMarkdownSpec,
+  mergeAttributes,
+  Node,
+  parseAttributes as parsePandocAttributes,
+} from "@tiptap/core";
 import {
   ReactNodeViewRenderer,
   NodeViewWrapper,
@@ -62,6 +67,18 @@ export const Attachment = Node.create<AttachmentOptions>({
   selectable: true,
   atom: true,
   draggable: true,
+
+  // Markdown 双向转换：:::attachment {fileName=... url=... ...} 围栏
+  ...createAtomBlockMarkdownSpec({
+    nodeName: "attachment",
+    allowedAttributes: ["fileName", "fileSize", "fileType", "fileExt", "url"],
+    // fileSize 在围栏属性里是字符串，收敛回 number
+    parseAttributes: (attrString) => {
+      const attrs = parsePandocAttributes(attrString);
+      if ("fileSize" in attrs) attrs.fileSize = Number(attrs.fileSize) || null;
+      return attrs;
+    },
+  }),
 
   addOptions() {
     return { HTMLAttributes: { class: "tk-attachment" } };

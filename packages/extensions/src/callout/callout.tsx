@@ -1,6 +1,6 @@
 "use client";
 
-import { mergeAttributes, Node as TiptapNode, wrappingInputRule } from "@tiptap/core";
+import { createBlockMarkdownSpec, mergeAttributes, Node as TiptapNode, wrappingInputRule } from "@tiptap/core";
 import { NodeSelection } from "@tiptap/pm/state";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import { CalloutView } from "./callout-view";
@@ -43,6 +43,13 @@ export const Callout = TiptapNode.create<CalloutOptions>({
   defining: true,
   draggable: true,
   selectable: false,
+
+  // Markdown 双向转换：:::callout {variant="info" emoji="💡"} 围栏
+  ...createBlockMarkdownSpec({
+    nodeName: "callout",
+    defaultAttributes: { variant: "info" },
+    allowedAttributes: ["variant", "emoji"],
+  }),
 
   addOptions() {
     return { HTMLAttributes: { class: "tk-callout" } };
