@@ -195,9 +195,11 @@ export function AiMenu({ editor }: { editor: Editor | null }) {
       else return;
       setTimeout(flush, 0);
     };
-    editor.on("update", sync);
+    // "transaction" 而非 "update"：生成结束的 meta 事务可能不改变文档（如 stop 后
+    // 最终 flush 与累积内容一致），"update" 不触发会导致面板卡在 generating。
+    editor.on("transaction", sync);
     return () => {
-      editor.off("update", sync);
+      editor.off("transaction", sync);
       pending = null;
     };
   }, [editor, open]);
