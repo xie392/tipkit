@@ -305,6 +305,19 @@
   box-shadow: 2px 2px 0 var(--tk-sketch-shadow);
 }
 
+/* 插入按钮：主题色实底 + 手绘阴影，与普通格式按钮区分 */
+.tk-theme-sketch .tk-toolbar-add {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.tk-theme-sketch .tk-toolbar-add:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 85%, var(--primary-foreground));
+  color: var(--primary-foreground);
+  transform: rotate(-1.5deg) scale(1.05);
+  box-shadow: 2px 2px 0 var(--tk-sketch-shadow);
+}
+
 /* ---------- 斜杠菜单 ---------- */
 .tk-theme-sketch .tk-slash-menu {
   border: 1.5px solid var(--tk-sketch-line);

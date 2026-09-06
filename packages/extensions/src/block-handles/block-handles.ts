@@ -194,6 +194,15 @@ export const BlockHandles = Extension.create({
       const wrapW = wrap.offsetWidth || 48;
       const wrapH = wrap.offsetHeight || 24;
 
+      // 块完全滚出视口后不再贴边停留：隐藏手柄并取消激活（菜单随之关闭），
+      // 避免悬浮 UI 与内容脱钩、钉死在视口边缘
+      if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
+        wrap.classList.add("is-hidden");
+        hoverEl = null;
+        if (activePos != null && !dragStarted) setActive(null);
+        return;
+      }
+
       let left = rect.left - wrapW - 8;
       if (left < 8) left = 8;
 

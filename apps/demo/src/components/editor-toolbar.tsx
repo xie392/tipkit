@@ -150,7 +150,7 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
               type="button"
               aria-label={t("slash.group.basic")}
               data-active={insertOpen || undefined}
-              className="tk-toolbar-add inline-flex items-center justify-center w-7 h-7 rounded-md bg-foreground text-background hover:opacity-90 transition-opacity"
+              className="tk-toolbar-btn tk-toolbar-add inline-flex shrink-0 items-center justify-center w-6 h-6 rounded"
             >
               <Plus className="w-4 h-4" />
             </button>

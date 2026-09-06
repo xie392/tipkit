@@ -33,6 +33,7 @@
 
   /* TipKit 语义变量 */
   --tk-accent: var(--primary);
+  --tk-border: color-mix(in srgb, var(--foreground) 22%, transparent);
   --tk-font-body: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   --tk-scrollbar-thumb: rgb(255 255 255 / 0.25);
   --tk-scrollbar-thumb-hover: rgb(255 255 255 / 0.42);
@@ -117,6 +118,17 @@
 .tk-theme-dark .tk-toolbar-btn[data-active="true"] {
   background: color-mix(in srgb, var(--primary) 15%, transparent);
   color: var(--primary);
+}
+
+/* 插入按钮：主题色实底，与普通格式按钮区分 */
+.tk-theme-dark .tk-toolbar-add {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.tk-theme-dark .tk-toolbar-add:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 85%, var(--primary-foreground));
+  color: var(--primary-foreground);
 }
 
 .tk-theme-dark .tk-toolbar-divider {
