@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { Editor } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "@tiptap/markdown";
-import { createSerializer } from "../src/serialization";
-import { TableOfContentsNode } from "../../extensions/src/toc/toc-node";
+import { createSerializer } from "@tipkit/core";
+import { TableOfContentsNode } from "../../src/toc/toc-node";
 
 function makeEditor() {
   return new Editor({
@@ -12,7 +12,7 @@ function makeEditor() {
   });
 }
 
-describe("createSerializer.toMarkdown 的 TOC 展开", () => {
+describe("TOC 的 Markdown 展开", () => {
   it("TOC 节点展开为按层级嵌套的标题列表", () => {
     const editor = makeEditor();
     editor.commands.setContent({
