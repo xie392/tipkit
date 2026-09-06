@@ -50,7 +50,11 @@ function stripFileExt(name: string | null): string | null {
   return idx >= 0 ? name.slice(0, idx) : name;
 }
 
-export const Attachment = Node.create({
+export interface AttachmentOptions {
+  HTMLAttributes: Record<string, unknown>;
+}
+
+export const Attachment = Node.create<AttachmentOptions>({
   name: "attachment",
   content: "",
   marks: "",

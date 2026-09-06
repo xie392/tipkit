@@ -26,6 +26,7 @@ export function ImageBlockView(props: NodeViewProps) {
   const [preview, setPreview] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [styleOpen, setStyleOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const styleWrapRef = useRef<HTMLDivElement | null>(null);
 
   const STYLE_OPTIONS: { value: ImageStyleType; label: string }[] = [
@@ -54,6 +55,11 @@ export function ImageBlockView(props: NodeViewProps) {
     }
   }, [editingCaption, caption]);
 
+  // src 变化（重试替换图片）后重置加载失败态
+  useEffect(() => {
+    setImgError(false);
+  }, [src]);
+
   const commitCaption = () => {
     setEditingCaption(false);
     const text = captionRef.current?.textContent ?? "";
@@ -71,7 +77,7 @@ export function ImageBlockView(props: NodeViewProps) {
       const reader = new FileReader();
       reader.onload = (ev) => {
         const dataUrl = ev.target?.result as string;
-        updateAttributes({ src: dataUrl });
+        updateAttributes({ src: dataUrl, uploadFailed: false });
       };
       reader.readAsDataURL(file);
     };
@@ -143,10 +149,13 @@ export function ImageBlockView(props: NodeViewProps) {
     pointerEvents: "auto",
   };
 
+  // 失败占位：上传失败（uploadFailed）或图片加载失败/无 src（imgError）
+  const showFailed = !attrs.uploading && (Boolean(attrs.uploadFailed) || imgError || !src);
+
   return (
     <NodeViewWrapper
       ref={rootRef}
-      className={`tk-image-block tk-hover-toolbar${isEditable ? " is-editable" : " is-readonly"}${hovered ? " is-hovered" : ""}${attrs.uploading ? " is-uploading" : ""}`}
+      className={`tk-image-block tk-hover-toolbar${isEditable ? " is-editable" : " is-readonly"}${hovered ? " is-hovered" : ""}${attrs.uploading ? " is-uploading" : ""}${showFailed ? " is-failed" : ""}`}
       data-align={align}
       data-selected={selected ? "true" : undefined}
       onMouseEnter={() => {
@@ -271,17 +280,52 @@ export function ImageBlockView(props: NodeViewProps) {
         style={{ width: `${effectiveWidth}%`, maxWidth: "100%" }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={src}
-          alt={alt ?? ""}
-          className={`tk-image-block-img tk-image-style-${imageStyle} tk-block tk-w-full tk-h-auto`}
-          draggable={false}
-          onClick={onImageClick}
-        />
+        {!showFailed && (
+          <img
+            src={src}
+            alt={alt ?? ""}
+            className={`tk-image-block-img tk-image-style-${imageStyle} tk-block tk-w-full tk-h-auto`}
+            draggable={false}
+            onClick={onImageClick}
+            onError={() => setImgError(true)}
+          />
+        )}
         {attrs.uploading && (
           <div className="tk-image-block-uploading" contentEditable={false}>
             <span className="tk-image-block-uploading-spinner" aria-hidden="true" />
             <span className="tk-image-block-uploading-text">{t("image.uploading")}</span>
+          </div>
+        )}
+        {showFailed && (
+          <div className="tk-image-block-failed" contentEditable={false}>
+            <div className="tk-image-block-failed-body">
+              <IconBrokenImage />
+              <span className="tk-image-block-failed-text">{t("image.uploadFailed")}</span>
+            </div>
+            {isEditable && (
+              <div className="tk-image-block-failed-actions">
+                <button
+                  type="button"
+                  data-tip={t("image.retry")}
+                  aria-label={t("image.retry")}
+                  className="tk-ct-btn"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={replaceImage}
+                >
+                  <IconRetry />
+                </button>
+                <button
+                  type="button"
+                  data-tip={t("block.delete")}
+                  aria-label={t("block.delete")}
+                  className="tk-ct-btn is-danger"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => deleteNode()}
+                >
+                  <IconTrash />
+                </button>
+              </div>
+            )}
           </div>
         )}
         {showHandles && (
@@ -371,6 +415,26 @@ export function ImageBlockView(props: NodeViewProps) {
 }
 
 /* ---- 内联图标组件 ---- */
+
+function IconBrokenImage() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2.5" width="12" height="11" rx="1.5" />
+      <path d="M2 11l3.5-3.5 3 3 2.5-2.5 3 3" />
+      <circle cx="5.5" cy="5.5" r="1" />
+      <path d="M10 2.5 14 6.5" />
+    </svg>
+  );
+}
+
+function IconRetry() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9" />
+      <path d="M13.5 2.5v2.6h-2.6" />
+    </svg>
+  );
+}
 
 function IconUpload() {
   return (

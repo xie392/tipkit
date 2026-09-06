@@ -208,6 +208,12 @@ export const zh: Messages = {
   "link.open": "打开链接",
   "link.unlink": "取消链接",
 
+  /* ── Markdown 粘贴确认 ── */
+  "markdownPaste.title": "检测到 Markdown 内容",
+  "markdownPaste.description": "粘贴的内容是 Markdown，是否转换为编辑器富文本格式？",
+  "markdownPaste.convert": "转换为富文本",
+  "markdownPaste.keepPlain": "保留原文本",
+
   /* ── 文字浮层 ── */
   "text.bold": "加粗",
   "text.italic": "斜体",
@@ -264,6 +270,8 @@ export const zh: Messages = {
   "image.resize": "拖拽调整大小",
   "image.captionPlaceholder": "图片说明…",
   "image.uploading": "上传中…",
+  "image.uploadFailed": "图片加载失败",
+  "image.retry": "重新上传",
   /* ── 图片预览 ── */
   "imagePreview.zoomOut": "缩小 (-)",
   "imagePreview.zoomIn": "放大 (+)",

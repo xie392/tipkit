@@ -74,7 +74,11 @@ function IconTrash() {
   );
 }
 
-export const Video = Node.create({
+export interface VideoOptions {
+  HTMLAttributes: Record<string, unknown>;
+}
+
+export const Video = Node.create<VideoOptions>({
   name: "video",
   content: "",
   marks: "",

@@ -53,7 +53,7 @@ export const FileHandler = Extension.create<FileHandlerOptions>({
         reader.readAsDataURL(file);
         return;
       }
-      // 先插入占位节点（本地 blob 预览 + 上传中遮罩），上传结束后落盘或移除
+      // 先插入占位节点（本地 blob 预览 + 上传中遮罩），完成后落盘；失败转为失败占位态
       const uploadId = createUploadId();
       const previewUrl = URL.createObjectURL(file);
       const attrs = { src: previewUrl, uploading: true, uploadId };

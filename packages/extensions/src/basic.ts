@@ -33,6 +33,53 @@ import { FontSize } from "./basic/font-size";
 import { CustomHorizontalRule } from "./basic/horizontal-rule";
 import { TableReadonlyResize } from "./table-readonly-resize/table-readonly-resize";
 
+/** 基础集合内每个扩展的稳定 key（按加入顺序排列） */
+export type BasicExtensionKey =
+  | "starterKit"
+  | "bold"
+  | "italic"
+  | "strike"
+  | "code"
+  | "underline"
+  | "highlight"
+  | "subscript"
+  | "superscript"
+  | "textStyle"
+  | "color"
+  | "fontFamily"
+  | "fontSize"
+  | "typography"
+  | "textAlign"
+  | "horizontalRule"
+  | "taskList"
+  | "taskItem"
+  | "table"
+  | "tableRow"
+  | "tableHeader"
+  | "tableCell"
+  | "tableReadonlyResize"
+  | "markdownLink"
+  | "linkBackfillConvert"
+  | "codeBackfillConvert"
+  | "markdown"
+  | "markdownPaste"
+  | "urlAutolink"
+  | "trailingNode"
+  | "selection"
+  | "selectAll"
+  | "listInputRules"
+  | "characterCount"
+  | "dropcursor";
+
+export interface BasicExtensionsOptions {
+  /** 用消费方自己的扩展实例替换集合中的默认项（如换成自研 CodeBlock） */
+  replace?: Partial<Record<BasicExtensionKey, AnyExtension>>;
+  /** 从集合中移除某些扩展 */
+  omit?: BasicExtensionKey[];
+  /** 追加到集合末尾的扩展 */
+  extra?: AnyExtension[];
+}
+
 /* TipKit 基础扩展集合（M1：基础格式 + markdown 输入规则 + 序列化）。
  * 编排方式对齐 blog use-editor.ts 的 M1 范围；高级节点（图片块/斜杠菜单/
  * katex/附件/分栏/TOC 等）在 M2/M3 按需引入，不在此集合内。
@@ -41,16 +88,30 @@ import { TableReadonlyResize } from "./table-readonly-resize/table-readonly-resi
  *   useTipKitEditor({ extensions: createBasicExtensions() })
  * 或追加高级扩展：
  *   useTipKitEditor({ extensions: [...createBasicExtensions(), ImageBlock, Katex] })
+ * 或替换 / 裁剪集合内默认项：
+ *   createBasicExtensions({
+ *     replace: { codeBlock: MyCodeBlock },
+ *     omit: ["typography"],
+ *     extra: [MyExtension],
+ *   })
  */
-export function createBasicExtensions(): AnyExtension[] {
-  return buildBasicExtensions();
+export function createBasicExtensions(options: BasicExtensionsOptions = {}): AnyExtension[] {
+  const { replace = {}, omit = [], extra = [] } = options;
+  const built = buildBasicExtensions();
+  // 替换项沿用原 key 的位置，保证扩展注册顺序不变
+  for (const key of Object.keys(replace) as BasicExtensionKey[]) {
+    const ext = replace[key];
+    if (ext) built[key] = ext;
+  }
+  for (const key of omit) delete built[key];
+  return [...Object.values(built), ...extra];
 }
 
-function buildBasicExtensions(): AnyExtension[] {
-  return [
+function buildBasicExtensions(): Record<BasicExtensionKey, AnyExtension> {
+  return {
     // StarterKit：禁用内置 Bold/Italic/Strike/Code（用下方自定义版，
     // 规避 Tiptap 3.x markInputRule 的 addMark 崩溃 bug）。
-    StarterKit.configure({
+    starterKit: StarterKit.configure({
       heading: { levels: [1, 2, 3, 4, 5, 6] },
       codeBlock: false,
       bold: false,
@@ -64,50 +125,50 @@ function buildBasicExtensions(): AnyExtension[] {
       horizontalRule: false,
     }),
     // 行内 markdown 输入规则（safeMarkInputRule 规避崩溃）
-    CustomBold,
-    CustomItalic,
-    CustomStrike,
-    CustomCode,
+    bold: CustomBold,
+    italic: CustomItalic,
+    strike: CustomStrike,
+    code: CustomCode,
     // 行内/块级基础
-    Underline,
-    Highlight.configure({ multicolor: true }),
-    Subscript,
-    Superscript,
-    TextStyle,
-    Color,
-    FontFamily,
-    FontSize,
-    Typography,
-    TextAlign.configure({ types: ["heading", "paragraph"] }),
+    underline: Underline,
+    highlight: Highlight.configure({ multicolor: true }),
+    subscript: Subscript,
+    superscript: Superscript,
+    textStyle: TextStyle,
+    color: Color,
+    fontFamily: FontFamily,
+    fontSize: FontSize,
+    typography: Typography,
+    textAlign: TextAlign.configure({ types: ["heading", "paragraph"] }),
     // 分隔线：可交互包裹（块手柄 / 块操作菜单可命中）
-    CustomHorizontalRule,
+    horizontalRule: CustomHorizontalRule,
     // 列表 / 任务
-    TaskList,
-    TaskItem.configure({ nested: true }),
+    taskList: TaskList,
+    taskItem: TaskItem.configure({ nested: true }),
     // 表格
-    Table.configure({ resizable: true, lastColumnResizable: false }),
-    TableRow,
-    TableHeader,
-    TableCell,
+    table: Table.configure({ resizable: true, lastColumnResizable: false }),
+    tableRow: TableRow,
+    tableHeader: TableHeader,
+    tableCell: TableCell,
     // 只读列宽拖拽（内置 columnResizing 仅编辑态生效）
-    TableReadonlyResize,
+    tableReadonlyResize: TableReadonlyResize,
     // 链接（markdown 输入规则 + 自动链接）
-    MarkdownLink,
+    markdownLink: MarkdownLink,
     // 链接回填转换：IME 组合输入等场景下 [文字](url) 兜底转链接
-    LinkBackfillConvert,
+    linkBackfillConvert: LinkBackfillConvert,
     // 行内代码回填转换：`code` 在空格/回车时兜底转 code mark
-    CodeBackfillConvert,
+    codeBackfillConvert: CodeBackfillConvert,
     // markdown 粘贴 / 序列化
-    Markdown,
-    MarkdownPaste,
+    markdown: Markdown,
+    markdownPaste: MarkdownPaste,
     // 裸 URL 识别：收紧 marked 内置规则，避免吞掉中文/全角标点
-    UrlAutolink,
+    urlAutolink: UrlAutolink,
     // 编辑器体验（对齐 blog use-editor.ts）
-    TrailingNode,
-    Selection,
-    SelectAll,
-    ListInputRules,
-    CharacterCount.configure({ limit: 100000 }),
-    Dropcursor.configure({ width: 2 }),
-  ];
+    trailingNode: TrailingNode,
+    selection: Selection,
+    selectAll: SelectAll,
+    listInputRules: ListInputRules,
+    characterCount: CharacterCount.configure({ limit: 100000 }),
+    dropcursor: Dropcursor.configure({ width: 2 }),
+  };
 }

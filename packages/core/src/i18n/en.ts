@@ -208,6 +208,12 @@ export const en: Messages = {
   "link.open": "Open link",
   "link.unlink": "Unlink",
 
+  /* ── Markdown paste confirm ── */
+  "markdownPaste.title": "Markdown content detected",
+  "markdownPaste.description": "The pasted content looks like Markdown. Convert it to rich text?",
+  "markdownPaste.convert": "Convert to rich text",
+  "markdownPaste.keepPlain": "Keep as plain text",
+
   /* ── Text bubble ── */
   "text.bold": "Bold",
   "text.italic": "Italic",
@@ -264,6 +270,8 @@ export const en: Messages = {
   "image.resize": "Drag to resize",
   "image.captionPlaceholder": "Caption…",
   "image.uploading": "Uploading…",
+  "image.uploadFailed": "Failed to load image",
+  "image.retry": "Re-upload",
   /* ── Image preview ── */
   "imagePreview.zoomOut": "Zoom out (-)",
   "imagePreview.zoomIn": "Zoom in (+)",

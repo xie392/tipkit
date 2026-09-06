@@ -12,7 +12,12 @@ declare module "@tiptap/core" {
 
 /* 字号扩展（迁移自 blog rich-text/ext/font-size.ts）：
  * 通过 textStyle mark 设置 font-size，配套 FontFamily/Color 一起使用。 */
-export const FontSize = Extension.create({
+export interface FontSizeOptions {
+  /** 应用 fontSize 全局属性的节点类型 */
+  types: string[];
+}
+
+export const FontSize = Extension.create<FontSizeOptions>({
   name: "fontSize",
 
   addOptions() {

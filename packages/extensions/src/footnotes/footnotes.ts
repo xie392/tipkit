@@ -46,7 +46,11 @@ declare module "@tiptap/core" {
   }
 }
 
-export const FootnoteReference = Node.create({
+export interface FootnoteReferenceOptions {
+  HTMLAttributes: Record<string, unknown>;
+}
+
+export const FootnoteReference = Node.create<FootnoteReferenceOptions>({
   name: "footnoteReference",
   // 高于 Superscript 等 mark 的 parse 规则，避免 sup 标签被 mark 抢占
   priority: 1000,
@@ -86,7 +90,11 @@ export const FootnoteReference = Node.create({
   },
 });
 
-export const FootnoteItem = Node.create({
+export interface FootnoteItemOptions {
+  HTMLAttributes: Record<string, unknown>;
+}
+
+export const FootnoteItem = Node.create<FootnoteItemOptions>({
   name: "footnoteItem",
   // 独占 group，仅允许出现在 footnotes 容器内
   group: "footnote",

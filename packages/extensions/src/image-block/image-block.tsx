@@ -23,6 +23,8 @@ export interface ImageBlockAttrs {
   /** 上传中占位态（不序列化到 HTML） */
   uploading?: boolean;
   uploadId?: string | null;
+  /** 上传失败/图片加载失败占位态（不序列化到 HTML） */
+  uploadFailed?: boolean;
 }
 
 /** 取文档中最后一个 imageBlock 的外观属性，用于新插入图片沿袭同类设置 */
@@ -131,6 +133,11 @@ export const ImageBlock = Image.extend({
       uploadId: {
         default: null,
         parseHTML: () => null,
+        renderHTML: () => ({}),
+      },
+      uploadFailed: {
+        default: false,
+        parseHTML: () => false,
         renderHTML: () => ({}),
       },
     };

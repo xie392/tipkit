@@ -32,7 +32,11 @@ declare module "@tiptap/core" {
   }
 }
 
-export const Callout = TiptapNode.create({
+export interface CalloutOptions {
+  HTMLAttributes: Record<string, unknown>;
+}
+
+export const Callout = TiptapNode.create<CalloutOptions>({
   name: "callout",
   content: "paragraph+",
   group: "block",

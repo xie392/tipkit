@@ -167,7 +167,16 @@ function TocView(props: NodeViewProps) {
   );
 }
 
-export const TableOfContentsNode = Node.create({
+export interface TableOfContentsOptions {
+  /**
+   * 点击目录项滚动到标题时，距离视口顶部的偏移量（像素）。
+   * 用于避开固定定位的 header / 工具栏等遮挡元素。
+   * @default 0
+   */
+  scrollOffset: number;
+}
+
+export const TableOfContentsNode = Node.create<TableOfContentsOptions>({
   name: "tableOfContentsNode",
 
   group: "block",
@@ -181,14 +190,7 @@ export const TableOfContentsNode = Node.create({
   inline: false,
 
   addOptions() {
-    return {
-      /**
-       * 点击目录项滚动到标题时，距离视口顶部的偏移量（像素）。
-       * 用于避开固定定位的 header / 工具栏等遮挡元素。
-       * @default 0
-       */
-      scrollOffset: 0,
-    };
+    return { scrollOffset: 0 };
   },
 
   parseHTML() {

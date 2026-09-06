@@ -41,6 +41,7 @@ export { TextMenu } from "./bubble-menu/text-menu";
 export { ReadonlyTextMenu } from "./bubble-menu/readonly-text-menu";
 export type { ReadonlyTextMenuProps } from "./bubble-menu/readonly-text-menu";
 export { LinkBubble } from "./bubble-menu/link-bubble";
+export { MarkdownPasteConfirmHost, openMarkdownPasteConfirm } from "./markdown-paste/markdown-paste-dialog";
 export { LinkDialog, LinkDialogHost, openLinkDialog } from "./bubble-menu/link-dialog";
 export { BlockBubbleMenu } from "./bubble-menu/block-bubble";
 export { BlockHandleMenu } from "./bubble-menu/block-handle-menu";

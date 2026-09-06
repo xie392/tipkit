@@ -363,6 +363,35 @@
   animation: tk-spin 0.8s linear infinite;
 }
 
+/* 图片失败占位（上传失败或图片加载失败，extensions/image-block 渲染） */
+.tk-image-block-failed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 140px;
+  width: 100%;
+  background: color-mix(in srgb, var(--tk-foreground, #000) 5%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--tk-foreground, #000) 25%, transparent);
+  border-radius: 8px;
+  color: color-mix(in srgb, var(--tk-foreground, #000) 55%, transparent);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.tk-image-block-failed-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tk-image-block-failed-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .tk-image-block-img {
   display: block;
   border-radius: 8px;
@@ -2931,6 +2960,33 @@
 .tk-rename-dialog-footer {
   margin-top: 20px;
   gap: 8px;
+}
+
+/* Markdown 粘贴确认弹窗（布局层；颜色由 shadcn/ui CSS 变量驱动） */
+.tk-markdown-paste-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.tk-markdown-paste-description {
+  margin: 0;
+  font-size: 13px;
+  color: var(--foreground, #222);
+}
+
+.tk-markdown-paste-preview {
+  max-height: 120px;
+  overflow: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted-foreground, #888);
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .tk-block-bubble-drag {

@@ -6,8 +6,8 @@ import type { Editor } from "@tiptap/react";
 import { TipKitEditor } from "@tipkit/editor";
 import type { EditorDeps, IconRef, CommentRange, AIProvider } from "@tipkit/editor";
 import mammoth from "mammoth/mammoth.browser";
-import { createBasicExtensions, createAdvancedExtensions, createFootnoteExtensions, Comment, Canvas, AiGeneration, Emoji, SearchAndReplace, UniqueID, LanguageTool, ImportDoc } from "@tipkit/extensions";
-import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockHandleMenu, TableControls, ReadonlyTextMenu, AiMenu } from "@tipkit/ui";
+import { createBasicExtensions, createAdvancedExtensions, createFootnoteExtensions, Comment, Canvas, AiGeneration, Emoji, SearchAndReplace, UniqueID, LanguageTool, ImportDoc, MarkdownPaste } from "@tipkit/extensions";
+import { SlashMenu, EmojiSuggestion, TextMenu, LinkBubble, LinkDialogHost, BlockHandleMenu, TableControls, ReadonlyTextMenu, AiMenu, MarkdownPasteConfirmHost, openMarkdownPasteConfirm } from "@tipkit/ui";
 import { useDemoLang } from "@/components/use-demo-lang";
 import type { DemoLang } from "@/components/site-lang-switch";
 import { BlockCommentHover } from "@/components/block-comment-hover";
@@ -373,6 +373,19 @@ export function DemoEditor({
   }, []);
 
   const commentExt = useMemo(() => Comment.configure(), []);
+
+  // 基础扩展 + Markdown 粘贴确认：检测到 Markdown 时弹窗询问是否转换（关闭弹窗 = 保留原文本）
+  const basicExts = useMemo(
+    () =>
+      createBasicExtensions({
+        replace: {
+          markdownPaste: MarkdownPaste.configure({
+            onMarkdownDetected: (text, actions) => openMarkdownPasteConfirm(text, actions),
+          }),
+        },
+      }),
+    [],
+  );
 
   // 文档导入：demo 用 mammoth 在前端把 docx 转 HTML（真实场景建议交给消费方服务端转换）。
   const importDocExt = useMemo(
@@ -816,7 +829,7 @@ export function DemoEditor({
             onEditorReady?.(editor);
           }}
           extensions={[
-            ...createBasicExtensions(),
+            ...basicExts,
             UniqueID,
             SearchAndReplace,
             LanguageTool.configure({ language: "auto" }),
@@ -840,6 +853,7 @@ export function DemoEditor({
                 <ReadonlyTextMenu editor={editor} onCommentCreate={handleReadonlyCommentCreate} />
                 <LinkBubble editor={editor} />
                 <LinkDialogHost editor={editor} />
+                <MarkdownPasteConfirmHost />
                 {editable && <BlockHandleMenu editor={editor} />}
                 <TableControls editor={editor} />
                 {editable && <AiMenu editor={editor} />}

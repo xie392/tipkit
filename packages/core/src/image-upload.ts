@@ -11,22 +11,23 @@ export function createUploadId(): string {
 /**
  * 按 uploadId 查找上传中的 imageBlock 节点：
  * - url 非空：写入正式地址并清除上传态
- * - url 为 null（失败/取消）：删除占位节点
+ * - url 为 null（失败/取消）：占位节点转为 uploadFailed 失败态，由用户在
+ *   NodeView 中删除或重试
  */
 export function finalizeImageUpload(editor: Editor, uploadId: string, url: string | null): boolean {
-  let target: { pos: number; size: number; attrs: Record<string, unknown> } | null = null;
+  let target: { pos: number; attrs: Record<string, unknown> } | null = null;
   editor.state.doc.descendants((node, pos) => {
     if (target) return false;
     if (node.type.name === "imageBlock" && node.attrs.uploadId === uploadId) {
-      target = { pos, size: node.nodeSize, attrs: node.attrs as Record<string, unknown> };
+      target = { pos, attrs: node.attrs as Record<string, unknown> };
       return false;
     }
     return true;
   });
   if (!target) return false;
   // 快照：target 在闭包内赋值，TS 不保留其收窄，先拷出再解构
-  const snapshot = target as { pos: number; size: number; attrs: Record<string, unknown> };
-  const { pos, size, attrs } = snapshot;
+  const snapshot = target as { pos: number; attrs: Record<string, unknown> };
+  const { pos, attrs } = snapshot;
 
   const tr = editor.state.tr;
   if (url) {
@@ -37,7 +38,12 @@ export function finalizeImageUpload(editor: Editor, uploadId: string, url: strin
       uploadId: null,
     });
   } else {
-    tr.delete(pos, pos + size);
+    tr.setNodeMarkup(pos, undefined, {
+      ...attrs,
+      uploading: false,
+      uploadFailed: true,
+      uploadId: null,
+    });
   }
   editor.view.dispatch(tr);
   return true;

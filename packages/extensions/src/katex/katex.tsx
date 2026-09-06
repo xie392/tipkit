@@ -26,7 +26,11 @@ declare module "@tiptap/core" {
   }
 }
 
-export const Katex = Node.create({
+export interface KatexOptions {
+  HTMLAttributes: Record<string, unknown>;
+}
+
+export const Katex = Node.create<KatexOptions>({
   name: "katex",
   group: "block",
   selectable: true,

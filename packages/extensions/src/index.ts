@@ -14,7 +14,9 @@
  * 3. 依赖注入：上传/存储/katex 一律从 @tipkit/core 的 useEditorDeps() 读取
  */
 export { createBasicExtensions } from "./basic";
+export type { BasicExtensionsOptions, BasicExtensionKey } from "./basic";
 export { createAdvancedExtensions } from "./advanced";
+export type { AdvancedExtensionsOptions, AdvancedExtensionKey } from "./advanced";
 
 // M1：基础扩展
 export { safeMarkInputRule } from "./markdown/safe-mark-input-rule";
@@ -23,11 +25,13 @@ export { MarkdownLink } from "./markdown/link";
 export { LinkBackfillConvert } from "./markdown/link-backfill-convert";
 export { CodeBackfillConvert } from "./markdown/code-backfill-convert";
 export { MarkdownPaste } from "./markdown/paste";
+export type { MarkdownPasteOptions, MarkdownPasteActions } from "./markdown/paste";
 export { ListInputRules } from "./markdown/list-input-rules";
 export { TrailingNode } from "./basic/trailing-node";
 export { Selection } from "./basic/selection";
 export { SelectAll } from "./basic/select-all";
 export { FontSize } from "./basic/font-size";
+export type { FontSizeOptions } from "./basic/font-size";
 export { CustomHorizontalRule } from "./basic/horizontal-rule";
 export { UrlAutolink } from "./markdown/url-autolink";
 
@@ -51,20 +55,21 @@ export type { CodeBlockTheme, CodeLanguage } from "./code-block/code-block";
 
 // M3：高级节点
 export { Katex } from "./katex/katex";
-export type { KatexAttrs } from "./katex/katex";
+export type { KatexAttrs, KatexOptions } from "./katex/katex";
 export { Status } from "./status/status";
 export type { StatusAttrs } from "./status/status";
 export { Callout, CALLOUT_VARIANTS, CALLOUT_VARIANT_EMOJIS } from "./callout/callout";
-export type { CalloutVariant } from "./callout/callout";
+export type { CalloutVariant, CalloutOptions } from "./callout/callout";
 export { Columns, Column, ColumnLayout } from "./columns/columns";
 export { Details, DetailsSummary, DetailsContent } from "./details/details";
 export { TableOfContentsNode } from "./toc/toc-node";
+export type { TableOfContentsOptions } from "./toc/toc-node";
 export { Iframe } from "./iframe/iframe";
-export type { IframeAttrs } from "./iframe/iframe";
+export type { IframeAttrs, IframeOptions } from "./iframe/iframe";
 export { Attachment } from "./attachment/attachment";
-export type { AttachmentAttrs } from "./attachment/attachment";
+export type { AttachmentAttrs, AttachmentOptions } from "./attachment/attachment";
 export { Video } from "./video/video";
-export type { VideoAttrs } from "./video/video";
+export type { VideoAttrs, VideoOptions } from "./video/video";
 export { BlockHandles, blockHandlesKey, getActiveBlockPos } from "./block-handles/block-handles";
 export { FileHandler } from "./file-handler/file-handler";
 export type { FileHandlerOptions } from "./file-handler/file-handler";
@@ -99,7 +104,7 @@ export type { CanvasShape, CanvasView, CanvasTool, Point, Bounds } from "./canva
 
 // Footnotes（脚注：正文引用 + 文末条目容器；参考 tiptap-footnotes）
 export { FootnoteReference, FootnoteItem, Footnotes, createFootnoteExtensions } from "./footnotes/footnotes";
-export type { FootnoteReferenceAttrs, FootnoteItemAttrs, SetFootnoteOptions } from "./footnotes/footnotes";
+export type { FootnoteReferenceAttrs, FootnoteItemAttrs, SetFootnoteOptions, FootnoteReferenceOptions, FootnoteItemOptions } from "./footnotes/footnotes";
 
 // SearchAndReplace（查找替换：装饰高亮 + 替换命令；参考 tiptap-search-and-replace）
 export { SearchAndReplace, searchAndReplaceKey } from "./search-and-replace/search-and-replace";

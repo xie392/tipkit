@@ -22,7 +22,11 @@ declare module "@tiptap/core" {
   }
 }
 
-export const Iframe = Node.create({
+export interface IframeOptions {
+  HTMLAttributes: Record<string, unknown>;
+}
+
+export const Iframe = Node.create<IframeOptions>({
   name: "iframe",
   content: "",
   marks: "",
