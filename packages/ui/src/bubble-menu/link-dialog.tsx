@@ -58,23 +58,42 @@ export function LinkDialog({ editor, open, onOpenChange }: LinkDialogProps) {
 
     const chain = editor.chain().focus();
 
-    if (empty) {
+    // 命中已有链接时，始终用 mark 整个范围作为替换区间，避免光标落在链接内（empty=true）时追加而不是替换
+    let rangeFrom = from;
+    let rangeTo = to;
+    let existingText = "";
+    if (editor.isActive("link")) {
+      const markRange = getMarkRange(
+        editor.state.doc.resolve(editor.state.selection.from),
+        editor.schema.marks.link,
+      );
+      if (markRange) {
+        rangeFrom = markRange.from;
+        rangeTo = markRange.to;
+        existingText = editor.state.doc.textBetween(rangeFrom, rangeTo, "\n", " ");
+      }
+    } else {
+      existingText = empty ? "" : editor.state.doc.textBetween(rangeFrom, rangeTo, "\n", " ");
+    }
+
+    const needReplaceText =
+      rangeFrom !== rangeTo && text.trim() && text.trim() !== existingText;
+
+    if (rangeFrom === rangeTo) {
+      // 光标在空位置，直接插入新链接文本
       chain.insertContent({
         type: "text",
         text: label,
         marks: [{ type: "link", attrs: { href } }],
       });
+    } else if (needReplaceText) {
+      chain.deleteRange({ from: rangeFrom, to: rangeTo }).insertContent({
+        type: "text",
+        text: label,
+        marks: [{ type: "link", attrs: { href } }],
+      });
     } else {
-      const selectedText = editor.state.doc.textBetween(from, to, "\n", " ");
-      if (text.trim() && text.trim() !== selectedText) {
-        chain.deleteRange({ from, to }).insertContent({
-          type: "text",
-          text: label,
-          marks: [{ type: "link", attrs: { href } }],
-        });
-      } else {
-        chain.extendMarkRange("link").setLink({ href });
-      }
+      chain.extendMarkRange("link").setLink({ href });
     }
     chain.run();
     onOpenChange(false);
