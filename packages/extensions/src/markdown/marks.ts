@@ -54,6 +54,7 @@ export const CustomStrike = Strike.extend({
 });
 
 export const CustomCode = Code.extend({
+  excludes: "bold italic strike underline link",
   addInputRules() {
     return [safeMarkInputRule({ find: codeInputMatch, type: this.type })];
   },

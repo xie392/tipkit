@@ -118,6 +118,14 @@
   padding: 0.15em 0.4em;
 }
 
+/* 行内 code 与高亮共存：code 背景透明，由 mark 黄底覆盖（双向嵌套都支持） */
+.tk-theme-default .tk-editor .tk-prosemirror mark code:not(pre code) {
+  background: transparent;
+}
+.tk-theme-default .tk-editor .tk-prosemirror code:not(pre code):has(mark) {
+  background: transparent;
+}
+
 .tk-theme-default .tk-editor .tk-prosemirror a {
   color: var(--primary);
   text-decoration: underline;

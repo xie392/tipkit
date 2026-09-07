@@ -242,6 +242,14 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
+/* 行内 code 与高亮共存：code 背景透明，由 mark 马克笔底色覆盖 */
+.tk-theme-sketch .tk-editor .tk-prosemirror mark code:not(pre code) {
+  background: transparent;
+}
+.tk-theme-sketch .tk-editor .tk-prosemirror code:not(pre code):has(mark) {
+  background: transparent;
+}
+
 .tk-theme-sketch .tk-editor .tk-prosemirror a {
   color: var(--primary);
   text-decoration: underline;
