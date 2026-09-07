@@ -449,4 +449,28 @@ export const CustomCodeBlock = CodeBlockLowlight.configure({
   addNodeView() {
     return ReactNodeViewRenderer(CodeBlockView);
   },
+  addKeyboardShortcuts() {
+    return {
+      Backspace: ({ editor }) => {
+        const { selection } = editor.state;
+        const { $from, empty } = selection;
+
+        if (!empty) return false;
+        if (!editor.isActive("codeBlock")) return false;
+
+        // 光标在代码块内容开头且没有选中内容时，阻止 Backspace 删除整个代码块
+        if ($from.parentOffset === 0) {
+          return true;
+        }
+
+        return false;
+      },
+      Enter: ({ editor }) => {
+        if (!editor.isActive("codeBlock")) return false;
+
+        // 代码块中按回车只插入换行，不分裂代码块
+        return editor.commands.insertContent("\n");
+      },
+    };
+  },
 });
