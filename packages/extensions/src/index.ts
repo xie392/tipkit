@@ -24,6 +24,7 @@ export { CustomBold, CustomItalic, CustomStrike, CustomCode } from "./markdown/m
 export { MarkdownLink } from "./markdown/link";
 export { LinkBackfillConvert } from "./markdown/link-backfill-convert";
 export { CodeBackfillConvert } from "./markdown/code-backfill-convert";
+export { MarkBackfillConvert } from "./markdown/mark-backfill-convert";
 export { MarkdownPaste } from "./markdown/paste";
 export type { MarkdownPasteOptions, MarkdownPasteActions } from "./markdown/paste";
 export { ListInputRules } from "./markdown/list-input-rules";

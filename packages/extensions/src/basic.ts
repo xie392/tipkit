@@ -23,6 +23,7 @@ import { CustomBold, CustomItalic, CustomStrike, CustomCode } from "./markdown/m
 import { MarkdownLink } from "./markdown/link";
 import { LinkBackfillConvert } from "./markdown/link-backfill-convert";
 import { CodeBackfillConvert } from "./markdown/code-backfill-convert";
+import { MarkBackfillConvert } from "./markdown/mark-backfill-convert";
 import { MarkdownPaste } from "./markdown/paste";
 import { UrlAutolink } from "./markdown/url-autolink";
 import { ListInputRules } from "./markdown/list-input-rules";
@@ -61,6 +62,7 @@ export type BasicExtensionKey =
   | "markdownLink"
   | "linkBackfillConvert"
   | "codeBackfillConvert"
+  | "markBackfillConvert"
   | "markdown"
   | "markdownPaste"
   | "urlAutolink"
@@ -158,6 +160,8 @@ function buildBasicExtensions(): Record<BasicExtensionKey, AnyExtension> {
     linkBackfillConvert: LinkBackfillConvert,
     // 行内代码回填转换：`code` 在空格/回车时兜底转 code mark
     codeBackfillConvert: CodeBackfillConvert,
+    // 行内 mark 回填转换：**bold** / *italic* / ~~strike~~ 在空格/回车时兜底转换
+    markBackfillConvert: MarkBackfillConvert,
     // markdown 粘贴 / 序列化
     markdown: Markdown,
     markdownPaste: MarkdownPaste,
