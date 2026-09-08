@@ -32,6 +32,7 @@ import { Selection } from "./basic/selection";
 import { SelectAll } from "./basic/select-all";
 import { FontSize } from "./basic/font-size";
 import { CustomHorizontalRule } from "./basic/horizontal-rule";
+import { CustomHeading } from "./basic/heading";
 import { TableReadonlyResize } from "./table-readonly-resize/table-readonly-resize";
 
 /** 基础集合内每个扩展的稳定 key（按加入顺序排列） */
@@ -70,6 +71,7 @@ export type BasicExtensionKey =
   | "selection"
   | "selectAll"
   | "listInputRules"
+  | "heading"
   | "characterCount"
   | "dropcursor";
 
@@ -114,7 +116,8 @@ function buildBasicExtensions(): Record<BasicExtensionKey, AnyExtension> {
     // StarterKit：禁用内置 Bold/Italic/Strike/Code（用下方自定义版，
     // 规避 Tiptap 3.x markInputRule 的 addMark 崩溃 bug）。
     starterKit: StarterKit.configure({
-      heading: { levels: [1, 2, 3, 4, 5, 6] },
+      // heading 由下方 CustomHeading 替换（保证 input rule 注册顺序更晚，作为兜底）
+      heading: false,
       codeBlock: false,
       bold: false,
       italic: false,
@@ -172,6 +175,9 @@ function buildBasicExtensions(): Record<BasicExtensionKey, AnyExtension> {
     selection: Selection,
     selectAll: SelectAll,
     listInputRules: ListInputRules,
+    // 自定义 Heading：input rule 在所有基础规则之后注册，作为最后兜底，
+    // 修复段尾回车后首个空段上输入 `## ` 偶发不转标题的问题
+    heading: CustomHeading,
     characterCount: CharacterCount.configure({ limit: 100000 }),
     dropcursor: Dropcursor.configure({ width: 2 }),
   };
