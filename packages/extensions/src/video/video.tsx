@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Node, mergeAttributes, createAtomBlockMarkdownSpec } from "@tiptap/core";
 import {
   ReactNodeViewRenderer,
@@ -149,6 +149,8 @@ function VideoView({ editor, node, updateAttributes, deleteNode }: NodeViewProps
   const [urlDraft, setUrlDraft] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadName, setUploadName] = useState("");
+  /** 外部视频源加载失败（断网/地址失效）时显示占位，重试可复位 */
+  const [loadFailed, setLoadFailed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const placement = useToolbarPlacement(wrapRef);
@@ -156,6 +158,11 @@ function VideoView({ editor, node, updateAttributes, deleteNode }: NodeViewProps
 
   const src = node.attrs.src as string | null;
   const error = node.attrs.error as string | null;
+
+  // 视频源变更（上传/替换/换链接）时复位加载失败状态
+  useEffect(() => {
+    setLoadFailed(false);
+  }, [src]);
 
   const setUrl = () => {
     const url = urlDraft.trim();
@@ -258,8 +265,14 @@ function VideoView({ editor, node, updateAttributes, deleteNode }: NodeViewProps
         }}
       />
 
-      {src ? (
-        <video src={src} controls preload="metadata" className="tk-video-player" />
+      {src && !loadFailed ? (
+        <video src={src} controls preload="metadata" className="tk-video-player" onError={() => setLoadFailed(true)} />
+      ) : src ? (
+        <div className="tk-video-card">
+          <button type="button" className="tk-video-card-status is-error" onClick={() => setLoadFailed(false)}>
+            {t("video.loadFailed")} · {t("video.retry")}
+          </button>
+        </div>
       ) : (
         <div className="tk-video-card">
           {uploading ? (

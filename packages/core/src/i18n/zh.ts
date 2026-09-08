@@ -292,6 +292,8 @@ export const zh: Messages = {
   "iframeView.embed": "嵌入",
   "iframeView.dragResize": "拖拽调整高度",
   "iframeView.changeLink": "改链接",
+  "iframeView.loadFailed": "网页加载失败",
+  "iframeView.retry": "点击重试",
   "iframeView.editLink": "编辑链接",
   "iframeView.duplicate": "复制",
   "iframeView.delete": "删除",
@@ -467,6 +469,8 @@ export const zh: Messages = {
   "video.errorUnsupported": "仅支持 mp4 / webm / ogg 视频文件",
   "video.errorNoUploadFn": "未注入 uploadAttachment，请在 EditorDeps 中提供",
   "video.errorUploadFailed": "上传失败，点击重试",
+  "video.loadFailed": "视频加载失败",
+  "video.retry": "点击重试",
 
   /* ── 补漏 ── */
   "blockHandle.insertAbove": "在上方插入",

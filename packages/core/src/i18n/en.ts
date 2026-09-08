@@ -292,6 +292,8 @@ export const en: Messages = {
   "iframeView.embed": "Embed",
   "iframeView.dragResize": "Drag to resize height",
   "iframeView.changeLink": "Change URL",
+  "iframeView.loadFailed": "Page failed to load",
+  "iframeView.retry": "Click to retry",
   "iframeView.editLink": "Edit link",
   "iframeView.duplicate": "Duplicate",
   "iframeView.delete": "Delete",
@@ -467,6 +469,8 @@ export const en: Messages = {
   "video.errorUnsupported": "Only mp4 / webm / ogg videos are supported",
   "video.errorNoUploadFn": "uploadAttachment is not provided in EditorDeps",
   "video.errorUploadFailed": "Upload failed, click to retry",
+  "video.loadFailed": "Video failed to load",
+  "video.retry": "Click to retry",
 
   /* ── Missing keys ── */
   "blockHandle.insertAbove": "Insert above",

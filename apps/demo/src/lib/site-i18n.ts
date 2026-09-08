@@ -51,7 +51,7 @@ export const SITE_COPY = {
     demoMode: {
       title: "切换编辑 / 只读模式",
       edit: "编辑",
-      readonly: "只读",
+      preview: "预览",
     },
     home: {
       heroTitleA: "一套逻辑",
@@ -142,7 +142,7 @@ export const SITE_COPY = {
     demoMode: {
       title: "Toggle edit / read-only mode",
       edit: "Edit",
-      readonly: "Read-only",
+      preview: "Preview",
     },
     home: {
       heroTitleA: "One logic",

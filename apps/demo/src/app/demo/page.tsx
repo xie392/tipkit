@@ -46,8 +46,9 @@ export default function DemoPage() {
           title={c.title}
           onClick={() => setReadOnly((v) => !v)}
         >
-          {readOnly ? <Eye className="w-4 h-4" /> : <PencilLine className="w-4 h-4" />}
-          <span>{readOnly ? c.readonly : c.edit}</span>
+          {/* 动作导向文案：编辑态显示「预览」、只读态显示「编辑」，点击进入对侧模式 */}
+          {readOnly ? <PencilLine className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          <span>{readOnly ? c.edit : c.preview}</span>
         </button>
       </div>
     </div>

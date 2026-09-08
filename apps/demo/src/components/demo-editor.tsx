@@ -197,6 +197,9 @@ const DEMO_COMMENT_ID = "c_demo_001";
 const DEMO_AUTHOR = "TipKit";
 const CURRENT_USER = "我";
 
+/** demo 草稿持久化：刷新/关闭后恢复上次编辑，属于消费方职责（编辑器内核不保存） */
+const DRAFT_KEY = "tipkit-demo-draft";
+
 const DEMO_CONTENT = `
 <h1>TipKit 编辑器演示</h1>
 <p>这是一段 <strong>加粗</strong>、<em>斜体</em>、<s>删除线</s> 和 <code>行内代码</code> 的正文，试试 <mark>高亮</mark> 与 <u>下划线</u>，以及一个 <a href="https://tiptap.dev">外部链接</a>。</p>
@@ -279,6 +282,39 @@ export function DemoEditor({
   const { lang, t } = useDemoLang();
   const editorRef = useRef<Editor | null>(null);
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
+
+  /** 初始内容：优先读取上次保存的草稿；编辑器内容仅客户端生效，不影响 SSR 空容器，无水合不一致 */
+  const [content] = useState<string>(() => {
+    if (typeof window === "undefined") return DEMO_CONTENT;
+    try {
+      return localStorage.getItem(DRAFT_KEY) || DEMO_CONTENT;
+    } catch {
+      return DEMO_CONTENT;
+    }
+  });
+  /** 是否发生编辑（决定离开页面时是否弹未保存提示） */
+  const [dirty, setDirty] = useState(false);
+
+  /** 编辑时实时把草稿写入 localStorage */
+  const handleChange = useCallback((editor: Editor) => {
+    try {
+      localStorage.setItem(DRAFT_KEY, editor.getHTML());
+    } catch {
+      // localStorage 不可用（隐私模式等）时静默降级为不持久化
+    }
+    setDirty(true);
+  }, []);
+
+  // 未保存改动时，离开页面弹确认框
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (!dirty) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirty]);
 
   const [comments, setComments] = useState<DemoComment[]>(() => [
     {
@@ -821,7 +857,8 @@ export function DemoEditor({
       <div className="demo-editor-article">
         <TipKitEditor
           deps={deps}
-          content={DEMO_CONTENT}
+          content={content}
+          onChange={handleChange}
           editable={editable}
           onCreate={(editor) => {
             editorRef.current = editor;

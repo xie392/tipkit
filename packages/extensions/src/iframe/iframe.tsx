@@ -210,9 +210,12 @@ function IframeView(props: NodeViewProps) {
   const { visible, show, hide } = useToolbarVisibility();
   const [hovered, setHovered] = useState(false);
   const dragHRef = useRef<number | null>(null);
+  /** 外部 iframe 加载失败占位（跨域时 onError 不一定触发，尽力而为） */
+  const [loadFailed, setLoadFailed] = useState(false);
 
   useEffect(() => {
     setDraftUrl(url ?? "");
+    setLoadFailed(false);
     if (url) setEditing(false);
   }, [url]);
 
@@ -324,16 +327,31 @@ function IframeView(props: NodeViewProps) {
           </div>
         </div>
       )}
-      {url && !editing ? (
+      {url && !editing && !loadFailed ? (
         <div ref={wrapRef} className="tk-iframe-inner" style={{ width, height }}>
           <iframe
             src={url}
             className="tk-iframe-frame"
             title="iframe"
             loading="lazy"
+            onError={() => setLoadFailed(true)}
             sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
             allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
           />
+        </div>
+      ) : url && !editing && loadFailed ? (
+        <div className="tk-iframe-empty">
+          <div className="tk-iframe-empty-title">{t("iframeView.loadFailed")}</div>
+          <div className="tk-iframe-empty-actions">
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => setLoadFailed(false)}
+              className="tk-iframe-btn tk-iframe-btn-primary"
+            >
+              {t("iframeView.retry")}
+            </button>
+          </div>
         </div>
       ) : (
         <div className="tk-iframe-empty">
